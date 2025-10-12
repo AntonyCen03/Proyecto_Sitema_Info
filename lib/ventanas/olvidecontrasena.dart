@@ -21,25 +21,7 @@ class _OlvidecontrasenaState extends State<Olvidecontrasena> {
     super.dispose();
   }
 
-  void _sendRecoveryCode() {
-    final email = _emailController.text.trim();
-
-    if (email.isNotEmpty && email.contains('@')) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Se ha enviado un código a $email'),
-          backgroundColor: Colors.green,
-        ),
-      );
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Por favor, ingresa un correo electrónico válido.'),
-          backgroundColor: Colors.red,
-        ),
-      );
-    }
-  }
+  void _sendRecoveryCode() {}
 
   @override
   Widget build(BuildContext context) {
@@ -52,10 +34,8 @@ class _OlvidecontrasenaState extends State<Olvidecontrasena> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Image.asset('assets/images/usuario.png.webp', height: 120),
-
-                const SizedBox(height: 32), // Espacio
-
+                Image.asset('assets/images/usuariopng.webp', height: 120),
+                const SizedBox(height: 32),
                 const Text(
                   'Ingresa tu correo electrónico',
                   style: TextStyle(
@@ -65,17 +45,13 @@ class _OlvidecontrasenaState extends State<Olvidecontrasena> {
                   ),
                   textAlign: TextAlign.center,
                 ),
-
                 const SizedBox(height: 16),
-
                 const Text(
                   'Te enviaremos un código para reestablecer tu contraseña.',
                   style: TextStyle(fontSize: 16, color: colorTextoSecundario),
                   textAlign: TextAlign.center,
                 ),
-
                 const SizedBox(height: 32),
-
                 Container(
                   width: 300,
                   child: TextField(
@@ -91,32 +67,46 @@ class _OlvidecontrasenaState extends State<Olvidecontrasena> {
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12.0),
                         borderSide: const BorderSide(
-                          color: colorPrimario,
+                          color: Color.fromARGB(255, 0, 59, 238),
                           width: 2,
                         ),
                       ),
                     ),
                   ),
                 ),
-
                 const SizedBox(height: 24),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    TextButton(
+                      onPressed: () {
+                        Navigator.pop(context);
+                      },
+                      child: const Text(
+                        'Regresar',
+                        style: TextStyle(fontSize: 16, color: colorPrimario),
+                      ),
+                    ),
 
-                ElevatedButton(
-                  onPressed: _sendRecoveryCode,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color.fromARGB(255, 217, 130, 30),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 50,
-                      vertical: 15,
+                    const SizedBox(width: 20),
+                    ElevatedButton(
+                      onPressed: _sendRecoveryCode,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color.fromARGB(255, 238, 143, 0),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 30,
+                          vertical: 15,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12.0),
+                        ),
+                      ),
+                      child: const Text(
+                        'Enviar Código',
+                        style: TextStyle(fontSize: 16, color: Colors.white),
+                      ),
                     ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12.0),
-                    ),
-                  ),
-                  child: const Text(
-                    'Enviar Código',
-                    style: TextStyle(fontSize: 18, color: Colors.white),
-                  ),
+                  ],
                 ),
               ],
             ),
