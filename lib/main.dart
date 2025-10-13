@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'Ui/pagina_login/login.dart';
 
 void main() => runApp(const MyApp());
 
@@ -8,15 +9,15 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Material App',
-      home: Scaffold(
-        appBar: AppBar(
-          title: const Text('Material App Bar'),
-        ),
-        body: const Center(
-          child: Text('Hola Mundo'),
-        ),
+      title: 'MetroBox',
+      debugShowCheckedModeBanner: false,
+      // Use a theme to change the scaffold background color globally.
+      theme: ThemeData(
+        scaffoldBackgroundColor: const Color(
+          0xFFF5F7FA,
+        ), // light grey-blue background
       ),
+      home: const PageLogin(),
     );
   }
 }
