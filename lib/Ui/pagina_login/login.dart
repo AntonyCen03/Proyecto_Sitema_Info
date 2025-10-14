@@ -21,7 +21,7 @@ class _PageLoginState extends State<PageLogin> {
         leading: Padding(
           padding: const EdgeInsets.all(8.0),
           child: Image.asset(
-        'assets/images/user.jpg',
+        'assets/images/Logo.png',
         height: 32,
         width: 32,
           ),
