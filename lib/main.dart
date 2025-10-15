@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:proyecto_final/registrar_usuario.dart';
 
 void main() {
   runApp(const MyApp());
@@ -19,7 +18,7 @@ class MyApp extends StatelessWidget {
           0xFFF5F7FA,
         ), // light grey-blue background
       ),
-      home: const SignUpScreen(),
+      //home: const SignUpScreen(),
     );
   }
 }

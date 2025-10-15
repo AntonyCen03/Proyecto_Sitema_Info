@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 
-class SignUpScreen extends StatefulWidget {
-  const SignUpScreen({super.key});
+class PageSignUp extends StatefulWidget {
+  const PageSignUp({super.key});
 
   @override
-  State<SignUpScreen> createState() => _SignUpScreenState();
+  State<PageSignUp> createState() => _SignUpScreenState();
 }
 
-class _SignUpScreenState extends State<SignUpScreen> {
+class _SignUpScreenState extends State<PageSignUp> {
   final _formKey = GlobalKey<FormState>();
   bool _isPasswordVisible = false;
   bool _agreedToPrivacyPolicy = false;
