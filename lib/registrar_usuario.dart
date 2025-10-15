@@ -12,8 +12,42 @@ class _SignUpScreenState extends State<SignUpScreen> {
   bool _isPasswordVisible = false;
   bool _agreedToPrivacyPolicy = false;
 
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+  final TextEditingController _carnetController = TextEditingController();
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    _carnetController.dispose();
+    super.dispose();
+  }
+
+  void _registrarUsuarior() {
+    if (_formKey.currentState!.validate()) {
+      final email = _emailController.text;
+      final contrasena = _passwordController.text;
+      final carnet = _carnetController.text;
+
+      //Aqui iria la logica del firebase para crear el usuario, puse un mensaje para mostrar algo mientras
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'MENSAJE DE PRUEBA (Falta conectar con firbebase)'
+            'Registro Exitoso!\n'
+            'Email: $email\n'
+            'Carnet: $carnet\n'
+            'Contraseña: $contrasena',
+          ),
+        ),
+      );
+    }
+  }
+
   Widget _buildEmailField() {
     return TextFormField(
+      controller: _emailController,
       keyboardType: TextInputType.emailAddress,
       decoration: const InputDecoration(
         labelText: 'Correo Electrónico',
@@ -34,6 +68,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
   Widget _buildPasswordField() {
     return TextFormField(
+      controller: _passwordController,
       obscureText: !_isPasswordVisible,
       decoration: InputDecoration(
         labelText: 'Contraseña',
@@ -63,21 +98,20 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
   Widget _buildCarnetField() {
     return TextFormField(
+      controller: _carnetController,
       keyboardType: TextInputType.number,
       decoration: const InputDecoration(
         labelText: 'Carnet',
-        hintText: 'Ingrese su Carnet',
+        hintText: 'Ingrese su Carnet (11 dígitos)',
         border: OutlineInputBorder(),
       ),
       validator: (value) {
         if (value == null || value.isEmpty) {
           return 'Por favor, ingrese su Carnet';
         }
-        // 1. Verifica la longitud exacta de 11
         if (value.length != 11) {
-          return 'Formato de Carnet no válido.';
+          return 'El Carnet debe tener exactamente 11 dígitos.';
         }
-        // 2. Verifica que solo sean dígitos
         final isNumeric = RegExp(r'^[0-9]+$').hasMatch(value);
         if (!isNumeric) {
           return 'El Carnet solo puede contener números.';
@@ -133,11 +167,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
           elevation: 5,
         ),
-        onPressed: _agreedToPrivacyPolicy
-            ? () {
-                if (_formKey.currentState!.validate()) {}
-              }
-            : null,
+        onPressed: _agreedToPrivacyPolicy ? _registrarUsuarior : null,
         child: const Text(
           'Crear Cuenta',
           style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
