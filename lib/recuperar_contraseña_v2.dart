@@ -1,12 +1,5 @@
 import 'package:flutter/material.dart';
 
-
-void main() {
-  runApp(const recuperar_contrasena_v2());
-  
-}
-
-
 class recuperar_contrasena_v2 extends StatelessWidget {
   final String? correo;
   const recuperar_contrasena_v2({ super.key, this.correo });
