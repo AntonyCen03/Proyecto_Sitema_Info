@@ -1,15 +1,35 @@
 import 'package:flutter/material.dart';
 
+
 void main() {
-  runApp(const MyApp());
+  runApp(const recuperar_contrasena_v2());
+  
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+
+class recuperar_contrasena_v2 extends StatelessWidget {
+  final String? correo;
+  const recuperar_contrasena_v2({ super.key, this.correo });
+
+  bool verificador(String codigo, String codigo_original){
+    if (codigo == codigo_original){
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  void reenviar_codigo(String? correo){
+    //Aqui va la logica para reenviar el codigo al correo
+  }
+
+  void Regresar(){
+    //Aqui va la logica para regresar a la pantalla anterior
+  }
 
   @override
    Widget build(BuildContext context) {    
-
+    final TextEditingController codigo = TextEditingController();
     return MaterialApp(
       home: Scaffold(
         backgroundColor: const Color.fromRGBO(255, 255, 255, 1),
@@ -59,7 +79,7 @@ class MyApp extends StatelessWidget {
                     children: [
                       const Align(
                         alignment: Alignment.topLeft,
-                        child:const Text(
+                        child: Text(
                         'Introduce el código de verificación',
                         style: TextStyle(
                           fontSize: 50,
@@ -79,7 +99,7 @@ class MyApp extends StatelessWidget {
                       const SizedBox(height: 20),
                       const Align(
                         alignment: Alignment.topLeft,
-                        child:const Text(
+                        child: Text(
                         'Revisa tu corrreo electrónico un mensaje con tu código de verificación ha sido enviado.',
                         style: TextStyle(
                           fontSize: 40,
@@ -94,10 +114,11 @@ class MyApp extends StatelessWidget {
                             margin: const EdgeInsets.all(20),
                             width: 500,
                             height: 75, 
-                            child: const Align(
+                            child: Align(
                             alignment: Alignment.topLeft,
-                            child: const TextField(
-                            decoration: InputDecoration(
+                            child: TextField(
+                            controller: codigo,
+                            decoration: const InputDecoration(
                               filled: true,
                               fillColor: Colors.white,
                               border: OutlineInputBorder(),
@@ -141,6 +162,7 @@ class MyApp extends StatelessWidget {
                              style: TextButton.styleFrom(
                              foregroundColor:const Color.fromRGBO(240, 83, 43, 50)),
                             onPressed:  (){
+                               reenviar_codigo(correo);
                               }, 
                           child: const Text('Reenviar código'),
                           ),
@@ -162,6 +184,7 @@ class MyApp extends StatelessWidget {
                             const SizedBox(width: 20),
                               ElevatedButton(
                               onPressed: (){
+                                Regresar();
                               },
                             style: ElevatedButton.styleFrom(
                               backgroundColor: const Color.fromRGBO(248, 131, 49, 1),
