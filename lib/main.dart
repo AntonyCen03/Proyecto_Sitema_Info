@@ -1,7 +1,15 @@
 import 'package:flutter/material.dart';
 import 'Ui/pagina_login/login.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
 
-void main() => runApp(const MyApp());
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+  runApp(MyApp());
+}
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -13,9 +21,7 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       // Use a theme to change the scaffold background color globally.
       theme: ThemeData(
-        scaffoldBackgroundColor: const Color(
-          0xFFF5F7FA,
-        ), // light grey-blue background
+        scaffoldBackgroundColor: const Color.fromARGB(255, 224, 224, 224), // light grey-blue background
       ),
       home: const PageLogin(),
     );
