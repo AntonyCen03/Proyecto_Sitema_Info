@@ -14,8 +14,8 @@ class recuperarcontrasenav2State extends State<RecuperarContrasena_v2> {
   bool isvisible = false;
   String correo = '';
 
-  void obtenercorreo(){
-    //Aqui va la logica para obtener el correo al que se le envio el codigo
+  void obtenercorreoycodigo(){
+    //Aqui va la logica para obtener el correo al que se le envio el codigo y el codigo original
   }
 
   void verificador(){
@@ -40,7 +40,7 @@ class recuperarcontrasenav2State extends State<RecuperarContrasena_v2> {
 
   @override
    Widget build(BuildContext context) {  
-
+    obtenercorreoycodigo();
     return MaterialApp(
       home: Scaffold(
         backgroundColor: const Color.fromRGBO(255, 255, 255, 1),
