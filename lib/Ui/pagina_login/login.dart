@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:proyecto_final/Ui/pagina_crear_cuenta/registrar_usuario.dart';
 import 'package:proyecto_final/Ui/pagina_login/widget_password.dart';
 import 'package:proyecto_final/services/firebase_services.dart';
 import 'package:proyecto_final/Ui/pagina_login/widget_iniciar_sesion.dart';
@@ -54,7 +55,7 @@ class _PageLoginState extends State<PageLogin> {
                   passwordController: _passwordController,
                 ),
                 SizedBox(height: 20),
-                registrarse(),
+                registrarse(context),
               ],
             ),
           );
@@ -120,9 +121,14 @@ Widget imagenUsuario() {
   );
 }
 
-Widget registrarse() {
+Widget registrarse(BuildContext context) {
   return TextButton(
-    onPressed: () {},
+    onPressed: () {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => PageSignUp()),
+      );
+    },
     child: Text("Registrarse", style: TextStyle(color: Colors.blue)),
   );
 }

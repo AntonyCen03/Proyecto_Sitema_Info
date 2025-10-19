@@ -20,9 +20,10 @@ class MyApp extends StatelessWidget {
       title: 'MetroBox',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        scaffoldBackgroundColor: const Color.fromARGB(255, 224, 224, 224), 
+        scaffoldBackgroundColor: const Color.fromARGB(250, 250, 250, 250), 
       ),
       home: const PageLogin(),
     );
   }
 }
+
