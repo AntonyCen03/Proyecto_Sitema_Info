@@ -33,9 +33,9 @@ class PasswordFieldState extends State<PasswordField> {
             autovalidateMode: AutovalidateMode.onUserInteraction,
             validator: (value) {
               if (value == null || value.trim().isEmpty)
-                return 'la contraseña no puede estar vacía';
+                {return 'la contraseña no puede estar vacía';}
               if (value.trim().length < 6)
-                return 'la contraseña debe tener al menos 6 caracteres';
+                {return 'la contraseña debe tener al menos 6 caracteres';}
               return null;
             },
             decoration: InputDecoration(

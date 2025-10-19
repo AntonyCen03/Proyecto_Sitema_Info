@@ -103,14 +103,10 @@ class UsernameField extends StatelessWidget {
 
 
 Widget imagenUsuario() {
-  // Usa CircleAvatar con Image.asset y un errorBuilder de respaldo para
-  // que la interfaz muestre algo si la imagen no se carga correctamente.
   return CircleAvatar(
-    radius: 40, // Más grande y visible por defecto
+    radius: 40, 
     backgroundColor: Colors.grey[200],
     backgroundImage: AssetImage('assets/images/user.jpg'),
-    // En caso de que backgroundImage falle al cargar (raro en assets empaquetados),
-    // también se proporciona un child como respaldo.
     child: ClipOval(
       child: Image.asset(
         'assets/images/user.jpg',

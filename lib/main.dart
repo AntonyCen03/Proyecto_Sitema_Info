@@ -19,9 +19,8 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'MetroBox',
       debugShowCheckedModeBanner: false,
-      // Use a theme to change the scaffold background color globally.
       theme: ThemeData(
-        scaffoldBackgroundColor: const Color.fromARGB(255, 224, 224, 224), // light grey-blue background
+        scaffoldBackgroundColor: const Color.fromARGB(255, 224, 224, 224), 
       ),
       home: const PageLogin(),
     );
