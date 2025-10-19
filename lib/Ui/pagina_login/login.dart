@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:proyecto_final/Ui/pagina_crear_cuenta/registrar_usuario.dart';
 import 'package:proyecto_final/Ui/pagina_login/widget_password.dart';
 import 'package:proyecto_final/services/firebase_services.dart';
 import 'package:proyecto_final/Ui/pagina_login/widget_iniciar_sesion.dart';
@@ -96,6 +95,7 @@ class UsernameField extends StatelessWidget {
           fillColor: Colors.white,
           filled: true,
           contentPadding: EdgeInsets.symmetric(vertical: 8.0, horizontal: 10.0),
+          prefixIcon: Icon(Icons.email),
         ),
       ),
     );
@@ -124,10 +124,7 @@ Widget imagenUsuario() {
 Widget registrarse(BuildContext context) {
   return TextButton(
     onPressed: () {
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => PageSignUp()),
-      );
+      Navigator.pushNamed(context, '/registrar');
     },
     child: Text("Registrarse", style: TextStyle(color: Colors.blue)),
   );

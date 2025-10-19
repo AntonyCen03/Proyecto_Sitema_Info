@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:proyecto_final/Ui/validator/validar_email.dart';
 import 'package:proyecto_final/services/firebase_services.dart';
 
 class PageSignUp extends StatefulWidget {
@@ -29,23 +30,45 @@ class _SignUpScreenState extends State<PageSignUp> {
     super.dispose();
   }
 
-  void _registrarUsuarior() {
+  void _registrarUsuarior() async {
     if (_formKey.currentState!.validate()) {
       final email = _emailController.text;
       final contrasena = _passwordController.text;
       final carnet = _carnetController.text;
       final nombre = _nombreController.text;
       final cedula = _cedulaController.text;
+      bool isadmin = false;
 
-      addUser(
-        nombre,
-        email,
-        contrasena,
-        false,
-        int.parse(carnet),
-        cedula,
-      );
-      Navigator.pop(context);
+      final users = await getUser();
+      Map<String, dynamic>? existingUser;
+      for (final u in users) {
+        final uemail = (u['email'] ?? '').toString().trim();
+        final ucedula = (u['cedula'] ?? '').toString().trim();
+        final ucarnet = (u['carnet'] ?? '').toString().trim();
+        if (uemail == email || ucedula == cedula || ucarnet == carnet) {
+          existingUser = u;
+          break;
+        }
+      }
+
+      if (existingUser != null) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('El usuario ya existe')));
+        return;
+      } else {
+        if (isUnimetEmail(email)) {
+          isadmin = true;
+        }
+        addUser(nombre, email, contrasena, isadmin, int.parse(carnet), cedula);
+      }
+
+      Navigator.pushNamed(context, '/login');
+      setState(() {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Usuario registrado con éxito')),
+        );
+      });
     }
   }
 
@@ -108,11 +131,8 @@ class _SignUpScreenState extends State<PageSignUp> {
         prefixIcon: Icon(Icons.email),
       ),
       validator: (value) {
-        if (value == null || value.isEmpty) {
-          return 'Por favor, ingrese un email';
-        }
-        if (!value.contains('@') || !value.contains('.')) {
-          return 'Ingrese un email válido';
+        if (validateUnimetEmail(value) != null) {
+          return 'El email debe ser unimet.edu.ve o correo.unimet.edu.ve';
         }
         return null;
       },
@@ -240,7 +260,7 @@ class _SignUpScreenState extends State<PageSignUp> {
             Icons.arrow_back,
             color: Color.fromARGB(255, 254, 143, 33),
           ),
-          onPressed: () => Navigator.pop(context),
+          onPressed: () => Navigator.pushNamed(context, '/login'),
           tooltip: 'Volver',
         ),
         title: const Text(
@@ -252,7 +272,9 @@ class _SignUpScreenState extends State<PageSignUp> {
         ),
         backgroundColor: Colors.white,
         centerTitle: true,
-        iconTheme: const IconThemeData(color: Color.fromARGB(255, 254, 143, 33)),
+        iconTheme: const IconThemeData(
+          color: Color.fromARGB(255, 254, 143, 33),
+        ),
       ),
       backgroundColor: Colors.grey[50],
       body: Center(

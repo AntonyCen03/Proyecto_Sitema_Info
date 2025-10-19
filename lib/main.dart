@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:proyecto_final/Ui/pagina_crear_cuenta/registrar_usuario.dart';
 import 'Ui/pagina_login/login.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
@@ -22,7 +23,11 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         scaffoldBackgroundColor: const Color.fromARGB(250, 250, 250, 250), 
       ),
-      home: const PageLogin(),
+      initialRoute: '/login',
+      routes: {
+        '/login': (context) => const PageLogin(),
+        '/registrar': (context) => const PageSignUp(),
+      },
     );
   }
 }

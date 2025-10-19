@@ -42,6 +42,7 @@ class PasswordFieldState extends State<PasswordField> {
               hintText: "Contraseña",
               fillColor: Colors.white,
               filled: true,
+              prefixIcon: Icon(Icons.lock),
               contentPadding: EdgeInsets.symmetric(
                 vertical: 8.0,
                 horizontal: 10.0,
