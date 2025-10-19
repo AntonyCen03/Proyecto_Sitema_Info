@@ -15,12 +15,16 @@ class _SignUpScreenState extends State<PageSignUp> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _carnetController = TextEditingController();
+  final TextEditingController _nombreController = TextEditingController();
+  final TextEditingController _cedulaController = TextEditingController();
 
   @override
   void dispose() {
     _emailController.dispose();
     _passwordController.dispose();
     _carnetController.dispose();
+    _nombreController.dispose();
+    _cedulaController.dispose();
     super.dispose();
   }
 
@@ -29,13 +33,16 @@ class _SignUpScreenState extends State<PageSignUp> {
       final email = _emailController.text;
       final contrasena = _passwordController.text;
       final carnet = _carnetController.text;
+      final nombre = _nombreController.text;
+      final cedula = _cedulaController.text;
 
       //Aqui iria la logica del firebase para crear el usuario, puse un mensaje para mostrar algo mientras
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            'MENSAJE DE PRUEBA (Falta conectar con firbebase)'
             'Registro Exitoso!\n'
+            'Nombre: $nombre\n'
+            'Cédula: $cedula\n'
             'Email: $email\n'
             'Carnet: $carnet\n'
             'Contraseña: $contrasena',
@@ -43,6 +50,54 @@ class _SignUpScreenState extends State<PageSignUp> {
         ),
       );
     }
+  }
+
+  Widget _buildNameField() {
+    return TextFormField(
+      controller: _nombreController,
+      keyboardType: TextInputType.text,
+      decoration: const InputDecoration(
+        labelText: 'Nombre Completo',
+        hintText: 'Ingrese su nombre',
+        border: OutlineInputBorder(),
+        prefixIcon: Icon(Icons.person),
+      ),
+      validator: (value) {
+        if (value == null || value.isEmpty) {
+          return 'Por favor, ingrese su nombre completo';
+        }
+        return null;
+      },
+    );
+  }
+
+  Widget _buildCedulaField() {
+    return TextFormField(
+      controller: _cedulaController,
+      keyboardType: TextInputType.number,
+      maxLength: 8,
+      decoration: const InputDecoration(
+        labelText: 'Cédula de Identidad',
+        hintText: '6 a 8 dígitos',
+        border: OutlineInputBorder(),
+        prefixIcon: Icon(Icons.credit_card),
+        counterText: '',
+      ),
+      validator: (value) {
+        if (value == null || value.isEmpty) {
+          return 'Por favor, ingrese su Cédula';
+        }
+        // Validación de 6 a 8 dígitos numéricos
+        if (value.length < 6 || value.length > 8) {
+          return 'La Cédula debe tener entre 6 y 8 dígitos.';
+        }
+        final isNumeric = RegExp(r'^[0-9]+$').hasMatch(value);
+        if (!isNumeric) {
+          return 'La Cédula solo puede contener números.';
+        }
+        return null;
+      },
+    );
   }
 
   Widget _buildEmailField() {
@@ -53,6 +108,7 @@ class _SignUpScreenState extends State<PageSignUp> {
         labelText: 'Correo Electrónico',
         hintText: 'Ingrese su correo',
         border: OutlineInputBorder(),
+        prefixIcon: Icon(Icons.email),
       ),
       validator: (value) {
         if (value == null || value.isEmpty) {
@@ -75,6 +131,7 @@ class _SignUpScreenState extends State<PageSignUp> {
         hintText: 'Cree una contraseña',
         border: const OutlineInputBorder(),
         helperText: 'Mínimo 8 caracteres',
+        prefixIcon: const Icon(Icons.lock),
         suffixIcon: IconButton(
           icon: Icon(
             _isPasswordVisible ? Icons.visibility : Icons.visibility_off,
@@ -104,6 +161,7 @@ class _SignUpScreenState extends State<PageSignUp> {
         labelText: 'Carnet',
         hintText: 'Ingrese su Carnet (11 dígitos)',
         border: OutlineInputBorder(),
+        prefixIcon: Icon(Icons.badge),
       ),
       validator: (value) {
         if (value == null || value.isEmpty) {
@@ -143,7 +201,7 @@ class _SignUpScreenState extends State<PageSignUp> {
                   TextSpan(
                     text: 'Política de Privacidad',
                     style: TextStyle(
-                      color: Colors.blue,
+                      color: Colors.deepOrange,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -209,10 +267,14 @@ class _SignUpScreenState extends State<PageSignUp> {
                       style: TextStyle(
                         fontSize: 30,
                         fontWeight: FontWeight.bold,
-                        color: Colors.black87,
+                        color: Colors.deepOrange,
                       ),
                     ),
-                    const SizedBox(height: 50),
+                    const SizedBox(height: 40),
+                    _buildNameField(),
+                    const SizedBox(height: 25),
+                    _buildCedulaField(),
+                    const SizedBox(height: 25),
                     _buildEmailField(),
                     const SizedBox(height: 25),
                     _buildPasswordField(),
