@@ -1,28 +1,46 @@
 import 'package:flutter/material.dart';
 
-class recuperar_contrasena_v2 extends StatelessWidget {
-  final String? correo;
-  const recuperar_contrasena_v2({ super.key, this.correo });
+class RecuperarContrasena_v2 extends StatefulWidget {
+  const RecuperarContrasena_v2({ super.key});
 
-  bool verificador(String codigo, String codigo_original){
-    if (codigo == codigo_original){
-      return true;
-    } else {
-      return false;
-    }
+  @override
+  State<RecuperarContrasena_v2> createState() => recuperarcontrasenav2State();
+}
+class recuperarcontrasenav2State extends State<RecuperarContrasena_v2> {
+  
+  String codigooriginal = '123456';
+  Text advertencia = const Text('Se ha ingresado un código incorrecto', style: TextStyle(fontSize: 24, color: Colors.red),);
+  TextEditingController codigo = TextEditingController();
+  bool isvisible = false;
+  String correo = '';
+
+  void obtenercorreo(){
+    //Aqui va la logica para obtener el correo al que se le envio el codigo
   }
 
-  void reenviar_codigo(String? correo){
+  void verificador(){
+    if (codigo.text != codigooriginal){
+      setState(() {
+        isvisible = true;
+      });
+      
+      return;
+    }
+    //Aqui va la logica para continuar a la ventana de cambiar contrrasena
+    return;
+  }
+
+  void reenviarcodigo(){
     //Aqui va la logica para reenviar el codigo al correo
   }
 
-  void Regresar(){
+  void regresar(){
     //Aqui va la logica para regresar a la pantalla anterior
   }
 
   @override
-   Widget build(BuildContext context) {    
-    final TextEditingController codigo = TextEditingController();
+   Widget build(BuildContext context) {  
+
     return MaterialApp(
       home: Scaffold(
         backgroundColor: const Color.fromRGBO(255, 255, 255, 1),
@@ -115,32 +133,29 @@ class recuperar_contrasena_v2 extends StatelessWidget {
                               filled: true,
                               fillColor: Colors.white,
                               border: OutlineInputBorder(),
-                              hintText: 'Código de verificación',
+                              labelText: 'Código de verificación',
                               ),
                             ),
                             ) 
                             )  
                           ),
-                          const Column(
+                          Column(
                             children: [
-                              Text(
+                              const Text(
                               'Hemos enviado el código a:',
                               style: TextStyle(
                                 fontSize: 24,
                                 color: Color.fromRGBO(248, 131, 49, 1)
                                 ), 
                               ), 
-                              Text('Aqui va el correo',
-                              style: TextStyle(
-                                fontSize: 24,
-                                color: Color.fromRGBO(248, 131, 49, 1)
-                                ), 
-                              )
+                                Text(correo ,style: const TextStyle(fontSize: 24, color: Color.fromRGBO(248, 131, 49, 1)),)
                             ],
                           )
                         ],
                       ),
-                       const Divider(
+                      Visibility(visible: isvisible,child: advertencia),
+                      const SizedBox(height: 20),
+                      const Divider(
                         color: Color.fromRGBO(65, 64, 64, 95),
                         height: 4,
                         thickness: 4,
@@ -155,7 +170,7 @@ class recuperar_contrasena_v2 extends StatelessWidget {
                              style: TextButton.styleFrom(
                              foregroundColor:const Color.fromRGBO(240, 83, 43, 50)),
                             onPressed:  (){
-                               reenviar_codigo(correo);
+                               reenviarcodigo();
                               }, 
                           child: const Text('Reenviar código'),
                           ),
@@ -164,6 +179,7 @@ class recuperar_contrasena_v2 extends StatelessWidget {
                             children: [
                               ElevatedButton(
                             onPressed: (){
+                              regresar();
                               },
                             style: ElevatedButton.styleFrom(
                               backgroundColor: const Color.fromRGBO(248, 131, 49, 1),
@@ -176,18 +192,18 @@ class recuperar_contrasena_v2 extends StatelessWidget {
                           ),
                             const SizedBox(width: 20),
                               ElevatedButton(
-                              onPressed: (){
-                                Regresar();
-                              },
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color.fromRGBO(248, 131, 49, 1),
-                              foregroundColor: Colors.white,
-                              shape: const RoundedRectangleBorder(
-                                borderRadius: BorderRadius.all(Radius.circular(10)),
+                                onPressed: (){
+                                  verificador();
+                                },
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: const Color.fromRGBO(248, 131, 49, 1),
+                                  foregroundColor: Colors.white,
+                                  shape: const RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.all(Radius.circular(10)),
+                                  )
+                                ),
+                                child: const Text('Continuar')      
                               )
-                            ),
-                            child: const Text('Continuar')      
-                            )
                           ],
                         )
                       ],
