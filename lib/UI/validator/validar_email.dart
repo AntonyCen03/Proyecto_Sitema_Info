@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+
 String? validateUnimetEmail(String? value) {
   if (value == null || value.trim().isEmpty) return 'Ingrese un correo';
   final email = value.trim();
@@ -28,3 +29,4 @@ bool isUnimetEmail(String? value) {
   final domain = email.split('@').last.toLowerCase();
   return domain == 'unimet.edu.ve';
 }
+

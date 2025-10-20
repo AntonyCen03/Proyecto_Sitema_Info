@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:proyecto_final/Ui/validator/validar_email.dart';
 import 'package:proyecto_final/services/firebase_services.dart';
+import 'package:proyecto_final/services/auth_service.dart';
 
 class PageSignUp extends StatefulWidget {
   const PageSignUp({super.key});
@@ -39,7 +40,7 @@ class _SignUpScreenState extends State<PageSignUp> {
       final cedula = _cedulaController.text;
       bool isadmin = false;
 
-      final users = await getUser();
+      final users = await getUser(context);
       Map<String, dynamic>? existingUser;
       for (final u in users) {
         final uemail = (u['email'] ?? '').toString().trim();
@@ -60,7 +61,8 @@ class _SignUpScreenState extends State<PageSignUp> {
         if (isUnimetEmail(email)) {
           isadmin = true;
         }
-        addUser(nombre, email, contrasena, isadmin, int.parse(carnet), cedula);
+        addUser(nombre, email, isadmin, int.parse(carnet), cedula);
+        AuthService().register(email, contrasena);
       }
 
       Navigator.pushNamed(context, '/login');

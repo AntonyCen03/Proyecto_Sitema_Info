@@ -33,7 +33,7 @@ class _PageLoginState extends State<PageLogin> {
         ),
       ),
       body: FutureBuilder(
-        future: getUser(),
+        future: getUser(context),
         builder: (context, asyncSnapshot) {
           return Center(
             child: Column(

@@ -1,8 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/material.dart';
 
 FirebaseFirestore db = FirebaseFirestore.instance;
 
-Future<List<Map<String, dynamic>>> getUser() async {
+Future<List<Map<String, dynamic>>> getUser(BuildContext context) async {
   final List<Map<String, dynamic>> users = [];
   try {
     final QuerySnapshot querySnapshot = await db.collection('user').get();
@@ -28,8 +29,10 @@ Future<List<Map<String, dynamic>>> getUser() async {
       };
       users.add(person);
     }
-  } catch (e, st) {
-    print('Error in getUser(): $e\n$st'); // esto lo uso para depurar errores
+  } catch (e) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Error de conexion: $e')),
+    );
     return [];
   }
   return users;
@@ -38,7 +41,6 @@ Future<List<Map<String, dynamic>>> getUser() async {
 Future<void> addUser(
   String name,
   String email,
-  String password,
   bool isadmin,
   int idCarnet,
   String cedula,
@@ -46,7 +48,6 @@ Future<void> addUser(
   await db.collection('user').add({
     'name': name,
     'email': email,
-    'password': password,
     'isadmin': isadmin,
     'id_carnet': idCarnet,
     'cedula': cedula,
