@@ -72,4 +72,44 @@ class AuthService {
   Future<void> sendPasswordReset(String email) async {
     await _auth.sendPasswordResetEmail(email: email.trim());
   }
+
+  /// Cambia la contraseña del usuario actualmente autenticado.
+  ///
+  /// Requiere la contraseña actual (`currentPassword`) para reautenticar al
+  /// usuario antes de llamar a `updatePassword`. Si el usuario no tiene sesión
+  /// activa, lanzará un [FirebaseAuthException] con código `no-current-user`.
+  ///
+  /// Errores comunes a capturar en la UI:
+  /// - `wrong-password`: la contraseña actual es incorrecta.
+  /// - `requires-recent-login`: la sesión no es "reciente" (puede ocurrir también);
+  ///   la reautenticación suele resolverlo.
+  /// - `weak-password`: Firebase rechaza la nueva contraseña (p. ej. muy corta).
+  Future<void> changePassword({
+    required String currentPassword,
+    required String newPassword,
+  }) async {
+    final user = _auth.currentUser;
+    if (user == null || user.email == null) {
+      throw FirebaseAuthException(
+        code: 'no-current-user',
+        message: 'No hay un usuario autenticado actualmente.',
+      );
+    }
+
+    try {
+      // Reautenticar con las credenciales de correo/contraseña.
+      final credential = EmailAuthProvider.credential(
+        email: user.email!.trim(),
+        password: currentPassword,
+      );
+
+      await user.reauthenticateWithCredential(credential);
+
+      // Actualizar la contraseña.
+      await user.updatePassword(newPassword);
+    } on FirebaseAuthException {
+      // Re-lanzar para que la UI lo maneje (mostrar mensajes adecuados al usuario).
+      rethrow;
+    }
+  }
 }

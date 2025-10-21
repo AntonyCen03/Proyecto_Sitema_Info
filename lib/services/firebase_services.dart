@@ -44,8 +44,30 @@ Future<void> addUser(
   bool isadmin,
   int idCarnet,
   String cedula,
+  DateTime dateCreated,
+  DateTime dateLogin,
 ) async {
   await db.collection('user').add({
+    'name': name,
+    'email': email,
+    'isadmin': isadmin,
+    'id_carnet': idCarnet,
+    'cedula': cedula,
+    'date_created': dateCreated,
+    'date_login': dateLogin,
+  });
+}
+
+Future<void> updateUser(
+  String name,
+  String email,
+  bool isadmin,
+  int idCarnet,
+  String cedula,
+
+  String uid,
+) async {
+  await db.collection('user').doc(uid).set({
     'name': name,
     'email': email,
     'isadmin': isadmin,
@@ -54,22 +76,12 @@ Future<void> addUser(
   });
 }
 
-Future<void> updateUser(
-  String name,
-  String email,
-  String password,
-  bool isadmin,
-  int idCarnet,
-  String cedula,
+Future<void> updateUserLoginDate(
+  DateTime dateLogin,
   String uid,
 ) async {
-  await db.collection('user').doc(uid).set({
-    'name': name,
-    'email': email,
-    'password': password,
-    'isadmin': isadmin,
-    'id_carnet': idCarnet,
-    'cedula': cedula,
+  await db.collection('user').doc(uid).update({
+    'date_login': dateLogin,
   });
 }
 
