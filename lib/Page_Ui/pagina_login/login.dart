@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:proyecto_final/Ui/pagina_login/widget_password.dart';
+import 'package:proyecto_final/Page_Ui/pagina_login/widget_password.dart';
 import 'package:proyecto_final/services/firebase_services.dart';
-import 'package:proyecto_final/Ui/pagina_login/widget_iniciar_sesion.dart';
+import 'package:proyecto_final/Page_Ui/pagina_login/widget_iniciar_sesion.dart';
 
 class PageLogin extends StatefulWidget {
   const PageLogin({super.key});

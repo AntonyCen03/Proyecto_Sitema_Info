@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:proyecto_final/Ui/validator/validar_email.dart';
+import 'package:proyecto_final/Page_Ui/validator/validar_email.dart';
 import 'package:proyecto_final/services/firebase_services.dart';
 import 'package:proyecto_final/services/auth_service.dart';
 
