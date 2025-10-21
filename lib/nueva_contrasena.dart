@@ -16,7 +16,8 @@ class _NuevaContrasenaScreenState extends State<NuevaContrasenaScreen> {
   // Aquí va el código del estado (variables, métodos, etc.)
   final TextEditingController _nuevaContrasenaController = TextEditingController();
   final TextEditingController _confirmarContrasenaController = TextEditingController();
-  Text advertencia = const Text('Las contraseñas no coinciden.', style: TextStyle(color: Colors.red),);
+  final TextEditingController _viejaContrasena = TextEditingController();
+  Text advertencia = const Text('', style: TextStyle(color: Color.fromARGB(255, 255, 17, 0)),);
   bool visibilidadAdvertencia = false;
 
   @override
@@ -26,25 +27,20 @@ class _NuevaContrasenaScreenState extends State<NuevaContrasenaScreen> {
       home: Scaffold(
         backgroundColor: const Color.fromRGBO(255, 255, 255, 1),
         appBar: AppBar(
-          toolbarHeight: 145,
-          backgroundColor: const Color.fromRGBO(255, 255, 255, 1),
-          leading: Image.asset(
-              'images/Logo.png',
-              width: 164,
-              height: 231
-              ,),
-              leadingWidth: 300,
-          title:
-           const Text(
-            'MetroBox',
-            style: TextStyle(
-              fontSize: 64,
-              color: Color.fromRGBO(240, 83, 43, 1),
-              fontWeight: FontWeight.bold,
-              ),
-            ),
-          centerTitle: true,
+        title: const Text(
+          "MetroBox",
+          style: TextStyle(
+             color: Color.fromRGBO(240, 83, 43, 1),
+            fontWeight: FontWeight.bold,
+          ),
         ),
+        backgroundColor: const Color.fromARGB(255, 255, 255, 255),
+        centerTitle: true,
+        leading: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Image.asset('images/Logo.png', height: 200, width: 200),
+        ),
+      ),
         body: Column(
           children: <Widget>[
             const Divider(
@@ -72,7 +68,7 @@ class _NuevaContrasenaScreenState extends State<NuevaContrasenaScreen> {
                   const Align(
                     alignment: Alignment.topLeft,
                     child: Text(
-                    'Nuevas Contraseña',
+                    'Nueva Contraseña',
                     style: TextStyle(
                       fontSize: 50,
                       color: Color.fromRGBO(240, 83, 43, 1),
@@ -89,6 +85,17 @@ class _NuevaContrasenaScreenState extends State<NuevaContrasenaScreen> {
                     endIndent: 0,
                   ),
                   const SizedBox(height: 20),
+                  TextField(
+                    controller: _viejaContrasena,
+                    obscureText: true,
+                    decoration: const InputDecoration(
+                      filled: true,
+                      fillColor: Colors.white,
+                      labelText: 'Contraseña Anterior',
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
                   TextField(
                     controller: _nuevaContrasenaController,
                     obscureText: true,
@@ -171,7 +178,7 @@ class _NuevaContrasenaScreenState extends State<NuevaContrasenaScreen> {
 
     if (nueva.isEmpty || confirmar.isEmpty) {
       setState(() {
-        advertencia = const Text('Por favor, completa ambos campos.', style: TextStyle(color: Colors.red),);
+        advertencia = const Text('Completa ambos campos.', style: TextStyle(fontSize: 24,color: Color.fromARGB(255, 255, 17, 0)),);
         visibilidadAdvertencia = true;
         }
       );
@@ -180,7 +187,7 @@ class _NuevaContrasenaScreenState extends State<NuevaContrasenaScreen> {
 
     if (nueva != confirmar) {
       setState(() {
-        advertencia = const Text('Las contraseñas no coinciden.', style: TextStyle(color: Colors.red),);
+        advertencia = const Text('Las contraseñas no coinciden.', style: TextStyle(fontSize: 24,color: Color.fromARGB(255, 255, 17, 0)),);
         visibilidadAdvertencia = true;
       });
       return; 
@@ -189,7 +196,7 @@ class _NuevaContrasenaScreenState extends State<NuevaContrasenaScreen> {
     for(int i=0; i<nueva.length; i++){
       if(nueva[i]==' '){
         setState(() {
-          advertencia = const Text('Contraseña actualizada con éxito.', style: TextStyle(color: Colors.green),);
+          advertencia = const Text('No debe de tener espacios.', style: TextStyle(fontSize: 24,color: Color.fromARGB(255, 255, 17, 0)),);
           visibilidadAdvertencia = true;
         });
         return;
