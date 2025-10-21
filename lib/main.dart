@@ -1,4 +1,4 @@
 import 'package:flutter/material.dart';
-import 'recuperar_contraseña_v2.dart';
+import 'confirmar_correo.dart';
 
-void main() => runApp(const RecuperarContrasena_v2());
+void main() => runApp(const ConfirmarCorreo());
