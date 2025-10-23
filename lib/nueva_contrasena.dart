@@ -13,34 +13,37 @@ class NuevaContrasenaScreen extends StatefulWidget {
 }
 
 class _NuevaContrasenaScreenState extends State<NuevaContrasenaScreen> {
-  // Aquí va el código del estado (variables, métodos, etc.)
-  final TextEditingController _nuevaContrasenaController = TextEditingController();
-  final TextEditingController _confirmarContrasenaController = TextEditingController();
+  final TextEditingController _nuevaContrasenaController =
+      TextEditingController();
+  final TextEditingController _confirmarContrasenaController =
+      TextEditingController();
   final TextEditingController _viejaContrasena = TextEditingController();
-  Text advertencia = const Text('', style: TextStyle(color: Color.fromARGB(255, 255, 17, 0)),);
+  Text advertencia = const Text(
+    '',
+    style: TextStyle(color: Color.fromARGB(255, 255, 17, 0)),
+  );
   bool visibilidadAdvertencia = false;
 
   @override
   Widget build(BuildContext context) {
-    // Aquí va la interfaz de usuario
     return MaterialApp(
       home: Scaffold(
         backgroundColor: const Color.fromRGBO(255, 255, 255, 1),
         appBar: AppBar(
-        title: const Text(
-          "MetroBox",
-          style: TextStyle(
-             color: Color.fromRGBO(240, 83, 43, 1),
-            fontWeight: FontWeight.bold,
+          title: const Text(
+            "MetroBox",
+            style: TextStyle(
+              color: Color.fromRGBO(240, 83, 43, 1),
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          backgroundColor: const Color.fromARGB(255, 255, 255, 255),
+          centerTitle: true,
+          leading: Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Image.asset('images/Logo.png', height: 200, width: 200),
           ),
         ),
-        backgroundColor: const Color.fromARGB(255, 255, 255, 255),
-        centerTitle: true,
-        leading: Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Image.asset('images/Logo.png', height: 200, width: 200),
-        ),
-      ),
         body: Column(
           children: <Widget>[
             const Divider(
@@ -50,33 +53,35 @@ class _NuevaContrasenaScreenState extends State<NuevaContrasenaScreen> {
               indent: 0,
               endIndent: 0,
             ),
-          const SizedBox(height: 100),
-          Container(
-            width: 1000.0,
-            margin: const EdgeInsets.all(30),
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              color: const Color.fromRGBO(208, 215, 255, 1),
-              border: Border.all(
-                color: const Color.fromRGBO(65, 64, 64, 0.95),
-                width: 4,
+            const SizedBox(height: 100),
+            Container(
+              width: 400.0,
+              margin: const EdgeInsets.all(30),
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.1),
+                    blurRadius: 10,
+                    offset: const Offset(0, 5),
+                  ),
+                ],
+                borderRadius: BorderRadius.circular(12),
               ),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Column(
+              child: Column(
                 children: [
                   const Align(
                     alignment: Alignment.topLeft,
                     child: Text(
-                    'Nueva Contraseña',
-                    style: TextStyle(
-                      fontSize: 50,
-                      color: Color.fromRGBO(240, 83, 43, 1),
-                      fontWeight: FontWeight.bold,
-                      ), 
-                    ), 
+                      'Nueva Contraseña',
+                      style: TextStyle(
+                        fontSize: 50,
+                        color: Color.fromRGBO(240, 83, 43, 1),
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                   ),
-                  
                   const Divider(
                     color: Color.fromRGBO(65, 64, 64, 95),
                     height: 4,
@@ -95,13 +100,11 @@ class _NuevaContrasenaScreenState extends State<NuevaContrasenaScreen> {
                       border: OutlineInputBorder(),
                     ),
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 8),
                   TextField(
                     controller: _nuevaContrasenaController,
                     obscureText: true,
                     decoration: const InputDecoration(
-                      filled: true,
-                      fillColor: Colors.white,
                       labelText: 'Nueva contraseña',
                       border: OutlineInputBorder(),
                     ),
@@ -111,27 +114,27 @@ class _NuevaContrasenaScreenState extends State<NuevaContrasenaScreen> {
                     controller: _confirmarContrasenaController,
                     obscureText: true,
                     decoration: const InputDecoration(
-                      filled: true,
-                      fillColor: Colors.white,
                       labelText: 'Confirmar contraseña',
                       border: OutlineInputBorder(),
                     ),
                   ),
                   const SizedBox(height: 20),
-                  Visibility(visible: visibilidadAdvertencia,child: advertencia),
+                  Visibility(
+                      visible: visibilidadAdvertencia, child: advertencia),
                   const SizedBox(height: 20),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       ElevatedButton(
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: colorBoton,
-                          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                          shape: const RoundedRectangleBorder(
-                            borderRadius: BorderRadius.all(Radius.circular(10)),
-                          )
-                        ),
-                        onPressed: (){},
+                            backgroundColor: colorBoton,
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 24, vertical: 12),
+                            shape: const RoundedRectangleBorder(
+                              borderRadius:
+                                  BorderRadius.all(Radius.circular(10)),
+                            )),
+                        onPressed: () {},
                         child: const Text(
                           'Regresar',
                           style: TextStyle(fontSize: 18, color: Colors.white),
@@ -139,15 +142,16 @@ class _NuevaContrasenaScreenState extends State<NuevaContrasenaScreen> {
                       ),
                       ElevatedButton(
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: colorBoton,
-                          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                          shape: const RoundedRectangleBorder(
-                            borderRadius: BorderRadius.all(Radius.circular(10)),
-                          )
-                        ),
-                        onPressed:(){
+                            backgroundColor: colorBoton,
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 24, vertical: 12),
+                            shape: const RoundedRectangleBorder(
+                              borderRadius:
+                                  BorderRadius.all(Radius.circular(10)),
+                            )),
+                        onPressed: () {
                           _guardarNuevaContrasena();
-                        }, 
+                        },
                         child: const Text(
                           'Guardar contraseña',
                           style: TextStyle(fontSize: 18, color: Colors.white),
@@ -175,37 +179,46 @@ class _NuevaContrasenaScreenState extends State<NuevaContrasenaScreen> {
     final nueva = _nuevaContrasenaController.text;
     final confirmar = _confirmarContrasenaController.text;
 
-
     if (nueva.isEmpty || confirmar.isEmpty) {
       setState(() {
-        advertencia = const Text('Completa ambos campos.', style: TextStyle(fontSize: 24,color: Color.fromARGB(255, 255, 17, 0)),);
+        advertencia = const Text(
+          'Completa ambos campos.',
+          style:
+              TextStyle(fontSize: 24, color: Color.fromARGB(255, 255, 17, 0)),
+        );
         visibilidadAdvertencia = true;
-        }
-      );
-      return; 
+      });
+      return;
     }
 
     if (nueva != confirmar) {
       setState(() {
-        advertencia = const Text('Las contraseñas no coinciden.', style: TextStyle(fontSize: 24,color: Color.fromARGB(255, 255, 17, 0)),);
+        advertencia = const Text(
+          'Las contraseñas no coinciden.',
+          style:
+              TextStyle(fontSize: 24, color: Color.fromARGB(255, 255, 17, 0)),
+        );
         visibilidadAdvertencia = true;
       });
-      return; 
+      return;
     }
-    
-    for(int i=0; i<nueva.length; i++){
-      if(nueva[i]==' '){
+
+    for (int i = 0; i < nueva.length; i++) {
+      if (nueva[i] == ' ') {
         setState(() {
-          advertencia = const Text('No debe de tener espacios.', style: TextStyle(fontSize: 24,color: Color.fromARGB(255, 255, 17, 0)),);
+          advertencia = const Text(
+            'No debe de tener espacios.',
+            style:
+                TextStyle(fontSize: 24, color: Color.fromARGB(255, 255, 17, 0)),
+          );
           visibilidadAdvertencia = true;
         });
         return;
       }
-      
+
       ingresarNuevaContrasena();
       regresar();
     }
-    
   }
 
   void ingresarNuevaContrasena() {
