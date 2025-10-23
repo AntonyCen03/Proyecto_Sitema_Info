@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'ventanas/olvidecontrasena.dart';
+import 'ventanas/usuario.dart';
 
 void main() => runApp(const MyApp());
 
@@ -9,9 +10,9 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Mi App de Recuperación',
+      title: 'Metrobox',
       debugShowCheckedModeBanner: false,
-      home: Olvidecontrasena(),
+      home: PerfilUsuario(),
     );
   }
 }
