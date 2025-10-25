@@ -35,7 +35,8 @@ class _OlvidecontrasenaState extends State<Olvidecontrasena> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Enlace de recuperación enviado a $email')),
       );
-      Navigator.pop(context);
+      Navigator.pushNamed(context, '/login');
+      _emailController.clear();
     }
     
   }
@@ -116,7 +117,8 @@ class _OlvidecontrasenaState extends State<Olvidecontrasena> {
                           children: [
                             TextButton(
                               onPressed: () {
-                                Navigator.pop(context);
+                                Navigator.pushNamed(context, '/login');
+                                _emailController.clear();
                               },
                               child: const Text(
                                 'Regresar',
