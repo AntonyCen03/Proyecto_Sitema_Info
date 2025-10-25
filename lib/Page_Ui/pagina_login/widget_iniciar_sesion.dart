@@ -43,9 +43,6 @@ class _IniciarSesionState extends State<IniciarSesion> {
               setState(() => _loading = true);
               try {
                 await AuthService().signIn(email, password);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Inicio de sesión correcto')),
-                );
                 final users = await getUser(context);
                 final isAdmin = users.any((u) => (u['email'] ?? '').toString().trim() == email && (u['isadmin'] ?? false) as bool);
                 final uid= users.firstWhere((u) => (u['email'] ?? '').toString().trim() == email)['uid'].toString();
@@ -53,18 +50,11 @@ class _IniciarSesionState extends State<IniciarSesion> {
                 //widget.usernameController.clear();
                 //widget.passwordController.clear();
                 if (isAdmin) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Usuario administrador')),
-                  );
                   //Navigator.of(context).pushReplacementNamed('/admin_home');
-
                 } else {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Usuario normal')),
-                  );
                   //Navigator.of(context).pushReplacementNamed('/home');
                 }
-                // Navigator.of(context).pushReplacementNamed('/home');
+                Navigator.of(context).pushReplacementNamed('/principal');
               } on FirebaseAuthException catch (e) {
                 String message = 'Error de autenticación';
                 if (e.code == 'user-not-found' || e.code == 'wrong-password') {

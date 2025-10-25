@@ -162,13 +162,6 @@ class _OlvidecontrasenaState extends State<Olvidecontrasena> {
                 ),
               ),
             ),
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Align(
-                alignment: Alignment.topLeft,
-                child: Image.asset('assets/images/logo.png', height: 80),
-              ),
-            ),
           ],
         ),
       ),
