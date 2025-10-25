@@ -145,7 +145,7 @@ class _OlvidecontrasenaState extends State<Olvidecontrasena> {
                                 ),
                               ),
                               child: const Text(
-                                'Enviar Código',
+                                'Enviar Enlace',
                                 style: TextStyle(
                                   fontSize: 16,
                                   color: Colors.white,
