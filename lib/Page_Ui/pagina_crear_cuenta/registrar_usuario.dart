@@ -61,8 +61,8 @@ class _SignUpScreenState extends State<PageSignUp> {
         if (isUnimetEmail(email)) {
           isadmin = true;
         }
-        addUser(nombre, email, isadmin, int.parse(carnet), cedula, DateTime.now(), DateTime.now());
-        AuthService().register(email, contrasena);
+      await AuthService().register(email, contrasena);
+      await addUser(nombre, email, isadmin, int.parse(carnet), cedula, DateTime.now(), DateTime.now());
       }
 
       Navigator.pushNamed(context, '/login');
