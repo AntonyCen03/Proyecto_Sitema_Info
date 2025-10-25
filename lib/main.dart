@@ -3,7 +3,9 @@ import 'package:proyecto_final/Page_Ui/pagina_crear_cuenta/registrar_usuario.dar
 import 'package:proyecto_final/Page_Ui/pagina_login/login.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:proyecto_final/Page_Ui/pagina_login/reset_password/olvidecontrasena.dart';
+import 'package:proyecto_final/ventanas/usuario.dart';
 import 'firebase_options.dart';
+
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -29,6 +31,7 @@ class MyApp extends StatelessWidget {
         '/login': (context) => const PageLogin(),
         '/registrar': (context) => const PageSignUp(),
         '/reset_password': (context) => const Olvidecontrasena(),
+        '/perfil': (context) => const PerfilUsuario(),
       },
     );
   }
