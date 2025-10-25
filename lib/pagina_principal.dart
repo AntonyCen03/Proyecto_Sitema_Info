@@ -101,109 +101,110 @@ class _HeroSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 24),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: <Widget>[
-            
-              Expanded(
-                flex: 6,
-                child: Column(
+    return Stack(
+      children: [
+        // Fondo con la imagen CAMPUS-2023_30.jpg OSCURA
+        Container(
+          height: 600,
+          width: double.infinity,
+          child: ColorFiltered(
+            colorFilter: ColorFilter.mode(
+              Colors.black.withOpacity(0.6), // Capa oscura sobre la imagen
+              BlendMode.darken,
+            ),
+            child: Image.asset(
+              'assets/images/CAMPUS-2023_30.jpg',
+              fit: BoxFit.cover,
+            ),
+          ),
+        ),
+        // Contenido superpuesto
+        Container(
+          height: 600,
+          width: double.infinity,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: <Widget>[
+                Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: <Widget>[
-                    ShaderMask(
-                      shaderCallback: (Rect bounds) {
-                        return const LinearGradient(
-                          colors: [_primaryOrange, _lightOrange],
-                          begin: Alignment.centerLeft,
-                          end: Alignment.centerRight,
-                        ).createShader(bounds);
-                      },
-                      child: const Text(
-                        'La organización es la\nbase del sistema del\néxito',
-                        textAlign: TextAlign.left,
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 48,
-                          fontWeight: FontWeight.w900,
-                          height: 1.1,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    const Text(
-                      'Concentrate en crear y nosotros nos\nencargamos de organizar',
-                      textAlign: TextAlign.left,
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w500,
-                        color: _primaryOrange,
+                    Expanded(
+                      flex: 8,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: <Widget>[
+                          ShaderMask(
+                            shaderCallback: (Rect bounds) {
+                              return const LinearGradient(
+                                colors: [_primaryOrange, _lightOrange],
+                                begin: Alignment.centerLeft,
+                                end: Alignment.centerRight,
+                              ).createShader(bounds);
+                            },
+                            child: const Text(
+                              'La organización es la\nbase del sistema del\néxito',
+                              textAlign: TextAlign.left,
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 48,
+                                fontWeight: FontWeight.w900,
+                                height: 1.1,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          const Text(
+                            'Concéntrate en crear y nosotros nos\nencargamos de organizar',
+                            textAlign: TextAlign.left,
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w500,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ],
                 ),
-              ),
-
-              const SizedBox(width: 24),
-
-            //metrobox grande
-              Expanded(
-                flex: 4,
-                child: Image.asset(
-                  'assets/images/metrobox-image.jpg',
-                  fit: BoxFit.contain,
-                  height: 300,
-                ),
-              ),
-            ],
-          ),
-
-          const SizedBox(height: 32),
-
-        //cuadro de mejores proyectos
-          Center(
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(10),
-                gradient: const LinearGradient(
-                  colors: [_primaryOrange, _lightOrange],
-                  begin: Alignment.centerLeft,
-                  end: Alignment.centerRight,
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: _primaryOrange.withOpacity(0.5),
-                    blurRadius: 10,
-                    offset: const Offset(0, 5),
+                const SizedBox(height: 32),
+                // cuadro de mejores proyectos
+                Center(
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(10),
+                      gradient: const LinearGradient(
+                        colors: [_primaryOrange, _lightOrange],
+                        begin: Alignment.centerLeft,
+                        end: Alignment.centerRight,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: _primaryOrange.withOpacity(0.5),
+                          blurRadius: 10,
+                          offset: const Offset(0, 5),
+                        ),
+                      ],
+                    ),
+                    child: const Text(
+                      'Los mejores proyectos',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                   ),
-                ],
-              ),
-              child: const Text(
-                'Los mejores proyectos',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
                 ),
-              ),
+              ],
             ),
           ),
-
-          const SizedBox(height: 40),
-
-          //imagen campus grande
-          Image.asset(
-            'assets/images/CAMPUS-2023_30.jpg',
-            width: double.infinity,
-            fit: BoxFit.cover,
-          ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }

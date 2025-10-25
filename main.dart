@@ -2,44 +2,9 @@ import 'package:flutter/material.dart';
 
 void main() => runApp(const MyApp());
 
+const Color _primaryOrange = Color(0xFFF57C00);
+const Color _lightOrange = Color(0xFFFF9800);
 
-const Color primaryOrange = Color(0xFFF57C00);
-const Color lightOrange = Color(0xFFFF9800);
-const Color textColor = Color(0xFF1E1E1E);
-
-//WIDGET DE TEXTO CON DEGRADADO
-class GradientText extends StatelessWidget {
-  const GradientText(
-    this.text, {
-    super.key,
-    this.style,
-    this.textAlign,
-    this.gradient = const LinearGradient(
-      colors: [primaryOrange, lightOrange],
-      begin: Alignment.centerLeft,
-      end: Alignment.centerRight,
-    ),
-  });
-
-  final String text;
-  final TextStyle? style;
-  final Gradient gradient;
-  final TextAlign? textAlign;
-
-  @override
-  Widget build(BuildContext context) {
-    return ShaderMask(
-      shaderCallback: (bounds) => gradient.createShader(bounds),
-      child: Text(
-        text,
-        textAlign: textAlign,
-        style: (style ?? const TextStyle()).copyWith(color: Colors.white),
-      ),
-    );
-  }
-}
-
-//APP PRINCIPAL
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
@@ -50,7 +15,7 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         fontFamily: 'Roboto',
-        primaryColor: primaryOrange,
+        primaryColor: _primaryOrange,
         scaffoldBackgroundColor: Colors.white,
       ),
       home: const LandingPage(),
@@ -58,22 +23,21 @@ class MyApp extends StatelessWidget {
   }
 }
 
-//PÁGINA PRINCIPAL
 class LandingPage extends StatelessWidget {
   const LandingPage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(
+    return Scaffold(
       body: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Header(),
-            SizedBox(height: 60),
-            HeroSection(),
-            SizedBox(height: 40),
-            Footer(),
+          children: <Widget>[
+            _Header(),
+            const SizedBox(height: 60),
+            _HeroSection(),
+            const SizedBox(height: 40),
+            _Footer(),
           ],
         ),
       ),
@@ -81,9 +45,9 @@ class LandingPage extends StatelessWidget {
   }
 }
 
-//HEADER
-class Header extends StatelessWidget {
-  const Header({super.key});
+// HEADER
+class _Header extends StatelessWidget {
+  const _Header();
 
   @override
   Widget build(BuildContext context) {
@@ -94,27 +58,35 @@ class Header extends StatelessWidget {
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
+        children: <Widget>[
           Row(
-            children: const [
+            children: <Widget>[
+              Image.asset(
+                'assets/images/metrobox-image.jpg',
+                width: 40,
+                height: 40,
+              ),
+              const SizedBox(width: 16),
               Padding(
-                padding: EdgeInsets.symmetric(horizontal: 16.0),
-                child: GradientText(
-                  'Pagina Principal',
-                  style: TextStyle(fontWeight: FontWeight.bold),
+                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                child: Text(
+                  'Página Principal',
+                  style: TextStyle(color: _primaryOrange),
                 ),
               ),
-              GradientText(
-                'Proyectos',
-                style: TextStyle(fontWeight: FontWeight.normal),
-              ),
+              Text('Proyectos', style: TextStyle(color: _primaryOrange)),
             ],
           ),
           Row(
-            children: const [
-              Icon(Icons.notifications_none, color: textColor),
-              SizedBox(width: 8),
-              Icon(Icons.account_circle, color: textColor, size: 28),
+            children: <Widget>[
+              IconButton(
+                icon: const Icon(Icons.notifications_none, color: _primaryOrange),
+                onPressed: () {},
+              ),
+              IconButton(
+                icon: const Icon(Icons.account_circle, color: _primaryOrange, size: 28),
+                onPressed: () {},
+              ),
             ],
           ),
         ],
@@ -123,69 +95,107 @@ class Header extends StatelessWidget {
   }
 }
 
-//HERO SECTION
-class HeroSection extends StatelessWidget {
-  const HeroSection({super.key});
-
-  final String heroGraphicPath = 'assets/images/hero_graphic.png';
+// HERO SECTION 
+class _HeroSection extends StatelessWidget {
+  const _HeroSection();
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 24),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Expanded(
-            flex: 5,
+    return Stack(
+      children: [
+        // Fondo con la imagen CAMPUS-2023_30.jpg OSCURA
+        Container(
+          height: 600,
+          width: double.infinity,
+          child: ColorFiltered(
+            colorFilter: ColorFilter.mode(
+              Colors.black.withOpacity(0.6), // Capa oscura sobre la imagen
+              BlendMode.darken,
+            ),
+            child: Image.asset(
+              'assets/images/CAMPUS-2023_30.jpg',
+              fit: BoxFit.cover,
+            ),
+          ),
+        ),
+        // Contenido superpuesto
+        Container(
+          height: 600,
+          width: double.infinity,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-              children: const [
-                GradientText(
-                  'La organización es la\nbase del sistema del\néxito',
-                  textAlign: TextAlign.left,
-                  style: TextStyle(
-                    fontSize: 48,
-                    fontWeight: FontWeight.w900,
-                    height: 1.1,
-                  ),
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: <Widget>[
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Expanded(
+                      flex: 8,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: <Widget>[
+                          ShaderMask(
+                            shaderCallback: (Rect bounds) {
+                              return const LinearGradient(
+                                colors: [_primaryOrange, _lightOrange],
+                                begin: Alignment.centerLeft,
+                                end: Alignment.centerRight,
+                              ).createShader(bounds);
+                            },
+                            child: const Text(
+                              'La organización es la\nbase del sistema del\néxito',
+                              textAlign: TextAlign.left,
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 48,
+                                fontWeight: FontWeight.w900,
+                                height: 1.1,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          const Text(
+                            'Concéntrate en crear y nosotros nos\nencargamos de organizar',
+                            textAlign: TextAlign.left,
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w500,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
-                SizedBox(height: 16),
-                GradientText(
-                  'Concentrate en crear y nosotros nos\nencargamos de organizar',
-                  textAlign: TextAlign.left,
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-                SizedBox(height: 32),
+                const SizedBox(height: 32),
+                // cuadro de mejores proyectos
                 Center(
-                  child: DecoratedBox(
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
                     decoration: BoxDecoration(
-                      borderRadius: BorderRadius.all(Radius.circular(10)),
-                      gradient: LinearGradient(
-                        colors: [primaryOrange, lightOrange],
+                      borderRadius: BorderRadius.circular(10),
+                      gradient: const LinearGradient(
+                        colors: [_primaryOrange, _lightOrange],
                         begin: Alignment.centerLeft,
                         end: Alignment.centerRight,
                       ),
                       boxShadow: [
                         BoxShadow(
-                          color: primaryOrange,
+                          color: _primaryOrange.withOpacity(0.5),
                           blurRadius: 10,
-                          offset: Offset(0, 5),
+                          offset: const Offset(0, 5),
                         ),
                       ],
                     ),
-                    child: Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 30, vertical: 15),
-                      child: Text(
-                        'Los mejores proyectos',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
+                    child: const Text(
+                      'Los mejores proyectos',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
                   ),
@@ -193,15 +203,15 @@ class HeroSection extends StatelessWidget {
               ],
             ),
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }
 
-//FOOTER
-class Footer extends StatelessWidget {
-  const Footer({super.key});
+// FOOTER 
+class _Footer extends StatelessWidget {
+  const _Footer();
 
   @override
   Widget build(BuildContext context) {
@@ -213,14 +223,12 @@ class Footer extends StatelessWidget {
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: const [
-          GradientText('Redes Sociales', style: TextStyle(fontSize: 14)),
-          GradientText('Contactanos', style: TextStyle(fontSize: 14)),
-          GradientText('Enlaces de Interes', style: TextStyle(fontSize: 14)),
+        children: <Widget>[
+          Text('Redes Sociales', style: TextStyle(color: _primaryOrange, fontSize: 14)),
+          Text('Contáctanos', style: TextStyle(color: _primaryOrange, fontSize: 14)),
+          Text('Enlaces de Interés', style: TextStyle(color: _primaryOrange, fontSize: 14)),
         ],
       ),
     );
   }
 }
-
-
