@@ -22,7 +22,6 @@ class _OlvidecontrasenaState extends State<Olvidecontrasena> {
   }
 
   void _sendRecoveryCode() {}
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
