@@ -50,6 +50,8 @@ class _IniciarSesionState extends State<IniciarSesion> {
                 final isAdmin = users.any((u) => (u['email'] ?? '').toString().trim() == email && (u['isadmin'] ?? false) as bool);
                 final uid= users.firstWhere((u) => (u['email'] ?? '').toString().trim() == email)['uid'].toString();
                 await updateUserLoginDate(DateTime.now(), uid);// Actualiza la fecha de último login
+                //widget.usernameController.clear();
+                //widget.passwordController.clear();
                 if (isAdmin) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(content: Text('Usuario administrador')),

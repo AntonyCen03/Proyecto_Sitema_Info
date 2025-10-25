@@ -36,6 +36,25 @@ class _PageLoginState extends State<PageLogin> {
         future: getUser(context),
         builder: (context, asyncSnapshot) {
           return Center(
+            child: SingleChildScrollView(
+          padding: const EdgeInsets.all(24.0),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 600.0),
+            child: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(30.0),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(15.0),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.grey.withOpacity(0.3),
+                    spreadRadius: 3,
+                    blurRadius: 10,
+                    offset: const Offset(0, 5),
+                  ),
+                ],
+              ),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: <Widget>[
@@ -57,10 +76,13 @@ class _PageLoginState extends State<PageLogin> {
                 registrarse(context),
               ],
             ),
-          );
-        },
-      ),
-    );
+          ),
+        ),
+      )
+      );
+    },
+  ),
+  );
   }
 }
 
@@ -91,7 +113,9 @@ class UsernameField extends StatelessWidget {
           return null;
         },
         decoration: InputDecoration(
-          hintText: "Correo Electrónico",
+          labelText: "Correo Electrónico",
+          hintText: "Ingrese su correo institucional",
+          border: OutlineInputBorder(),
           fillColor: Colors.white,
           filled: true,
           contentPadding: EdgeInsets.symmetric(vertical: 8.0, horizontal: 10.0),

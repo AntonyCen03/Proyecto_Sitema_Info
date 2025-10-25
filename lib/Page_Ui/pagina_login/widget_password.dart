@@ -41,7 +41,9 @@ class PasswordFieldState extends State<PasswordField> {
               return null;
             },
             decoration: InputDecoration(
-              hintText: "Contraseña",
+              labelText: "Contraseña",
+              hintText: "Ingrese su contraseña",
+              border: OutlineInputBorder(),
               fillColor: Colors.white,
               filled: true,
               prefixIcon: Icon(Icons.lock),

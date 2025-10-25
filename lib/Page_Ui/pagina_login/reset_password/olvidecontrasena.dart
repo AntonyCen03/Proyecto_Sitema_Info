@@ -50,7 +50,7 @@ class _OlvidecontrasenaState extends State<Olvidecontrasena> {
               padding: const EdgeInsets.all(24.0),
               child: Center(
                 child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 400),
+                  constraints: const BoxConstraints(maxWidth: 450),
                   child: Container(
                     padding: const EdgeInsets.all(24.0),
                     decoration: BoxDecoration(
@@ -89,7 +89,7 @@ class _OlvidecontrasenaState extends State<Olvidecontrasena> {
                         ),
                         const SizedBox(height: 32),
                         SizedBox(
-                          width: 300,
+                          width: 350,
                           child: TextField(
                             controller: _emailController,
                             keyboardType: TextInputType.emailAddress,
