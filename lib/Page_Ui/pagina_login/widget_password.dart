@@ -19,7 +19,7 @@ class PasswordFieldState extends State<PasswordField> {
       children: [
         Padding(
           padding: const EdgeInsets.only(right: 20.0),
-          child: olvidasteContrasena(),
+          child: olvidasteContrasena(context),
         ),
         Container(
           width: 500, // reduce width
@@ -67,9 +67,12 @@ class PasswordFieldState extends State<PasswordField> {
   }
 }
 
-Widget olvidasteContrasena() {
+Widget olvidasteContrasena(BuildContext context) {
   return TextButton(
-    onPressed: () {},
+    onPressed: () {
+      // Navegar a la página de restablecimiento de contraseña
+      Navigator.pushNamed(context, '/reset_password');
+    },
     child: Text(
       "¿Olvidaste tu contraseña?",
       style: TextStyle(color: Colors.blue),

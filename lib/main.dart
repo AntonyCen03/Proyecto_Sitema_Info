@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:proyecto_final/Page_Ui/pagina_crear_cuenta/registrar_usuario.dart';
 import 'package:proyecto_final/Page_Ui/pagina_login/login.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:proyecto_final/Page_Ui/pagina_login/reset_password/olvidecontrasena.dart';
 import 'firebase_options.dart';
 
 void main() async {
@@ -27,6 +28,7 @@ class MyApp extends StatelessWidget {
       routes: {
         '/login': (context) => const PageLogin(),
         '/registrar': (context) => const PageSignUp(),
+        '/reset_password': (context) => const Olvidecontrasena(),
       },
     );
   }

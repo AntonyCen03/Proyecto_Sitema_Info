@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:proyecto_final/services/auth_service.dart';
 
 const Color colorPrimario = Color(0xFF6200EE);
 const Color colorFondo = Color(0xFFF5F5F5);
@@ -21,7 +22,23 @@ class _OlvidecontrasenaState extends State<Olvidecontrasena> {
     super.dispose();
   }
 
-  void _sendRecoveryCode() {}
+  void _sendRecoveryCode() {
+    final email = _emailController.text.trim();
+    
+    if (email.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Por favor, ingresa tu correo electrónico')),
+      );
+      return;
+    } else {
+      AuthService().sendPasswordReset(email); // Lógica para enviar el enlace de recuperación
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Enlace de recuperación enviado a $email')),
+      );
+      Navigator.pop(context);
+    }
+    
+  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -51,10 +68,6 @@ class _OlvidecontrasenaState extends State<Olvidecontrasena> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Image.asset(
-                          'assets/images/usuariopng.webp',
-                          height: 100,
-                        ),
                         const SizedBox(height: 32),
                         const Text(
                           'Ingresa tu correo electrónico',
@@ -67,7 +80,7 @@ class _OlvidecontrasenaState extends State<Olvidecontrasena> {
                         ),
                         const SizedBox(height: 16),
                         const Text(
-                          'Te enviaremos un código para reestablecer tu contraseña.',
+                          'Te enviaremos un enlace para reestablecer tu contraseña.',
                           style: TextStyle(
                             fontSize: 16,
                             color: colorTextoSecundario,
