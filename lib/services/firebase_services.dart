@@ -17,19 +17,25 @@ Future<List<Map<String, dynamic>>> getUser(BuildContext context) async {
           ? int.tryParse(data['id_carnet'].toString()) ?? 0
           : 0;
       final cedula = data['cedula'] ?? '';
+      final dateLogin = data['date_login'] != null && data['date_login'] is Timestamp
+          ? (data['date_login'] as Timestamp).toDate()
+          : null;
+      final uid = doc.id;
+          
 
       final person = {
         'name': name,
-        'uid': doc.id,
+        'uid': uid,
         'email': email,
         'password': password,
         'isadmin': isadmin,
         'id_carnet': idCarnet,
         'cedula': cedula,
+        'date_login': dateLogin,
       };
       users.add(person);
     }
-  } catch (e)
+  } catch (e) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text('Error de conexion: $e')),
     );
@@ -44,6 +50,8 @@ Future<void> addUser(
   bool isadmin,
   int idCarnet,
   String cedula,
+  DateTime dateCreated,
+  DateTime dateLogin,
 ) async {
   await db.collection('user').add({
     'name': name,
@@ -51,28 +59,35 @@ Future<void> addUser(
     'isadmin': isadmin,
     'id_carnet': idCarnet,
     'cedula': cedula,
+    'date_created': dateCreated,
+    'date_login': dateLogin,
   });
 }
 
 Future<void> updateUser(
   String name,
-  String email,
-  String password,
-  bool isadmin,
   int idCarnet,
   String cedula,
+
   String uid,
 ) async {
   await db.collection('user').doc(uid).set({
     'name': name,
-    'email': email,
-    'password': password,
-    'isadmin': isadmin,
     'id_carnet': idCarnet,
     'cedula': cedula,
+  });
+}
+
+Future<void> updateUserLoginDate(
+  DateTime dateLogin,
+  String uid,
+) async {
+  await db.collection('user').doc(uid).update({
+    'date_login': dateLogin,
   });
 }
 
 Future<void> deleteUser(String uid) async {
   await db.collection('user').doc(uid).delete();
 }
+
