@@ -14,26 +14,140 @@ class PerfilUsuario extends StatefulWidget {
 }
 
 class _PerfilUsuarioState extends State<PerfilUsuario> {
-  TextEditingController  nombre = TextEditingController();
+  TextEditingController nombre = TextEditingController();
+  TextEditingController cedulausuario = TextEditingController();
+  TextEditingController carnetusuario = TextEditingController();
+  late Widget infoperfil = Container();
+  bool isvisibleci = false;
+  bool isvisiblece = false;
+  bool isvisiblenom = false;
+  bool ajustando = true;
   String usuario ="";
   String correo = "";
   String cedula = "";
   String nombreu = "";
-  String apellidou = "";
   String categoria = "";
   String carnet = "";
   String grado = "";
+  String ultimaconecion = "";
+  double espacioce = 16;
+  double espaciocar = 16;
+  double espacionomb = 16;
+  double tamanofoto =  200;
+  Text advertencianombre = const Text('Introzca su nombre.', style: TextStyle(fontSize: 10, color: Colors.red),);
+  Text advertenciacarnet = Text("", style: TextStyle(fontSize: 10, color: Colors.red),);
+  Text advertenciacedula = Text("", style: TextStyle(fontSize: 10, color: Colors.red),);
 
-  void obtenerinfousuario(){
-    //Antoni aqui lo cambiass
+  @override
+  void initState(){
+    super.initState();
     usuario = "Antoni ejemplo";
     correo = 'nombre@correo.unimet.edu.ve';
     cedula = "cedulausuario";
     nombreu = "Antoni";
-    apellidou = "cein";
     carnet = "carnet antoni";
+    //Aqui antony haces lo que hablamos la otra vez un if que verifique los grador del usuario
+    //grado 3 admin/profesor y asi
     grado = "estudiante";
+    ultimaconecion = 'Ultima Conecion';
+    advertenciacarnet = Text("Introduzca el carnet", style: TextStyle(fontSize: 10, color: Colors.red),);
+    advertenciacedula = Text("Introduzca la cedula", style: TextStyle(fontSize: 10, color: Colors.red),);
+    infoperfil = informacion();
     
+  }
+
+  void verificacion(){
+    setState(() {
+    if(nombre.text.isEmpty || cedulausuario.text.isEmpty || carnetusuario.text.isEmpty){
+        if(nombre.text.isEmpty ){
+        isvisiblenom = true;
+        espacionomb = 0;
+      }
+      if(cedulausuario.text.isEmpty ){
+        advertenciacedula = Text("Introduzca la cedula", style: TextStyle(fontSize: 10, color: Colors.red),);
+        isvisibleci= true;
+        espacioce = 0;
+      }
+      if(carnetusuario.text.isEmpty){
+        advertenciacarnet = Text("Introduzca el carnet", style: TextStyle(fontSize: 10, color: Colors.red),);
+        isvisiblece = true;
+        espaciocar = 0;
+      }
+      infoperfil = configuraciondeinformacion();
+      return;
+    }
+
+    actualizarinfousuario();
+    });
+  }
+
+  void verificacionnombre(String text){
+    setState(() {
+      if (nombre.text.isEmpty) {
+        isvisiblenom = false;
+        espacionomb =0;
+        infoperfil = configuraciondeinformacion();
+      return;
+      }
+    });
+  }
+
+  void verificacioncedula(String text){
+    
+    setState(() {
+      if (cedulausuario.text.isEmpty) {
+        isvisibleci = false;
+        espacioce = 0;
+        infoperfil = configuraciondeinformacion();
+      return;
+    } final isNumeric = RegExp(r'^\d+$').hasMatch(text);
+      if(isNumeric == false){
+        espacioce = 0;
+        advertenciacedula = Text('La Cedula solo puede tener números.', style: TextStyle(fontSize: 10, color: Colors.red),);
+        isvisibleci= true;
+      } else{
+        espacioce = 0;
+        isvisibleci = false;
+      } 
+      infoperfil = configuraciondeinformacion();
+    });
+  }
+
+   void verificacioncarnet(String text){
+    
+    setState(() {
+      if (carnetusuario.text.isEmpty) {
+        isvisiblece = false;
+        espaciocar = 0;
+        infoperfil = configuraciondeinformacion();
+        return;
+      } 
+      final isNumeric = RegExp(r'^\d+$').hasMatch(text);
+      if(isNumeric == false){
+        espaciocar = 0;
+        advertenciacarnet = Text('El carnet solo puede tener números.', style: TextStyle(fontSize: 10, color: Colors.red),);
+        isvisiblece = true;
+      }else{
+        espaciocar = 0;
+        isvisiblece = false;
+      }
+      infoperfil = configuraciondeinformacion();
+    });
+  }
+
+  void actualizarinfousuario(){
+    //Antoni aqui lo cambias
+
+      usuario = nombre.text;
+    cedula = cedulausuario.text;
+    nombreu = nombre.text;
+    carnet = carnetusuario.text;
+    tamanofoto = 200;
+    ajustando = true;
+    nombre.clear();
+    cedulausuario.clear();
+    carnetusuario.clear();
+    infoperfil = informacion();
   }
 
   PreferredSizeWidget appbar() {
@@ -61,9 +175,9 @@ class _PerfilUsuarioState extends State<PerfilUsuario> {
           IconButton(
             icon: const Icon(Icons.notifications, size: 30),
             onPressed: () {},
-            ),
-            const SizedBox(width: 8),
-            Container(
+          ),
+          const SizedBox(width: 8),
+          Container(
             width: 50,
             height: 50,
             decoration: BoxDecoration(
@@ -82,12 +196,15 @@ class _PerfilUsuarioState extends State<PerfilUsuario> {
 
   Widget proyectosrealizados(){
     return Container(
-      width: 200,
+      width: 250,
       height: 250,
       padding: const EdgeInsets.all(16.0),
       decoration: BoxDecoration(
         color: Color.fromRGBO(208, 215, 255, 1),
         borderRadius: BorderRadius.circular(16.0),
+        border: Border.all(
+          color:Color.fromARGB(255, 0, 0, 55)
+        )
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -304,6 +421,183 @@ class _PerfilUsuarioState extends State<PerfilUsuario> {
     );
   }
 
+  Widget configuraciondeinformacion(){
+     return Container(
+      width: 350,
+      padding: const EdgeInsets.all(24.0),
+      decoration: BoxDecoration(
+        color: Color.fromRGBO(208, 215, 255, 1),
+        borderRadius: BorderRadius.circular(16.0),
+        border: Border.all(
+          color:Color.fromARGB(255, 0, 0, 55)
+        )
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const SizedBox(height: 4),
+          Text(
+            "Nombre",
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: Color.fromRGBO(240, 83, 43, 1),
+            ),
+          ),
+          const SizedBox(height: 4),
+          SizedBox(
+            width: 300,
+            height: 30, 
+              child: TextField(
+                controller: nombre,
+                keyboardType: TextInputType.text,
+                onChanged: verificacionnombre,
+                decoration: const InputDecoration(
+                  filled: true,
+                  fillColor: Colors.white,
+                  border: OutlineInputBorder(),
+                  labelText: 'Nombre',
+                ),
+              ),
+          ),
+          Visibility(visible: isvisiblenom,child: advertencianombre),
+          SizedBox(height: espacionomb),
+          Text(
+            'Correo Electrónico',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: Color.fromRGBO(240, 83, 43, 1),
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+                correo,
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Color.fromRGBO(248, 131, 49, 1),
+                ),
+              ),
+          const SizedBox(height: 6),
+          // Carnet del Usuario
+          Text(
+            'Carnet del Usuario',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: Color.fromRGBO(240, 83, 43, 1),
+            ),
+          ),
+          const SizedBox(height: 4),
+          SizedBox(
+            width: 300,
+            height: 30, 
+              child: TextField(
+                controller: carnetusuario,
+                keyboardType: TextInputType.number,
+                onChanged: verificacioncarnet,
+                decoration: const InputDecoration(
+                  filled: true,
+                  fillColor: Colors.white,
+                  border: OutlineInputBorder(),
+                  labelText: 'Carnet',
+                ),
+              ),
+          ),
+          Visibility(visible: isvisiblece,child: advertenciacarnet),
+          SizedBox(height: espaciocar),
+          Text(
+            'Cedula',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: Color.fromRGBO(240, 83, 43, 1),
+            ),
+          ),
+          const SizedBox(height: 4),
+          SizedBox(
+            width: 300,
+            height: 30, 
+              child: TextField(
+                controller: cedulausuario,
+                keyboardType: TextInputType.number,
+                onChanged: verificacioncedula,
+                decoration: const InputDecoration(
+                  filled: true,
+                  fillColor: Colors.white,
+                  border: OutlineInputBorder(),
+                  labelText: 'Cedula',
+                ),
+              ),
+          ),
+          Visibility(visible: isvisibleci,child: advertenciacedula),
+          SizedBox(height: espacioce),
+          Text(
+            'Ultima Coneción',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: Color.fromRGBO(240, 83, 43, 1),
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+                ultimaconecion,
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Color.fromRGBO(248, 131, 49, 1),
+                ),
+              ),
+          const SizedBox(height: 16),
+          Align(
+            alignment: Alignment.bottomRight,
+            child: Row(
+              children: [
+                ElevatedButton(
+                  onPressed: (){
+                    setState(() {
+                          tamanofoto =  200;
+                          ajustando = true;
+                          isvisiblece = false;
+                          isvisibleci = false;
+                          isvisiblenom = false;
+                          nombre.clear();
+                          cedulausuario.clear();
+                          carnetusuario.clear();
+                          infoperfil = informacion();
+                        });
+                    },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color.fromRGBO(248, 131, 49, 1),
+                    foregroundColor: Colors.white,
+                    shape: const RoundedRectangleBorder(
+                      borderRadius: BorderRadius.all(Radius.circular(10)),
+                    )
+                  ),
+                  child: const Text('Cancelar')      
+                ),
+                const SizedBox(width: 20),
+                ElevatedButton(
+                  onPressed: (){
+                    verificacion();
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color.fromRGBO(248, 131, 49, 1),
+                    foregroundColor: Colors.white,
+                    shape: const RoundedRectangleBorder(
+                      borderRadius: BorderRadius.all(Radius.circular(10)),
+                    )
+                  ),
+                  child: const Text('Continuar')      
+                )
+              ],
+            ),
+          )
+        ],
+      ),
+    );
+  }
+
   Widget informacion(){
     return Container(
       width: 350,
@@ -311,6 +605,9 @@ class _PerfilUsuarioState extends State<PerfilUsuario> {
       decoration: BoxDecoration(
         color: Color.fromRGBO(208, 215, 255, 1),
         borderRadius: BorderRadius.circular(16.0),
+        border: Border.all(
+          color:Color.fromARGB(255, 0, 0, 55)
+        )
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -326,23 +623,6 @@ class _PerfilUsuarioState extends State<PerfilUsuario> {
           const SizedBox(height: 4),
           Text(
                 nombreu,
-                style: TextStyle(
-                  fontSize: 14,
-                  color: Color.fromRGBO(248, 131, 49, 1),
-                ),
-              ),
-          const SizedBox(height: 16),
-          Text(
-                'Apellido',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: Color.fromRGBO(240, 83, 43, 1),
-                ),
-              ),
-          const SizedBox(height: 4),
-          Text(
-                apellidou,
                 style: TextStyle(
                   fontSize: 14,
                   color: Color.fromRGBO(248, 131, 49, 1),
@@ -402,7 +682,7 @@ class _PerfilUsuarioState extends State<PerfilUsuario> {
               ), 
           const SizedBox(height: 16),
           Text(
-            'Horario',
+            'Ultima Coneción',
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.bold,
@@ -411,7 +691,7 @@ class _PerfilUsuarioState extends State<PerfilUsuario> {
           ),
           const SizedBox(height: 4),
           Text(
-                'Horario de la ubicacion del usuario',
+                ultimaconecion,
                 style: TextStyle(
                   fontSize: 14,
                   color: Color.fromRGBO(248, 131, 49, 1),
@@ -510,7 +790,6 @@ class _PerfilUsuarioState extends State<PerfilUsuario> {
 
   @override
   Widget build(BuildContext context) {
-    obtenerinfousuario();
     return MaterialApp(
       home: Scaffold(
       backgroundColor: colorFondo,
@@ -519,50 +798,53 @@ class _PerfilUsuarioState extends State<PerfilUsuario> {
         child: Stack(
           children: [
             SingleChildScrollView(
-              child: Padding(
-                padding: const EdgeInsets.all(24.0),
-                child: Column(
-                  children: [
-                    const SizedBox(height: 80),
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        // usuario
-                        Column(
-                          children: [
-                            perfil(),
-                            const SizedBox(height: 24),
-                            informacion(),
-                            const SizedBox(height: 24),
-                            Container(
-                            width: 350,
-                            height: 150,
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(16.0),
-                            ),
-                            child: ClipRRect(
-                              borderRadius: BorderRadius.circular(16.0),
-                              child: Image.asset(
-                                'assets/images/graduacion.jpg',
-                                fit: BoxFit.cover,
-                                ),
+              child: Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(24.0),
+                  child: Container(
+                    width: 700,
+                    decoration: BoxDecoration(
+                      color: Color.fromRGBO(255, 255, 255, 1),
+                      borderRadius: BorderRadius.circular(16.0),
+                      border: Border.all(
+                        color:Color.fromARGB(255, 0, 0, 55)
+                      )
+                    ),
+                    child:  Column(
+                    children: [
+                      const SizedBox(height: 80),
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          // usuario
+                          Column(
+                            children: [
+                              Row(
+                                children: [
+                                  perfil(),
+                                  SizedBox(width: 20),
+                                  Visibility(
+                                    visible: ajustando,
+                                    child:IconButton(
+                                      icon: const Icon(Icons.settings_outlined, size: 30),
+                                      onPressed: () {
+                                        setState(() {
+                                          tamanofoto = 175;
+                                          infoperfil = configuraciondeinformacion();
+                                          ajustando = false;
+                                        });
+                                      },
+                                      ),
+                                  )
+                                ],
                               ),
-                            ),
-                        const SizedBox(height: 24),
-                        ]
-                        ,),
-                        
-                        const SizedBox(width: 24),
-                        // imagen saman supongo(ya verems)
-                        Column(
-                          children: [
-                            // Imagen del edificio
-                            const SizedBox(height: 24),
-                            Container(
-                              width: 200,
-                              height: 390,
+                              const SizedBox(height: 24),
+                              infoperfil,
+                              const SizedBox(height: 24),
+                              Container(
+                              width: 350,
+                              height: tamanofoto,
                               decoration: BoxDecoration(
                                 color: Colors.white,
                                 borderRadius: BorderRadius.circular(16.0),
@@ -570,28 +852,47 @@ class _PerfilUsuarioState extends State<PerfilUsuario> {
                               child: ClipRRect(
                                 borderRadius: BorderRadius.circular(16.0),
                                 child: Image.asset(
-                                  'assets/images/edificio.jpg',
+                                  "images/foto1.jpg",
                                   fit: BoxFit.cover,
+                                  ),
                                 ),
                               ),
-                            ),
-                            const SizedBox(height: 24),
-                            // Cudro de proyectos realizados
-                            proyectosrealizados(),
-                          ],
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 24),
-                    // Botones con informacion de interes
-                    linksdeinteres(),
-                    const SizedBox(height: 24),
-                  ],
+                            ],
+                          ),
+                          
+                          const SizedBox(width: 24),
+                          Column(
+                            children: [
+                              // Imagen del edificio
+                              const SizedBox(height: 24),
+                              Container(
+                                width: 250,
+                                height: 390,
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(16.0),
+                                ),
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(16.0),
+                                  child: Image.asset(
+                                    'images/foto2.jpg',
+                                    fit: BoxFit.cover,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(height: 24),
+                              // Cudro de proyectos realizados
+                              proyectosrealizados(),
+                              const SizedBox(height: 24),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),)
                 ),
-              ),
+              )
             ),
-            // Logo en la esquina superior izquierda
-            // Menú de navegación arriba
           ],
         ),
       ),
