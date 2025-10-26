@@ -68,10 +68,9 @@ Future<void> updateUser(
   String name,
   int idCarnet,
   String cedula,
-
   String uid,
 ) async {
-  await db.collection('user').doc(uid).set({
+  await db.collection('user').doc(uid).update({
     'name': name,
     'id_carnet': idCarnet,
     'cedula': cedula,

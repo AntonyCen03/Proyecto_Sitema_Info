@@ -326,7 +326,7 @@ class _Header extends StatelessWidget {
                       // Navigator.push(context, MaterialPageRoute(builder: (context) => CalendarioPage()));
                       break;
                     case 'ajustes':
-                      // Navigator.push(context, MaterialPageRoute(builder: (context) => AjustesPage()));
+                      Navigator.pushNamed(context, '/perfil');
                       break;
                     case 'dashboard_reportes':
                       // Navigator.push(context, MaterialPageRoute(builder: (context) => DashboardReportesPage()));
