@@ -17,15 +17,21 @@ Future<List<Map<String, dynamic>>> getUser(BuildContext context) async {
           ? int.tryParse(data['id_carnet'].toString()) ?? 0
           : 0;
       final cedula = data['cedula'] ?? '';
+      final dateLogin = data['date_login'] != null && data['date_login'] is Timestamp
+          ? (data['date_login'] as Timestamp).toDate()
+          : null;
+      final uid = doc.id;
+          
 
       final person = {
         'name': name,
-        'uid': doc.id,
+        'uid': uid,
         'email': email,
         'password': password,
         'isadmin': isadmin,
         'id_carnet': idCarnet,
         'cedula': cedula,
+        'date_login': dateLogin,
       };
       users.add(person);
     }
@@ -60,8 +66,6 @@ Future<void> addUser(
 
 Future<void> updateUser(
   String name,
-  String email,
-  bool isadmin,
   int idCarnet,
   String cedula,
 
@@ -69,8 +73,6 @@ Future<void> updateUser(
 ) async {
   await db.collection('user').doc(uid).set({
     'name': name,
-    'email': email,
-    'isadmin': isadmin,
     'id_carnet': idCarnet,
     'cedula': cedula,
   });

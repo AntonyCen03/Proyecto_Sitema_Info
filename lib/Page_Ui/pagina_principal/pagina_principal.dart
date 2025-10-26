@@ -77,8 +77,7 @@ class _PaginaPrincipalState extends State<PaginaPrincipal> {
                       ),
                       title: const Text('Ajustes de Usuario'),
                       onTap: () {
-                        // Navigator.push(...)
-                        Navigator.pop(context);
+                        Navigator.pushNamed(context, '/perfil');
                       },
                     ),
                     ListTile(
