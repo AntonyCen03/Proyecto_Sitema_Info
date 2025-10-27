@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 
-const Color colorPrimario = Color(0xFF6200EE);
-const Color colorFondo = Color(0xFFF5F5F5);
-const Color colorTextoPrincipal = Colors.black;
-const Color colorTextoSecundario = Colors.grey;
-const Color colorNaranja = Color.fromARGB(255, 238, 143, 0);
+const Color colorPrimario = Color(0xFF1A73E8);
+const Color colorFondo = Color(0xFFF8F9FA);
+const Color colorTextoPrincipal = Color(0xFF202124);
+const Color colorTextoSecundario = Color(0xFF5F6368);
+const Color colorNaranja = Color(0xFFFF6B35);
+const Color colorAcento = Color(0xFF34A853);
 
 class PerfilUsuario extends StatefulWidget {
   const PerfilUsuario({super.key});
@@ -14,8 +15,8 @@ class PerfilUsuario extends StatefulWidget {
 }
 
 class _PerfilUsuarioState extends State<PerfilUsuario> {
-  TextEditingController  nombre = TextEditingController();
-  String usuario ="";
+  TextEditingController nombre = TextEditingController();
+  String usuario = "";
   String correo = "";
   String cedula = "";
   String nombreu = "";
@@ -24,7 +25,7 @@ class _PerfilUsuarioState extends State<PerfilUsuario> {
   String carnet = "";
   String grado = "";
 
-  void obtenerinfousuario(){
+  void obtenerinfousuario() {
     //Antoni aqui lo cambiass
     usuario = "Antoni ejemplo";
     correo = 'nombre@correo.unimet.edu.ve';
@@ -33,268 +34,101 @@ class _PerfilUsuarioState extends State<PerfilUsuario> {
     apellidou = "cein";
     carnet = "carnet antoni";
     grado = "estudiante";
-    
   }
 
   PreferredSizeWidget appbar() {
     return AppBar(
-        title:const Text(
-          "MetroBox",
-          style: TextStyle(
-            color: Color.fromRGBO(240, 83, 43, 1),
-            fontWeight: FontWeight.bold,
+      backgroundColor: Colors.white,
+      elevation: 1,
+      title: const Text(
+        "MetroBox",
+        style: TextStyle(
+          color: colorNaranja,
+          fontWeight: FontWeight.bold,
+          fontSize: 24,
+        ),
+      ),
+      centerTitle: true,
+      leading: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Align(
+          alignment: Alignment.topLeft,
+          child: GestureDetector(
+            onTap: () {},
+            child: Image.asset('assets/images/logo.png', height: 100),
           ),
         ),
-        centerTitle: true,
-        leading: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child:
-           Align(
-            alignment: Alignment.topLeft,
-            child:GestureDetector(
-              onTap: (){},
-              child: Image.asset('assets/images/logo.png', height: 100),
-              ), 
-          ),
+      ),
+      actions: [
+        IconButton(
+          icon: const Icon(Icons.notifications_outlined, size: 26),
+          color: colorTextoSecundario,
+          onPressed: () {},
         ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.notifications, size: 30),
-            onPressed: () {},
+        const SizedBox(width: 8),
+        Container(
+          width: 45,
+          height: 45,
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [colorPrimario, colorAcento],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
             ),
-            const SizedBox(width: 8),
-            Container(
-            width: 50,
-            height: 50,
-            decoration: BoxDecoration(
-              color: const Color(0xFFE8E8FF),
-              shape: BoxShape.circle,
-            ),
-            child: const Icon(
-              Icons.person,
-              size: 30,
-              color: Color(0xFF9C9CFF),
-            ),
+            shape: BoxShape.circle,
           ),
-        ],
-      );
+          child: const Icon(Icons.person, size: 24, color: Colors.white),
+        ),
+        const SizedBox(width: 16),
+      ],
+    );
   }
 
-  Widget proyectosrealizados(){
+  Widget proyectosrealizados() {
     return Container(
       width: 200,
       height: 250,
-      padding: const EdgeInsets.all(16.0),
+      padding: const EdgeInsets.all(20.0),
       decoration: BoxDecoration(
-        color: Color.fromRGBO(208, 215, 255, 1),
-        borderRadius: BorderRadius.circular(16.0),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12.0),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: Offset(0, 2),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Proyectos Realizados',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: Color.fromRGBO(240, 83, 43, 1),
-            ),
+          Row(
+            children: [
+              Icon(Icons.folder_outlined, color: colorNaranja, size: 20),
+              const SizedBox(width: 8),
+              const Text(
+                'Proyectos Activos',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: colorTextoPrincipal,
+                ),
+              ),
+            ],
           ),
           const SizedBox(height: 16),
-          //CAMBIAR TODO ESTO
           Expanded(
             child: SingleChildScrollView(
               child: Column(
                 children: [
-                  // Proyecto 1
-                  Padding(
-                    padding: const EdgeInsets.only(
-                      bottom: 8.0,
-                    ),
-                    child: Row(
-                      mainAxisAlignment:
-                          MainAxisAlignment
-                              .spaceBetween,
-                      children: [
-                        Text(
-                          'Proyecto 1',
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: colorNaranja,
-                          ),
-                        ),
-                        Text(
-                          'Porcentaje',
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: Color.fromRGBO(248, 131, 49, 1),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  // Proyecto 2
-                  Padding(
-                    padding: const EdgeInsets.only(
-                      bottom: 8.0,
-                    ),
-                    child: Row(
-                      mainAxisAlignment:
-                          MainAxisAlignment
-                              .spaceBetween,
-                      children: [
-                        Text(
-                          'Proyecto 2',
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: colorNaranja,
-                          ),
-                        ),
-                        Text(
-                          'Porcentaje',
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: Color.fromRGBO(248, 131, 49, 1),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  // Proyecto 3
-                  Padding(
-                    padding: const EdgeInsets.only(
-                      bottom: 8.0,
-                    ),
-                    child: Row(
-                      mainAxisAlignment:
-                          MainAxisAlignment
-                              .spaceBetween,
-                      children: [
-                        Text(
-                          'Proyecto 3',
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: colorNaranja,
-                          ),
-                        ),
-                        Text(
-                          'Porcentaje',
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: Color.fromRGBO(248, 131, 49, 1),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  // Proyecto 4
-                  Padding(
-                    padding: const EdgeInsets.only(
-                      bottom: 8.0,
-                    ),
-                    child: Row(
-                      mainAxisAlignment:
-                          MainAxisAlignment
-                              .spaceBetween,
-                      children: [
-                        Text(
-                          'Proyecto 4',
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: colorNaranja,
-                          ),
-                        ),
-                        Text(
-                          'Porcentaje',
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: Color.fromRGBO(248, 131, 49, 1),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  // Proyecto 5
-                  Padding(
-                    padding: const EdgeInsets.only(
-                      bottom: 8.0,
-                    ),
-                    child: Row(
-                      mainAxisAlignment:
-                          MainAxisAlignment
-                              .spaceBetween,
-                      children: [
-                        Text(
-                          'Proyecto 5',
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: colorNaranja,
-                          ),
-                        ),
-                        Text(
-                          'Porcentaje',
-                          style: TextStyle(
-                            fontSize: 14,
-                            color:Color.fromRGBO(248, 131, 49, 1),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  // Proyecto 6
-                  Padding(
-                    padding: const EdgeInsets.only(
-                      bottom: 8.0,
-                    ),
-                    child: Row(
-                      mainAxisAlignment:
-                          MainAxisAlignment
-                              .spaceBetween,
-                      children: [
-                        Text(
-                          'Proyecto 6',
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: colorNaranja,
-                          ),
-                        ),
-                        Text(
-                          'Porcentaje',
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: Color.fromRGBO(248, 131, 49, 1),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  // Proyecto 7
-                  Padding(
-                    padding: const EdgeInsets.only(
-                      bottom: 8.0,
-                    ),
-                    child: Row(
-                      mainAxisAlignment:
-                          MainAxisAlignment
-                              .spaceBetween,
-                      children: [
-                        Text(
-                          'Proyecto 7',
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: colorNaranja,
-                          ),
-                        ),
-                        Text(
-                          'Porcentaje',
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: Color.fromRGBO(248, 131, 49, 1),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
+                  _buildProyectoItem('Proyecto 1', '85%', colorAcento),
+                  _buildProyectoItem('Proyecto 2', '92%', colorPrimario),
+                  _buildProyectoItem('Proyecto 3', '67%', colorNaranja),
+                  _buildProyectoItem('Proyecto 4', '78%', colorAcento),
+                  _buildProyectoItem('Proyecto 5', '95%', colorPrimario),
+                  _buildProyectoItem('Proyecto 6', '73%', colorNaranja),
+                  _buildProyectoItem('Proyecto 7', '88%', colorAcento),
                 ],
               ),
             ),
@@ -304,203 +138,108 @@ class _PerfilUsuarioState extends State<PerfilUsuario> {
     );
   }
 
-  Widget informacion(){
+  Widget _buildProyectoItem(String nombre, String porcentaje, Color color) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Expanded(
+            child: Text(
+              nombre,
+              style: TextStyle(fontSize: 13, color: colorTextoPrincipal),
+            ),
+          ),
+          Container(
+            padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            decoration: BoxDecoration(
+              color: color.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Text(
+              porcentaje,
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: color,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget informacion() {
     return Container(
       width: 350,
       padding: const EdgeInsets.all(24.0),
       decoration: BoxDecoration(
-        color: Color.fromRGBO(208, 215, 255, 1),
-        borderRadius: BorderRadius.circular(16.0),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12.0),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: Offset(0, 2),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'Nombre',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: Color.fromRGBO(240, 83, 43, 1),
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-                nombreu,
-                style: TextStyle(
-                  fontSize: 14,
-                  color: Color.fromRGBO(248, 131, 49, 1),
-                ),
-              ),
+          _buildInfoItem(Icons.person_outline, 'Nombre', nombreu),
           const SizedBox(height: 16),
-          Text(
-                'Apellido',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: Color.fromRGBO(240, 83, 43, 1),
-                ),
-              ),
-          const SizedBox(height: 4),
-          Text(
-                apellidou,
-                style: TextStyle(
-                  fontSize: 14,
-                  color: Color.fromRGBO(248, 131, 49, 1),
-                ),
-              ),
+          _buildInfoItem(Icons.badge_outlined, 'Apellido', apellidou),
           const SizedBox(height: 16),
-          Text(
-            'Correo Electrónico',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: Color.fromRGBO(240, 83, 43, 1),
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-                correo,
-                style: TextStyle(
-                  fontSize: 14,
-                  color: Color.fromRGBO(248, 131, 49, 1),
-                ),
-              ),
+          _buildInfoItem(Icons.email_outlined, 'Correo Electrónico', correo),
           const SizedBox(height: 16),
-          // Carnet del Usuario
-          Text(
+          _buildInfoItem(
+            Icons.credit_card_outlined,
             'Carnet del Usuario',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: Color.fromRGBO(240, 83, 43, 1),
-            ),
+            carnet,
           ),
-          const SizedBox(height: 4),
-          Text(
-                carnet,
-                style: TextStyle(
-                  fontSize: 14,
-                  color: Color.fromRGBO(248, 131, 49, 1),
-                ),
-              ),
           const SizedBox(height: 16),
-          Text(
-            'Cedula',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: Color.fromRGBO(240, 83, 43, 1),
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-                cedula,
-                style: TextStyle(
-                  fontSize: 14,
-                  color: Color.fromRGBO(248, 131, 49, 1),
-                ),
-              ), 
+          _buildInfoItem(Icons.fingerprint, 'Cédula', cedula),
           const SizedBox(height: 16),
-          Text(
+          _buildInfoItem(
+            Icons.access_time,
             'Horario',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: Color.fromRGBO(240, 83, 43, 1),
-            ),
+            'Horario de la ubicación del usuario',
           ),
-          const SizedBox(height: 4),
-          Text(
-                'Horario de la ubicacion del usuario',
-                style: TextStyle(
-                  fontSize: 14,
-                  color: Color.fromRGBO(248, 131, 49, 1),
-                ),
-              ),
         ],
       ),
     );
   }
 
-  Widget perfil(){
-    return Row(
+  Widget _buildInfoItem(IconData icon, String label, String value) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-          // Foto de perfil
-          Container(
-            width: 80,
-            height: 80,
-            decoration: BoxDecoration(
-              color: const Color(0xFFE8E8FF),
-              shape: BoxShape.circle,
-            ),
-            child: const Icon(
-              Icons.person,
-              size: 50,
-              color: Color(0xFF9C9CFF),
-            ),
-          ),
-          const SizedBox(width: 16),
-          // Nombre del usuario
-          Column(children: [
-             Text(
-              usuario,
+        Row(
+          children: [
+            Icon(icon, size: 18, color: colorNaranja),
+            const SizedBox(width: 8),
+            Text(
+              label,
               style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-                color: colorTextoPrincipal,
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: colorTextoSecundario,
+                letterSpacing: 0.5,
               ),
             ),
-          const SizedBox(height: 4),
-          Text(
-            grado,
-            style: TextStyle(
-              fontSize: 14,
-              color: Color.fromRGBO(248, 131, 49, 1),
-            ),
-          ),
           ],
-        )
-           
-        ],
-    );
-  }
-
-  Widget linksdeinteres(){
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        TextButton(
-          onPressed: () {},
-          child: const Text(
-            'Redes Sociales',
-            style: TextStyle(
-              fontSize: 14,
-              color: colorNaranja,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
         ),
-        const SizedBox(width: 40),
-        TextButton(
-          onPressed: () {},
-          child: const Text(
-            'Contactanos',
+        const SizedBox(height: 6),
+        Padding(
+          padding: const EdgeInsets.only(left: 26),
+          child: Text(
+            value,
             style: TextStyle(
-              fontSize: 14,
-              color: colorNaranja,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-        ),
-        const SizedBox(width: 40),
-        TextButton(
-          onPressed: () {},
-          child: const Text(
-            'Enlaces de Interes',
-            style: TextStyle(
-              fontSize: 14,
-              color: colorNaranja,
-              fontWeight: FontWeight.bold,
+              fontSize: 15,
+              color: colorTextoPrincipal,
+              fontWeight: FontWeight.w500,
             ),
           ),
         ),
@@ -508,93 +247,213 @@ class _PerfilUsuarioState extends State<PerfilUsuario> {
     );
   }
 
+  Widget perfil() {
+    return Container(
+      padding: EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 90,
+            height: 90,
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [colorPrimario, colorAcento],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              shape: BoxShape.circle,
+              boxShadow: [
+                BoxShadow(
+                  color: colorPrimario.withOpacity(0.3),
+                  blurRadius: 15,
+                  offset: Offset(0, 5),
+                ),
+              ],
+            ),
+            child: const Icon(Icons.person, size: 50, color: Colors.white),
+          ),
+          const SizedBox(width: 20),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                usuario,
+                style: TextStyle(
+                  fontSize: 26,
+                  fontWeight: FontWeight.bold,
+                  color: colorTextoPrincipal,
+                ),
+              ),
+              const SizedBox(height: 6),
+              Container(
+                padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: colorNaranja.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Text(
+                  grado,
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: colorNaranja,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget linksdeinteres() {
+    return Container(
+      padding: EdgeInsets.symmetric(vertical: 16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          _buildLinkButton(Icons.share, 'Redes Sociales'),
+          const SizedBox(width: 40),
+          _buildLinkButton(Icons.mail_outline, 'Contáctanos'),
+          const SizedBox(width: 40),
+          _buildLinkButton(Icons.link, 'Enlaces de Interés'),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLinkButton(IconData icon, String text) {
+    return TextButton.icon(
+      onPressed: () {},
+      icon: Icon(icon, size: 18, color: colorPrimario),
+      label: Text(
+        text,
+        style: TextStyle(
+          fontSize: 14,
+          color: colorPrimario,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     obtenerinfousuario();
     return MaterialApp(
+      debugShowCheckedModeBanner: false,
       home: Scaffold(
-      backgroundColor: colorFondo,
-      appBar: appbar(),
-      body: SafeArea(
-        child: Stack(
-          children: [
-            SingleChildScrollView(
-              child: Padding(
-                padding: const EdgeInsets.all(24.0),
-                child: Column(
-                  children: [
-                    const SizedBox(height: 80),
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        // usuario
-                        Column(
-                          children: [
-                            perfil(),
-                            const SizedBox(height: 24),
-                            informacion(),
-                            const SizedBox(height: 24),
-                            Container(
-                            width: 350,
-                            height: 150,
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(16.0),
-                            ),
-                            child: ClipRRect(
-                              borderRadius: BorderRadius.circular(16.0),
-                              child: Image.asset(
-                                'assets/images/graduacion.jpg',
-                                fit: BoxFit.cover,
+        backgroundColor: colorFondo,
+        appBar: appbar(),
+        body: SafeArea(
+          child: Stack(
+            children: [
+              SingleChildScrollView(
+                child: Padding(
+                  padding: const EdgeInsets.all(24.0),
+                  child: Column(
+                    children: [
+                      const SizedBox(height: 20),
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Column(
+                            children: [
+                              perfil(),
+                              const SizedBox(height: 24),
+                              informacion(),
+                              const SizedBox(height: 24),
+                              Container(
+                                width: 350,
+                                height: 150,
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(12.0),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withOpacity(0.05),
+                                      blurRadius: 10,
+                                      offset: Offset(0, 2),
+                                    ),
+                                  ],
+                                ),
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(12.0),
+                                  child: Image.asset(
+                                    'assets/images/graduacion.jpg',
+                                    fit: BoxFit.cover,
+                                  ),
                                 ),
                               ),
-                            ),
-                        const SizedBox(height: 24),
-                        ]
-                        ,),
-                        
-                        const SizedBox(width: 24),
-                        // imagen saman supongo(ya verems)
-                        Column(
-                          children: [
-                            // Imagen del edificio
-                            const SizedBox(height: 24),
-                            Container(
-                              width: 200,
-                              height: 390,
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(16.0),
-                              ),
-                              child: ClipRRect(
-                                borderRadius: BorderRadius.circular(16.0),
-                                child: Image.asset(
-                                  'assets/images/edificio.jpg',
-                                  fit: BoxFit.cover,
+                              const SizedBox(height: 24),
+                            ],
+                          ),
+                          const SizedBox(width: 24),
+                          Column(
+                            children: [
+                              const SizedBox(height: 24),
+                              Container(
+                                width: 200,
+                                height: 390,
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(12.0),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withOpacity(0.05),
+                                      blurRadius: 10,
+                                      offset: Offset(0, 2),
+                                    ),
+                                  ],
+                                ),
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(12.0),
+                                  child: Image.asset(
+                                    'assets/images/edificio.jpg',
+                                    fit: BoxFit.cover,
+                                  ),
                                 ),
                               ),
-                            ),
-                            const SizedBox(height: 24),
-                            // Cudro de proyectos realizados
-                            proyectosrealizados(),
-                          ],
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 24),
-                    // Botones con informacion de interes
-                    linksdeinteres(),
-                    const SizedBox(height: 24),
-                  ],
+                              const SizedBox(height: 24),
+                              proyectosrealizados(),
+                            ],
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 24),
+                      linksdeinteres(),
+                      const SizedBox(height: 24),
+                    ],
+                  ),
                 ),
               ),
-            ),
-            // Logo en la esquina superior izquierda
-            // Menú de navegación arriba
-          ],
+            ],
+          ),
         ),
-      ),
       ),
     );
   }
