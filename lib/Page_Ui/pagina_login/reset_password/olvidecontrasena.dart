@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:proyecto_final/services/auth_service.dart';
 
 const Color colorPrimario = Color(0xFF6200EE);
 const Color colorFondo = Color(0xFFF5F5F5);
@@ -21,7 +22,24 @@ class _OlvidecontrasenaState extends State<Olvidecontrasena> {
     super.dispose();
   }
 
-  void _sendRecoveryCode() {}
+  void _sendRecoveryCode() {
+    final email = _emailController.text.trim();
+    
+    if (email.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Por favor, ingresa tu correo electrónico')),
+      );
+      return;
+    } else {
+      AuthService().sendPasswordReset(email); // Lógica para enviar el enlace de recuperación
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Enlace de recuperación enviado a $email')),
+      );
+      Navigator.pushNamed(context, '/login');
+      _emailController.clear();
+    }
+    
+  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -33,7 +51,7 @@ class _OlvidecontrasenaState extends State<Olvidecontrasena> {
               padding: const EdgeInsets.all(24.0),
               child: Center(
                 child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 400),
+                  constraints: const BoxConstraints(maxWidth: 450),
                   child: Container(
                     padding: const EdgeInsets.all(24.0),
                     decoration: BoxDecoration(
@@ -51,10 +69,6 @@ class _OlvidecontrasenaState extends State<Olvidecontrasena> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Image.asset(
-                          'assets/images/usuariopng.webp',
-                          height: 100,
-                        ),
                         const SizedBox(height: 32),
                         const Text(
                           'Ingresa tu correo electrónico',
@@ -67,7 +81,7 @@ class _OlvidecontrasenaState extends State<Olvidecontrasena> {
                         ),
                         const SizedBox(height: 16),
                         const Text(
-                          'Te enviaremos un código para reestablecer tu contraseña.',
+                          'Te enviaremos un enlace para reestablecer tu contraseña.',
                           style: TextStyle(
                             fontSize: 16,
                             color: colorTextoSecundario,
@@ -76,7 +90,7 @@ class _OlvidecontrasenaState extends State<Olvidecontrasena> {
                         ),
                         const SizedBox(height: 32),
                         SizedBox(
-                          width: 300,
+                          width: 350,
                           child: TextField(
                             controller: _emailController,
                             keyboardType: TextInputType.emailAddress,
@@ -103,7 +117,8 @@ class _OlvidecontrasenaState extends State<Olvidecontrasena> {
                           children: [
                             TextButton(
                               onPressed: () {
-                                Navigator.pop(context);
+                                Navigator.pushNamed(context, '/login');
+                                _emailController.clear();
                               },
                               child: const Text(
                                 'Regresar',
@@ -132,7 +147,7 @@ class _OlvidecontrasenaState extends State<Olvidecontrasena> {
                                 ),
                               ),
                               child: const Text(
-                                'Enviar Código',
+                                'Enviar Enlace',
                                 style: TextStyle(
                                   fontSize: 16,
                                   color: Colors.white,
@@ -145,13 +160,6 @@ class _OlvidecontrasenaState extends State<Olvidecontrasena> {
                     ),
                   ),
                 ),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Align(
-                alignment: Alignment.topLeft,
-                child: Image.asset('assets/images/logo.png', height: 80),
               ),
             ),
           ],

@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "178136796971",
+    "project_id": "dbmetrobox",
+    "storage_bucket": "dbmetrobox.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:178136796971:android:c4678a2670b46591cf3f6e",
+        "android_client_info": {
+          "package_name": "com.example.proyecto_final"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCsAMvLiWlLMc6DWvLiXPpQ3AIHtWo0F0M"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
