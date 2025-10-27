@@ -142,33 +142,21 @@ class _Header extends StatelessWidget {
                 width: 40,
                 height: 40,
               ),*/
-              const SizedBox(width: 16),
-              /*Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                child: TextButton(
-                  onPressed: () {
-                    // TODO: Navegar a Página Principal
-                    // Navigator.push(context, MaterialPageRoute(builder: (context) => PaginaPrincipal()));
-                  },
-                  child: const Text(
-                    'Página Principal',
-                    style: TextStyle(
-                      color: _primaryOrange,
-                      fontWeight: FontWeight.bold,
-                    ),
+                const SizedBox(width: 16),
+                SizedBox(
+                width: 180,
+                child: const Center(
+                  child: Text(
+                  'MetroBox',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: _primaryOrange,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 20,
+                  ),
                   ),
                 ),
-              ),*/
-              /*TextButton(
-                onPressed: () {
-                  // TODO: Navegar a Proyectos
-                  // Navigator.push(context, MaterialPageRoute(builder: (context) => ProyectosPage()));
-                },
-                child: const Text(
-                  'Proyectos',
-                  style: TextStyle(color: _primaryOrange),
                 ),
-              ),*/
             ],
           ),
           Row(
@@ -466,37 +454,3 @@ class _HeroSection extends StatelessWidget {
   }
 }
 
-// Ojo
-// No estoy usando el footer por ahora
-/*class Footer extends StatelessWidget {
-  const Footer();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 24),
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        border: Border(top: BorderSide(color: Colors.black12, width: 0.5)),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: const <Widget>[
-          Text(
-            'Redes Sociales',
-            style: TextStyle(color: _primaryOrange, fontSize: 14),
-          ),
-          Text(
-            'Contáctanos',
-            style: TextStyle(color: _primaryOrange, fontSize: 14),
-          ),
-          Text(
-            'Enlaces de Interés',
-            style: TextStyle(color: _primaryOrange, fontSize: 14),
-          ),
-        ],
-      ),
-    );
-  }
-}
-*/

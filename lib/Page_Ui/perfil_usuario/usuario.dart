@@ -2,11 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:proyecto_final/services/auth_service.dart';
 import 'package:proyecto_final/services/firebase_services.dart';
 
-const Color colorPrimario = Color(0xFF6200EE);
-const Color colorFondo = Color(0xFFF5F5F5);
-const Color colorTextoPrincipal = Colors.black;
-const Color colorTextoSecundario = Colors.grey;
-const Color colorNaranja = Color.fromARGB(255, 238, 143, 0);
+const Color colorPrimario = Color(0xFF1A73E8);
+const Color colorFondo = Color(0xFFF8F9FA);
+const Color colorTextoPrincipal = Color(0xFF202124);
+const Color colorTextoSecundario = Color(0xFF5F6368);
+const Color colorNaranja = Color(0xFFFF6B35);
+const Color colorAcento = Color(0xFF34A853);
 
 class PerfilUsuario extends StatefulWidget {
   const PerfilUsuario({super.key});
@@ -52,6 +53,7 @@ class _PerfilUsuarioState extends State<PerfilUsuario> {
   @override
   void initState() {
     super.initState();
+    infoperfil = informacion();
     _loadUser();
   }
 
@@ -59,7 +61,6 @@ class _PerfilUsuarioState extends State<PerfilUsuario> {
     try {
       final users = await getUser(context);
       if (!mounted) return;
-      // Try to find the user that matches the currently authenticated email.
       final currentEmail = AuthService().currentUser?.email?.toString().trim();
       Map<String, dynamic>? user;
       if (currentEmail != null && currentEmail.isNotEmpty) {
@@ -73,27 +74,31 @@ class _PerfilUsuarioState extends State<PerfilUsuario> {
       } else {
         user = users.isNotEmpty ? users.first : null;
       }
-      setState(() {
-        correo = user?['email']?.toString().trim() ?? '';
-        cedula = user?['cedula']?.toString() ?? "";
-        nombreu = user?['name']?.toString() ?? "";
-        carnet = user?['id_carnet']?.toString() ?? "";
-        if (user?['isadmin'] == true) {
-          grado = "Administrador";
-        } else {
-          grado = "Usuario";
-        }
-        ultimaconecion = user?['date_login']?.toString() ?? '';
-        advertenciacarnet = Text(
-          "Introduzca el carnet",
-          style: TextStyle(fontSize: 10, color: Colors.red),
-        );
-        advertenciacedula = Text(
-          "Introduzca la cedula",
-          style: TextStyle(fontSize: 10, color: Colors.red),
-        );
-        infoperfil = informacion();
-      });
+
+      if (mounted) {
+        setState(() {
+          correo = user?['email']?.toString().trim() ?? '';
+          cedula = user?['cedula']?.toString() ?? "";
+          nombreu = user?['name']?.toString() ?? "";
+          usuario = nombreu;
+          carnet = user?['id_carnet']?.toString() ?? "";
+          if (user?['isadmin'] == true) {
+            grado = "Administrador";
+          } else {
+            grado = "Usuario";
+          }
+          ultimaconecion = user?['date_login']?.toString() ?? '';
+          advertenciacarnet = Text(
+            "Introduzca el carnet",
+            style: TextStyle(fontSize: 10, color: Colors.red),
+          );
+          advertenciacedula = Text(
+            "Introduzca la cedula",
+            style: TextStyle(fontSize: 10, color: Colors.red),
+          );
+          infoperfil = informacion();
+        });
+      }
     } catch (e) {
       if (!mounted) return;
       setState(() {
@@ -196,7 +201,6 @@ class _PerfilUsuarioState extends State<PerfilUsuario> {
   }
 
   void actualizarinfousuario() {
-    // Make this async-ish to safely fetch users and update.
     getUser(context)
         .then((users) async {
           try {
@@ -239,52 +243,47 @@ class _PerfilUsuarioState extends State<PerfilUsuario> {
             SnackBar(content: Text('Error al obtener usuarios: $e')),
           );
         });
-  } 
+  }
 
   PreferredSizeWidget appbar() {
     return AppBar(
+      backgroundColor: Colors.white,
+      elevation: 1,
       leading: IconButton(
-        icon: const Icon(
-          Icons.arrow_back,
-          color: Color.fromARGB(255, 254, 143, 33),
-        ),
+        icon: const Icon(Icons.arrow_back, color: colorNaranja),
         onPressed: () => Navigator.pushNamed(context, '/principal'),
         tooltip: 'Volver',
       ),
       title: const Text(
         "MetroBox",
         style: TextStyle(
-          color: Color.fromRGBO(240, 83, 43, 1),
+          color: colorNaranja,
           fontWeight: FontWeight.bold,
+          fontSize: 24,
         ),
       ),
       centerTitle: true,
-      /*flexibleSpace: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child:
-           Align(
-            alignment: Alignment.topLeft,
-            child:GestureDetector(
-              onTap: (){},
-              child: Image.asset('assets/images/logo.png', height: 100),
-              ), 
-          ),
-        ),*/
       actions: [
         IconButton(
-          icon: const Icon(Icons.notifications, size: 30),
+          icon: const Icon(Icons.notifications_outlined, size: 26),
+          color: colorTextoSecundario,
           onPressed: () {},
         ),
         const SizedBox(width: 8),
         Container(
-          width: 50,
-          height: 50,
+          width: 45,
+          height: 45,
           decoration: BoxDecoration(
-            color: const Color(0xFFE8E8FF),
+            gradient: LinearGradient(
+              colors: [colorPrimario, colorAcento],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
             shape: BoxShape.circle,
           ),
-          child: const Icon(Icons.person, size: 30, color: Color(0xFF9C9CFF)),
+          child: const Icon(Icons.person, size: 24, color: Colors.white),
         ),
+        const SizedBox(width: 16),
       ],
     );
   }
@@ -292,171 +291,80 @@ class _PerfilUsuarioState extends State<PerfilUsuario> {
   Widget proyectosrealizados() {
     return Container(
       width: 250,
-      height: 250,
-      padding: const EdgeInsets.all(16.0),
+      padding: const EdgeInsets.all(20.0),
       decoration: BoxDecoration(
-        color: Color.fromRGBO(208, 215, 255, 1),
-        borderRadius: BorderRadius.circular(16.0),
-        border: Border.all(color: Color.fromARGB(255, 0, 0, 55)),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12.0),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: Offset(0, 2),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Proyectos Realizados',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: Color.fromRGBO(240, 83, 43, 1),
-            ),
+          Row(
+            children: [
+              Icon(Icons.folder_outlined, color: colorNaranja, size: 20),
+              const SizedBox(width: 8),
+              const Text(
+                'Proyectos Activos',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: colorTextoPrincipal,
+                ),
+              ),
+            ],
           ),
           const SizedBox(height: 16),
-          //CAMBIAR TODO ESTO
           Expanded(
             child: SingleChildScrollView(
               child: Column(
                 children: [
-                  // Proyecto 1
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 8.0),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          'Proyecto 1',
-                          style: TextStyle(fontSize: 14, color: colorNaranja),
-                        ),
-                        Text(
-                          'Porcentaje',
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: Color.fromRGBO(248, 131, 49, 1),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  // Proyecto 2
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 8.0),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          'Proyecto 2',
-                          style: TextStyle(fontSize: 14, color: colorNaranja),
-                        ),
-                        Text(
-                          'Porcentaje',
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: Color.fromRGBO(248, 131, 49, 1),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  // Proyecto 3
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 8.0),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          'Proyecto 3',
-                          style: TextStyle(fontSize: 14, color: colorNaranja),
-                        ),
-                        Text(
-                          'Porcentaje',
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: Color.fromRGBO(248, 131, 49, 1),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  // Proyecto 4
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 8.0),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          'Proyecto 4',
-                          style: TextStyle(fontSize: 14, color: colorNaranja),
-                        ),
-                        Text(
-                          'Porcentaje',
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: Color.fromRGBO(248, 131, 49, 1),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  // Proyecto 5
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 8.0),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          'Proyecto 5',
-                          style: TextStyle(fontSize: 14, color: colorNaranja),
-                        ),
-                        Text(
-                          'Porcentaje',
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: Color.fromRGBO(248, 131, 49, 1),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  // Proyecto 6
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 8.0),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          'Proyecto 6',
-                          style: TextStyle(fontSize: 14, color: colorNaranja),
-                        ),
-                        Text(
-                          'Porcentaje',
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: Color.fromRGBO(248, 131, 49, 1),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  // Proyecto 7
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 8.0),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          'Proyecto 7',
-                          style: TextStyle(fontSize: 14, color: colorNaranja),
-                        ),
-                        Text(
-                          'Porcentaje',
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: Color.fromRGBO(248, 131, 49, 1),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
+                  _buildProyectoItem('Proyecto 1', '85%', colorAcento),
+                  _buildProyectoItem('Proyecto 2', '92%', colorPrimario),
+                  _buildProyectoItem('Proyecto 3', '67%', colorNaranja),
+                  _buildProyectoItem('Proyecto 4', '78%', colorAcento),
+                  _buildProyectoItem('Proyecto 5', '95%', colorPrimario),
+                  _buildProyectoItem('Proyecto 6', '73%', colorNaranja),
+                  _buildProyectoItem('Proyecto 7', '88%', colorAcento),
                 ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildProyectoItem(String nombre, String porcentaje, Color color) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Expanded(
+            child: Text(
+              nombre,
+              style: TextStyle(fontSize: 13, color: colorTextoPrincipal),
+            ),
+          ),
+          Container(
+            padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            decoration: BoxDecoration(
+              color: color.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Text(
+              porcentaje,
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: color,
               ),
             ),
           ),
@@ -470,130 +378,61 @@ class _PerfilUsuarioState extends State<PerfilUsuario> {
       width: 350,
       padding: const EdgeInsets.all(24.0),
       decoration: BoxDecoration(
-        color: Color.fromRGBO(208, 215, 255, 1),
-        borderRadius: BorderRadius.circular(16.0),
-        border: Border.all(color: Color.fromARGB(255, 0, 0, 55)),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12.0),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: Offset(0, 2),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const SizedBox(height: 4),
-          Text(
-            "Nombre",
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: Color.fromRGBO(240, 83, 43, 1),
-            ),
-          ),
-          const SizedBox(height: 4),
-          SizedBox(
-            width: 300,
-            height: 30,
-            child: TextField(
-              controller: nombre,
-              keyboardType: TextInputType.text,
-              onChanged: verificacionnombre,
-              decoration: const InputDecoration(
-                filled: true,
-                fillColor: Colors.white,
-                border: OutlineInputBorder(),
-                labelText: 'Nombre',
-              ),
-            ),
-          ),
-          Visibility(visible: isvisiblenom, child: advertencianombre),
-          SizedBox(height: espacionomb),
-          Text(
-            'Correo Electrónico',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: Color.fromRGBO(240, 83, 43, 1),
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            correo,
-            style: TextStyle(
-              fontSize: 14,
-              color: Color.fromRGBO(248, 131, 49, 1),
-            ),
-          ),
-          const SizedBox(height: 6),
-          // Carnet del Usuario
-          Text(
-            'Carnet del Usuario',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: Color.fromRGBO(240, 83, 43, 1),
-            ),
-          ),
-          const SizedBox(height: 4),
-          SizedBox(
-            width: 300,
-            height: 30,
-            child: TextField(
-              controller: carnetusuario,
-              keyboardType: TextInputType.number,
-              onChanged: verificacioncarnet,
-              decoration: const InputDecoration(
-                filled: true,
-                fillColor: Colors.white,
-                border: OutlineInputBorder(),
-                labelText: 'Carnet',
-              ),
-            ),
-          ),
-          Visibility(visible: isvisiblece, child: advertenciacarnet),
-          SizedBox(height: espaciocar),
-          Text(
-            'Cedula',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: Color.fromRGBO(240, 83, 43, 1),
-            ),
-          ),
-          const SizedBox(height: 4),
-          SizedBox(
-            width: 300,
-            height: 30,
-            child: TextField(
-              controller: cedulausuario,
-              keyboardType: TextInputType.number,
-              onChanged: verificacioncedula,
-              decoration: const InputDecoration(
-                filled: true,
-                fillColor: Colors.white,
-                border: OutlineInputBorder(),
-                labelText: 'Cedula',
-              ),
-            ),
-          ),
-          Visibility(visible: isvisibleci, child: advertenciacedula),
-          SizedBox(height: espacioce),
-          Text(
-            'Ultima Coneción',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: Color.fromRGBO(240, 83, 43, 1),
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            ultimaconecion,
-            style: TextStyle(
-              fontSize: 14,
-              color: Color.fromRGBO(248, 131, 49, 1),
-            ),
+          _buildInputField(
+            icon: Icons.person_outline,
+            label: "Nombre",
+            controller: nombre,
+            keyboardType: TextInputType.text,
+            onChanged: verificacionnombre,
+            isVisible: isvisiblenom,
+            advertencia: advertencianombre,
+            espacio: espacionomb,
           ),
           const SizedBox(height: 16),
+          _buildInfoItem(Icons.email_outlined, 'Correo Electrónico', correo),
+          const SizedBox(height: 16),
+          _buildInputField(
+            icon: Icons.credit_card_outlined,
+            label: 'Carnet del Usuario',
+            controller: carnetusuario,
+            keyboardType: TextInputType.number,
+            onChanged: verificacioncarnet,
+            isVisible: isvisiblece,
+            advertencia: advertenciacarnet,
+            espacio: espaciocar,
+          ),
+          const SizedBox(height: 16),
+          _buildInputField(
+            icon: Icons.fingerprint,
+            label: 'Cedula',
+            controller: cedulausuario,
+            keyboardType: TextInputType.number,
+            onChanged: verificacioncedula,
+            isVisible: isvisibleci,
+            advertencia: advertenciacedula,
+            espacio: espacioce,
+          ),
+          const SizedBox(height: 16),
+          _buildInfoItem(Icons.access_time, 'Ultima Conexión', ultimaconecion),
+          const SizedBox(height: 24),
           Align(
             alignment: Alignment.bottomRight,
             child: Row(
+              mainAxisAlignment: MainAxisAlignment.end,
               children: [
                 ElevatedButton(
                   onPressed: () {
@@ -610,27 +449,29 @@ class _PerfilUsuarioState extends State<PerfilUsuario> {
                     });
                   },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color.fromRGBO(248, 131, 49, 1),
-                    foregroundColor: Colors.white,
-                    shape: const RoundedRectangleBorder(
-                      borderRadius: BorderRadius.all(Radius.circular(10)),
+                    backgroundColor: Colors.grey[300],
+                    foregroundColor: colorTextoPrincipal,
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
                     ),
                   ),
                   child: const Text('Cancelar'),
                 ),
-                const SizedBox(width: 20),
+                const SizedBox(width: 12),
                 ElevatedButton(
                   onPressed: () {
                     verificacion();
                   },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color.fromRGBO(248, 131, 49, 1),
+                    backgroundColor: colorNaranja,
                     foregroundColor: Colors.white,
-                    shape: const RoundedRectangleBorder(
-                      borderRadius: BorderRadius.all(Radius.circular(10)),
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
                     ),
                   ),
-                  child: const Text('Continuar'),
+                  child: const Text('Guardar Cambios'),
                 ),
               ],
             ),
@@ -640,187 +481,250 @@ class _PerfilUsuarioState extends State<PerfilUsuario> {
     );
   }
 
+  Widget _buildInputField({
+    required IconData icon,
+    required String label,
+    required TextEditingController controller,
+    required TextInputType keyboardType,
+    required Function(String) onChanged,
+    required bool isVisible,
+    required Text advertencia,
+    required double espacio,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Icon(icon, size: 18, color: colorNaranja),
+            const SizedBox(width: 8),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: colorTextoSecundario,
+                letterSpacing: 0.5,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        SizedBox(
+          width: 300,
+          child: TextField(
+            controller: controller,
+            keyboardType: keyboardType,
+            onChanged: onChanged,
+            decoration: InputDecoration(
+              filled: true,
+              fillColor: colorFondo,
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+                borderSide: BorderSide(color: Colors.grey[300]!),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+                borderSide: BorderSide(color: Colors.grey[300]!),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+                borderSide: BorderSide(color: colorPrimario, width: 2),
+              ),
+              contentPadding: EdgeInsets.symmetric(
+                horizontal: 12,
+                vertical: 12,
+              ),
+            ),
+          ),
+        ),
+        Visibility(visible: isVisible, child: advertencia),
+        SizedBox(height: espacio),
+      ],
+    );
+  }
+
   Widget informacion() {
     return Container(
       width: 350,
       padding: const EdgeInsets.all(24.0),
       decoration: BoxDecoration(
-        color: Color.fromRGBO(208, 215, 255, 1),
-        borderRadius: BorderRadius.circular(16.0),
-        border: Border.all(color: Color.fromARGB(255, 0, 0, 55)),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12.0),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: Offset(0, 2),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'Nombre',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: Color.fromRGBO(240, 83, 43, 1),
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            nombreu,
-            style: TextStyle(
-              fontSize: 14,
-              color: Color.fromRGBO(248, 131, 49, 1),
-            ),
-          ),
+          _buildInfoItem(Icons.person_outline, 'Nombre', nombreu),
           const SizedBox(height: 16),
-          Text(
-            'Correo Electrónico',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: Color.fromRGBO(240, 83, 43, 1),
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            correo,
-            style: TextStyle(
-              fontSize: 14,
-              color: Color.fromRGBO(248, 131, 49, 1),
-            ),
-          ),
+          _buildInfoItem(Icons.email_outlined, 'Correo Electrónico', correo),
           const SizedBox(height: 16),
-          // Carnet del Usuario
-          Text(
+          _buildInfoItem(
+            Icons.credit_card_outlined,
             'Carnet del Usuario',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: Color.fromRGBO(240, 83, 43, 1),
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
             carnet,
-            style: TextStyle(
-              fontSize: 14,
-              color: Color.fromRGBO(248, 131, 49, 1),
-            ),
           ),
           const SizedBox(height: 16),
-          Text(
-            'Cedula',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: Color.fromRGBO(240, 83, 43, 1),
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            cedula,
-            style: TextStyle(
-              fontSize: 14,
-              color: Color.fromRGBO(248, 131, 49, 1),
-            ),
-          ),
+          _buildInfoItem(Icons.fingerprint, 'Cédula', cedula),
           const SizedBox(height: 16),
-          Text(
-            'Ultima Coneción',
+          _buildInfoItem(Icons.access_time, 'Ultima Conexión', ultimaconecion),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildInfoItem(IconData icon, String label, String value) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Icon(icon, size: 18, color: colorNaranja),
+            const SizedBox(width: 8),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: colorTextoSecundario,
+                letterSpacing: 0.5,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 6),
+        Padding(
+          padding: const EdgeInsets.only(left: 26),
+          child: Text(
+            value,
             style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: Color.fromRGBO(240, 83, 43, 1),
+              fontSize: 15,
+              color: colorTextoPrincipal,
+              fontWeight: FontWeight.w500,
             ),
           ),
-          const SizedBox(height: 4),
-          Text(
-            ultimaconecion,
-            style: TextStyle(
-              fontSize: 14,
-              color: Color.fromRGBO(248, 131, 49, 1),
+        ),
+      ],
+    );
+  }
+
+  Widget perfil() {
+    return Container(
+      padding: EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 90,
+            height: 90,
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [colorPrimario, colorAcento],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              shape: BoxShape.circle,
+              boxShadow: [
+                BoxShadow(
+                  color: colorPrimario.withOpacity(0.3),
+                  blurRadius: 15,
+                  offset: Offset(0, 5),
+                ),
+              ],
             ),
+            child: const Icon(Icons.person, size: 50, color: Colors.white),
+          ),
+          const SizedBox(width: 20),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                nombreu.isNotEmpty ? nombreu : "Usuario",
+                style: TextStyle(
+                  fontSize: 26,
+                  fontWeight: FontWeight.bold,
+                  color: colorTextoPrincipal,
+                ),
+              ),
+              const SizedBox(height: 6),
+              Container(
+                padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: colorNaranja.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Text(
+                  grado,
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: colorNaranja,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ],
           ),
         ],
       ),
     );
   }
 
-  Widget perfil() {
-    return Row(
-      children: [
-        // Foto de perfil
-        Container(
-          width: 80,
-          height: 80,
-          decoration: BoxDecoration(
-            color: const Color(0xFFE8E8FF),
-            shape: BoxShape.circle,
+  Widget linksdeinteres() {
+    return Container(
+      padding: EdgeInsets.symmetric(vertical: 16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: Offset(0, 2),
           ),
-          child: const Icon(Icons.person, size: 50, color: Color(0xFF9C9CFF)),
-        ),
-        const SizedBox(width: 16),
-        // Nombre del usuario
-        Column(
-          children: [
-            Text(
-              usuario,
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-                color: colorTextoPrincipal,
-              ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              grado,
-              style: TextStyle(
-                fontSize: 14,
-                color: Color.fromRGBO(248, 131, 49, 1),
-              ),
-            ),
-          ],
-        ),
-      ],
+        ],
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          _buildLinkButton(Icons.share, 'Redes Sociales'),
+          const SizedBox(width: 40),
+          _buildLinkButton(Icons.mail_outline, 'Contáctanos'),
+          const SizedBox(width: 40),
+          _buildLinkButton(Icons.link, 'Enlaces de Interés'),
+        ],
+      ),
     );
   }
 
-  Widget linksdeinteres() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        TextButton(
-          onPressed: () {},
-          child: const Text(
-            'Redes Sociales',
-            style: TextStyle(
-              fontSize: 14,
-              color: colorNaranja,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
+  Widget _buildLinkButton(IconData icon, String text) {
+    return TextButton.icon(
+      onPressed: () {},
+      icon: Icon(icon, size: 18, color: colorPrimario),
+      label: Text(
+        text,
+        style: TextStyle(
+          fontSize: 14,
+          color: colorPrimario,
+          fontWeight: FontWeight.w600,
         ),
-        const SizedBox(width: 40),
-        TextButton(
-          onPressed: () {},
-          child: const Text(
-            'Contactanos',
-            style: TextStyle(
-              fontSize: 14,
-              color: colorNaranja,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-        ),
-        const SizedBox(width: 40),
-        TextButton(
-          onPressed: () {},
-          child: const Text(
-            'Enlaces de Interes',
-            style: TextStyle(
-              fontSize: 14,
-              color: colorNaranja,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-        ),
-      ],
+      ),
     );
   }
 
@@ -841,95 +745,132 @@ class _PerfilUsuarioState extends State<PerfilUsuario> {
                     child: Container(
                       width: 700,
                       decoration: BoxDecoration(
-                        color: Color.fromRGBO(255, 255, 255, 1),
+                        color: Colors.white,
                         borderRadius: BorderRadius.circular(16.0),
-                        border: Border.all(
-                          color: Color.fromARGB(255, 0, 0, 55),
-                        ),
-                      ),
-                      child: Column(
-                        children: [
-                          const SizedBox(height: 80),
-                          Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              // usuario
-                              Column(
-                                children: [
-                                  Row(
-                                    children: [
-                                      perfil(),
-                                      SizedBox(width: 20),
-                                      Visibility(
-                                        visible: ajustando,
-                                        child: IconButton(
-                                          icon: const Icon(
-                                            Icons.settings_outlined,
-                                            size: 30,
-                                          ),
-                                          onPressed: () {
-                                            setState(() {
-                                              tamanofoto = 175;
-                                              infoperfil =
-                                                  configuraciondeinformacion();
-                                              ajustando = false;
-                                            });
-                                          },
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                  const SizedBox(height: 24),
-                                  infoperfil,
-                                  const SizedBox(height: 24),
-                                  Container(
-                                    width: 350,
-                                    height: tamanofoto,
-                                    decoration: BoxDecoration(
-                                      color: Colors.white,
-                                      borderRadius: BorderRadius.circular(16.0),
-                                    ),
-                                    child: ClipRRect(
-                                      borderRadius: BorderRadius.circular(16.0),
-                                      child: Image.asset(
-                                        "images/foto1.jpg",
-                                        fit: BoxFit.cover,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-
-                              const SizedBox(width: 24),
-                              Column(
-                                children: [
-                                  // Imagen del edificio
-                                  const SizedBox(height: 24),
-                                  Container(
-                                    width: 250,
-                                    height: 390,
-                                    decoration: BoxDecoration(
-                                      color: Colors.white,
-                                      borderRadius: BorderRadius.circular(16.0),
-                                    ),
-                                    child: ClipRRect(
-                                      borderRadius: BorderRadius.circular(16.0),
-                                      child: Image.asset(
-                                        'images/foto2.jpg',
-                                        fit: BoxFit.cover,
-                                      ),
-                                    ),
-                                  ),
-                                  const SizedBox(height: 24),
-                                  // Cudro de proyectos realizados
-                                  proyectosrealizados(),
-                                  const SizedBox(height: 24),
-                                ],
-                              ),
-                            ],
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.08),
+                            blurRadius: 20,
+                            offset: Offset(0, 4),
                           ),
                         ],
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.all(32.0),
+                        child: Column(
+                          children: [
+                            const SizedBox(height: 20),
+                            Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Column(
+                                  children: [
+                                    Row(
+                                      children: [
+                                        perfil(),
+                                        SizedBox(width: 20),
+                                        Visibility(
+                                          visible: ajustando,
+                                          child: Container(
+                                            decoration: BoxDecoration(
+                                              color: colorFondo,
+                                              borderRadius:
+                                                  BorderRadius.circular(8),
+                                            ),
+                                            child: IconButton(
+                                              icon: Icon(
+                                                Icons.settings_outlined,
+                                                size: 24,
+                                                color: colorTextoSecundario,
+                                              ),
+                                              onPressed: () {
+                                                setState(() {
+                                                  tamanofoto = 175;
+                                                  infoperfil =
+                                                      configuraciondeinformacion();
+                                                  ajustando = false;
+                                                });
+                                              },
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 24),
+                                    infoperfil,
+                                    const SizedBox(height: 24),
+                                    Container(
+                                      width: 350,
+                                      height: tamanofoto,
+                                      decoration: BoxDecoration(
+                                        color: Colors.white,
+                                        borderRadius: BorderRadius.circular(
+                                          12.0,
+                                        ),
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color: Colors.black.withOpacity(
+                                              0.05,
+                                            ),
+                                            blurRadius: 10,
+                                            offset: Offset(0, 2),
+                                          ),
+                                        ],
+                                      ),
+                                      child: ClipRRect(
+                                        borderRadius: BorderRadius.circular(
+                                          12.0,
+                                        ),
+                                        child: Image.asset(
+                                          "images/foto1.jpg",
+                                          fit: BoxFit.cover,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(width: 24),
+                                Column(
+                                  children: [
+                                    const SizedBox(height: 24),
+                                    Container(
+                                      width: 250,
+                                      height: 390,
+                                      decoration: BoxDecoration(
+                                        color: Colors.white,
+                                        borderRadius: BorderRadius.circular(
+                                          12.0,
+                                        ),
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color: Colors.black.withOpacity(
+                                              0.05,
+                                            ),
+                                            blurRadius: 10,
+                                            offset: Offset(0, 2),
+                                          ),
+                                        ],
+                                      ),
+                                      child: ClipRRect(
+                                        borderRadius: BorderRadius.circular(
+                                          12.0,
+                                        ),
+                                        child: Image.asset(
+                                          'images/foto2.jpg',
+                                          fit: BoxFit.cover,
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(height: 24),
+                                    proyectosrealizados(),
+                                    const SizedBox(height: 24),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ),

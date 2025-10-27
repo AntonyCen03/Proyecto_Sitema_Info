@@ -73,6 +73,43 @@ class AuthService {
     await _auth.sendPasswordResetEmail(email: email.trim());
   }
 
+  /// Envía un correo de verificación al usuario actualmente autenticado.
+  ///
+  /// No depende de datos de Firestore ni de `getUser()`. Usa únicamente
+  /// `FirebaseAuth.currentUser`.
+  ///
+  /// Lanza [FirebaseAuthException] con código `no-current-user` si no hay
+  /// sesión activa.
+  Future<void> sendEmailVerification() async {
+    final user = _auth.currentUser;
+    if (user == null) {
+      throw FirebaseAuthException(
+        code: 'no-current-user',
+        message: 'No hay un usuario autenticado actualmente.',
+      );
+    }
+    await user.sendEmailVerification();
+  }
+
+  /// Verifica si el correo del usuario autenticado ya fue confirmado.
+  ///
+  /// Realiza `user.reload()` para asegurar estado fresco antes de leer
+  /// `emailVerified`. No depende de Firestore ni de `getUser()`.
+  ///
+  /// Retorna `true` si el email está verificado.
+  /// Lanza [FirebaseAuthException] con código `no-current-user` si no hay sesión.
+  Future<bool> isEmailVerified() async {
+    final user = _auth.currentUser;
+    if (user == null) {
+      throw FirebaseAuthException(
+        code: 'no-current-user',
+        message: 'No hay un usuario autenticado actualmente.',
+      );
+    }
+    await user.reload();
+    return _auth.currentUser?.emailVerified ?? false;
+  }
+
   /// Cambia la contraseña del usuario actualmente autenticado.
   ///
   /// Requiere la contraseña actual (`currentPassword`) para reautenticar al
