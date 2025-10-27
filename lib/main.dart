@@ -3,9 +3,9 @@ import 'package:proyecto_final/Page_Ui/pagina_crear_cuenta/registrar_usuario.dar
 import 'package:proyecto_final/Page_Ui/pagina_login/login.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:proyecto_final/Page_Ui/pagina_login/reset_password/olvidecontrasena.dart';
-import 'package:proyecto_final/Page_Ui/pagina_principal/pagina_principal.dart';
 import 'package:proyecto_final/Page_Ui/perfil_usuario/usuario.dart';
 import 'firebase_options.dart';
+import 'package:proyecto_final/Page_Ui/pagina_principal/principal2.dart';
 
 
 void main() async {
@@ -33,7 +33,7 @@ class MyApp extends StatelessWidget {
         '/registrar': (context) => const PageSignUp(),
         '/reset_password': (context) => const Olvidecontrasena(),
         '/perfil': (context) => const PerfilUsuario(),
-        '/principal': (context) => const PaginaPrincipal(),
+        '/principal': (context) => const PaginaPrincipal2(),
       },
     );
   }
