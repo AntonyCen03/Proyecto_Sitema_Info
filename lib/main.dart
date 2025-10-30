@@ -5,7 +5,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:proyecto_final/Page_Ui/pagina_login/reset_password/olvidecontrasena.dart';
 import 'package:proyecto_final/Page_Ui/perfil_usuario/usuario.dart';
 import 'firebase_options.dart';
-import 'package:proyecto_final/Page_Ui/pagina_principal/principal2.dart';
+import 'package:proyecto_final/Page_Ui/pagina_principal/page_principal.dart';
 
 
 void main() async {
@@ -27,13 +27,13 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         scaffoldBackgroundColor: const Color.fromARGB(250, 250, 250, 250), 
       ),
-      initialRoute: '/login',
+      initialRoute: '/principal',
       routes: {
         '/login': (context) => const PageLogin(),
         '/registrar': (context) => const PageSignUp(),
         '/reset_password': (context) => const Olvidecontrasena(),
         '/perfil': (context) => const PerfilUsuario(),
-        '/principal': (context) => const PaginaPrincipal2(),
+        '/principal': (context) => const PaginaPrincipal(),
       },
     );
   }
