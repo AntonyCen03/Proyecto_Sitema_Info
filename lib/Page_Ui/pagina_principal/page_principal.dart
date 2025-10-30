@@ -4,7 +4,6 @@ import 'sideDrawer.dart';
 import 'package:proyecto_final/Color/Color.dart';
 import 'MenuNotificacion.dart';
 
-
 /// Página principal reestructurada con AppBar, Drawer y fondo de imagen
 class PaginaPrincipal extends StatefulWidget {
   const PaginaPrincipal({super.key});
@@ -45,11 +44,9 @@ class _PaginaPrincipalState extends State<PaginaPrincipal> {
       iconTheme: const IconThemeData(color: primaryOrange),
       title: const Text(
         'MetroBox',
-        style: TextStyle(
-          color: primaryOrange,
-          fontWeight: FontWeight.bold,
-        ),
+        style: TextStyle(color: primaryOrange, fontWeight: FontWeight.bold),
       ),
+      centerTitle: true,
       actions: const [NotificationsMenu(), AccountMenu(), SizedBox(width: 8)],
     );
   }
@@ -75,7 +72,6 @@ class _Background extends StatelessWidget {
     );
   }
 }
-
 
 // Sección principal con título degradado y subtítulo
 class _HeroSection extends StatelessWidget {
