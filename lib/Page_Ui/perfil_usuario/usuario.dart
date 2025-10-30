@@ -78,6 +78,10 @@ class _PerfilUsuarioState extends State<PerfilUsuario> {
         cedula = user?['cedula']?.toString() ?? "";
         nombreu = user?['name']?.toString() ?? "";
         carnet = user?['id_carnet']?.toString() ?? "";
+        // Populate controllers so the edit form shows current values
+        nombre.text = nombreu;
+        carnetusuario.text = carnet;
+        cedulausuario.text = cedula;
         if (user?['isadmin'] == true) {
           grado = "Administrador";
         } else {
@@ -217,8 +221,17 @@ class _PerfilUsuarioState extends State<PerfilUsuario> {
             }
 
             final String uid = user?['uid']?.toString() ?? "";
-            final carnetInt = int.tryParse(carnetusuario.text) ?? 0;
-            await updateUser(nombre.text, carnetInt, cedulausuario.text, uid);
+            // Normalizar entradas: eliminar todo lo que no sea dígito
+            final carnetDigits = carnetusuario.text.replaceAll(
+              RegExp(r'\D'),
+              '',
+            );
+            final cedulaDigits = cedulausuario.text.replaceAll(
+              RegExp(r'\D'),
+              '',
+            );
+            final carnetInt = int.tryParse(carnetDigits) ?? 0;
+            await updateUser(nombre.text, carnetInt, cedulaDigits, uid);
 
             setState(() {
               tamanofoto = 200;
@@ -239,7 +252,7 @@ class _PerfilUsuarioState extends State<PerfilUsuario> {
             SnackBar(content: Text('Error al obtener usuarios: $e')),
           );
         });
-  } 
+  }
 
   PreferredSizeWidget appbar() {
     return AppBar(
