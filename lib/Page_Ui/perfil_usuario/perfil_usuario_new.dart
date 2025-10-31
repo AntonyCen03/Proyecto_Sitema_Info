@@ -207,6 +207,12 @@ class _PerfilUsuarioNewState extends State<PerfilUsuarioNew> {
                                 value: ultimaConexion,
                                 editable: false,
                               ),
+                              const SizedBox(height: 10),
+                              TextButton(onPressed: () {
+                                //Navigator.pushNamed(context, '/cambiar_contrasena');
+                              },
+                              child: const Text('Cambiar Contraseña'),
+                              ),
                             ],
                           ),
                         ),

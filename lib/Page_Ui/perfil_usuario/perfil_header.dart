@@ -60,7 +60,7 @@ class PerfilHeader extends StatelessWidget {
         if (onSettings != null)
           IconButton(
             icon: const Icon(
-              Icons.settings_outlined,
+              Icons.settings,
               size: 26,
               color: Color(0xFF06B6D4),
             ),
