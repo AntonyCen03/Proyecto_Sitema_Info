@@ -22,6 +22,7 @@ class _PerfilUsuarioNewState extends State<PerfilUsuarioNew> {
   String grado = '';
   String ultimaConexion = '';
   String uid = '';
+  bool _isLoading = true;
 
   List<Map<String, dynamic>> proyectos = [
     {'title': 'Proyecto A', 'percent': 0.85},
@@ -61,11 +62,13 @@ class _PerfilUsuarioNewState extends State<PerfilUsuarioNew> {
         ultimaConexion = user?['date_login']?.toString() ?? '';
         uid = user?['uid']?.toString() ?? '';
         grado = (user?['isadmin'] == true) ? 'Administrador' : 'Usuario';
+        _isLoading = false;
       });
     } catch (e) {
       if (!mounted) return;
       setState(() {
         correo = AuthService().currentUser?.email ?? '';
+        _isLoading = false;
       });
     }
   }
@@ -94,114 +97,128 @@ class _PerfilUsuarioNewState extends State<PerfilUsuarioNew> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Perfil Usuario'), centerTitle: true),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(20.0),
-          child: Center(
-            child: Container(
-              width: 720,
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: const Color(0xFF000037)),
+      body: _isLoading
+          ? SafeArea(
+              child: Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: const [
+                    SizedBox(height: 200),
+                    CircularProgressIndicator(),
+                    SizedBox(height: 12),
+                    Text('Cargando perfil...'),
+                  ],
+                ),
               ),
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                children: [
-                  const SizedBox(height: 8),
-                  // Información del usuario (arriba)
-                  PerfilHeader(
-                    nombre: nombre.isNotEmpty ? nombre : 'Sin nombre',
-                    grado: grado,
-                    onSettings: () {},
-                  ),
-                  const SizedBox(height: 16),
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(12),
+            )
+          : SafeArea(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(20.0),
+                child: Center(
+                  child: Container(
+                    width: 720,
                     decoration: BoxDecoration(
-                      color: const Color.fromRGBO(208, 215, 255, 1),
+                      color: Colors.white,
                       borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: const Color(0xFF000037)),
                     ),
+                    padding: const EdgeInsets.all(20),
                     child: Column(
                       children: [
-                        EditableItem(
-                          label: 'Nombre',
-                          value: nombre,
-                          editable: true,
-                          onSaved: (v) async {
-                            setState(() => nombre = v);
-                            await _persistAll();
-                          },
+                        const SizedBox(height: 8),
+                        // Información del usuario (arriba)
+                        PerfilHeader(
+                          nombre: nombre.isNotEmpty ? nombre : 'Sin nombre',
+                          grado: grado,
+                          onSettings: () {},
                         ),
-                        const SizedBox(height: 10),
-                        EditableItem(
-                          label: 'Correo Electrónico',
-                          value: correo,
-                          editable: false,
+                        const SizedBox(height: 16),
+                        Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: const Color.fromRGBO(208, 215, 255, 1),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Column(
+                            children: [
+                              EditableItem(
+                                label: 'Nombre',
+                                value: nombre,
+                                editable: true,
+                                onSaved: (v) async {
+                                  setState(() => nombre = v);
+                                  await _persistAll();
+                                },
+                              ),
+                              const SizedBox(height: 10),
+                              EditableItem(
+                                label: 'Correo Electrónico',
+                                value: correo,
+                                editable: false,
+                              ),
+                              const SizedBox(height: 10),
+                              EditableItem(
+                                label: 'Carnet',
+                                value: carnet,
+                                editable: true,
+                                keyboardType: TextInputType.number,
+                                inputFormatters: [
+                                  FilteringTextInputFormatter.digitsOnly,
+                                ],
+                                validator: (v) {
+                                  if (v.isEmpty) return 'Ingrese el carnet';
+                                  if (!RegExp(r'^\d+$').hasMatch(v))
+                                    return 'El carnet solo puede contener números.';
+                                  if (v.length != 11)
+                                    return 'El carnet debe tener exactamente 11 dígitos.';
+                                  return null;
+                                },
+                                onSaved: (v) async {
+                                  setState(() => carnet = v);
+                                  await _persistAll();
+                                },
+                              ),
+                              const SizedBox(height: 10),
+                              EditableItem(
+                                label: 'Cedula',
+                                value: cedula,
+                                editable: true,
+                                keyboardType: TextInputType.number,
+                                inputFormatters: [
+                                  FilteringTextInputFormatter.digitsOnly,
+                                ],
+                                validator: (v) {
+                                  if (v.isEmpty) return 'Ingrese la cédula';
+                                  if (!RegExp(r'^\d+$').hasMatch(v))
+                                    return 'La cédula solo puede contener números.';
+                                  if (v.length < 6 || v.length > 8)
+                                    return 'La cédula debe tener entre 6 y 8 dígitos.';
+                                  return null;
+                                },
+                                onSaved: (v) async {
+                                  setState(() => cedula = v);
+                                  await _persistAll();
+                                },
+                              ),
+                              const SizedBox(height: 10),
+                              EditableItem(
+                                label: 'Ultima Conexion',
+                                value: ultimaConexion,
+                                editable: false,
+                              ),
+                            ],
+                          ),
                         ),
-                        const SizedBox(height: 10),
-                        EditableItem(
-                          label: 'Carnet',
-                          value: carnet,
-                          editable: true,
-                          keyboardType: TextInputType.number,
-                          inputFormatters: [
-                            FilteringTextInputFormatter.digitsOnly,
-                          ],
-                          validator: (v) {
-                            if (v.isEmpty) return 'Ingrese el carnet';
-                            if (!RegExp(r'^\d+$').hasMatch(v))
-                              return 'El carnet solo puede contener números.';
-                            if (v.length != 11)
-                              return 'El carnet debe tener exactamente 11 dígitos.';
-                            return null;
-                          },
-                          onSaved: (v) async {
-                            setState(() => carnet = v);
-                            await _persistAll();
-                          },
-                        ),
-                        const SizedBox(height: 10),
-                        EditableItem(
-                          label: 'Cedula',
-                          value: cedula,
-                          editable: true,
-                          keyboardType: TextInputType.number,
-                          inputFormatters: [
-                            FilteringTextInputFormatter.digitsOnly,
-                          ],
-                            validator: (v) {
-                            if (v.isEmpty) return 'Ingrese la cédula';
-                            if (!RegExp(r'^\d+$').hasMatch(v))
-                              return 'La cédula solo puede contener números.';
-                            if (v.length < 6 || v.length > 8)
-                              return 'La cédula debe tener entre 6 y 8 dígitos.';
-                            return null;
-                          },
-                          onSaved: (v) async {
-                            setState(() => cedula = v);
-                            await _persistAll();
-                          },
-                        ),
-                        const SizedBox(height: 10),
-                        EditableItem(
-                          label: 'Ultima Conexion',
-                          value: ultimaConexion,
-                          editable: false,
-                        ),
+                        const SizedBox(height: 20),
+                        // Lista de proyectos ahora va debajo de la información y gráficos
+                        ProyectoList(proyectos: proyectos),
                       ],
                     ),
                   ),
-                  const SizedBox(height: 20),
-                  // Lista de proyectos ahora va debajo de la información y gráficos
-                  ProyectoList(proyectos: proyectos),
-                ],
+                ),
               ),
             ),
-          ),
-        ),
-      ),
     );
   }
 }
