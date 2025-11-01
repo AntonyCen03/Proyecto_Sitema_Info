@@ -30,7 +30,7 @@ class MyApp extends StatelessWidget {
         '/registrar': (context) => const PageSignUp(),
         '/reset_password': (context) => const Olvidecontrasena(),
         '/perfil': (context) => const PerfilUsuario(),
-        '/principal': (context) => const PaginaPrincipal2(),
+        '/principal': (context) => const PaginaPrincipal(),
       },
     );
   }
