@@ -5,14 +5,11 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:proyecto_final/Page_Ui/pagina_login/reset_password/olvidecontrasena.dart';
 import 'package:proyecto_final/Page_Ui/perfil_usuario/usuario.dart';
 import 'firebase_options.dart';
-import 'package:proyecto_final/Page_Ui/pagina_principal/principal2.dart';
-
+import 'package:proyecto_final/Page_Ui/pagina_principal/page_principal.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   runApp(MyApp());
 }
 
@@ -25,9 +22,9 @@ class MyApp extends StatelessWidget {
       title: 'MetroBox',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        scaffoldBackgroundColor: const Color.fromARGB(250, 250, 250, 250), 
+        scaffoldBackgroundColor: const Color.fromARGB(250, 250, 250, 250),
       ),
-      initialRoute: '/login',
+      initialRoute: '/principal',
       routes: {
         '/login': (context) => const PageLogin(),
         '/registrar': (context) => const PageSignUp(),
@@ -38,4 +35,3 @@ class MyApp extends StatelessWidget {
     );
   }
 }
-

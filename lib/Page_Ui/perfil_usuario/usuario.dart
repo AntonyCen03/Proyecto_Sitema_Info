@@ -25,14 +25,14 @@ class _PerfilUsuarioState extends State<PerfilUsuario> {
   bool isvisiblece = false;
   bool isvisiblenom = false;
   bool ajustando = true;
-  String usuario = "";
-  String correo = "";
-  String cedula = "";
-  String nombreu = "";
+  String usuario = "Cargando...";
+  String correo = "Cargando...";
+  String cedula = "Cargando...";
+  String nombreu = "Cargando...";
   String categoria = "";
-  String carnet = "";
-  String grado = "";
-  String ultimaconecion = "";
+  String carnet = "Cargando...";
+  String grado = "Usuario";
+  String ultimaconecion = "Cargando...";
   double espacioce = 16;
   double espaciocar = 16;
   double espacionomb = 16;
@@ -58,36 +58,48 @@ class _PerfilUsuarioState extends State<PerfilUsuario> {
   }
 
   Future<void> _loadUser() async {
+    print("===== Iniciando _loadUser =====");
     try {
+      print("Obteniendo usuarios...");
       final users = await getUser(context);
+      print("Usuarios obtenidos: ${users.length}");
+
       if (!mounted) return;
+
       final currentEmail = AuthService().currentUser?.email?.toString().trim();
+      print("Email actual: $currentEmail");
+
       Map<String, dynamic>? user;
       if (currentEmail != null && currentEmail.isNotEmpty) {
         try {
           user = users.cast<Map<String, dynamic>>().firstWhere(
             (u) => (u['email'] ?? '').toString().trim() == currentEmail,
           );
+          print("Usuario encontrado por email");
         } catch (_) {
           user = users.isNotEmpty ? users.first : null;
+          print("Usuario no encontrado por email, usando el primero");
         }
       } else {
         user = users.isNotEmpty ? users.first : null;
+        print("Sin email, usando primer usuario");
       }
+
+      print("Datos del usuario: $user");
 
       if (mounted) {
         setState(() {
-          correo = user?['email']?.toString().trim() ?? '';
-          cedula = user?['cedula']?.toString() ?? "";
-          nombreu = user?['name']?.toString() ?? "";
+          correo = user?['email']?.toString().trim() ?? 'sin correo';
+          cedula = user?['cedula']?.toString() ?? "sin cedula";
+          nombreu = user?['name']?.toString() ?? "Sin nombre";
           usuario = nombreu;
-          carnet = user?['id_carnet']?.toString() ?? "";
+          carnet = user?['id_carnet']?.toString() ?? "sin carnet";
           if (user?['isadmin'] == true) {
             grado = "Administrador";
           } else {
             grado = "Usuario";
           }
-          ultimaconecion = user?['date_login']?.toString() ?? '';
+          ultimaconecion = user?['date_login']?.toString() ?? 'sin fecha';
           advertenciacarnet = Text(
             "Introduzca el carnet",
             style: TextStyle(fontSize: 10, color: Colors.red),
@@ -98,11 +110,19 @@ class _PerfilUsuarioState extends State<PerfilUsuario> {
           );
           infoperfil = informacion();
         });
+        print("Estado actualizado correctamente");
       }
-    } catch (e) {
+    } catch (e, stackTrace) {
+      print("===== ERROR en _loadUser =====");
+      print("Error: $e");
+      print("StackTrace: $stackTrace");
+
       if (!mounted) return;
       setState(() {
-        correo = AuthService().currentUser?.email ?? '';
+        correo = AuthService().currentUser?.email ?? 'error al cargar';
+        nombreu = "Error al cargar";
+        usuario = "Error al cargar";
+        grado = "Usuario";
         infoperfil = informacion();
       });
     }
@@ -736,147 +756,87 @@ class _PerfilUsuarioState extends State<PerfilUsuario> {
         backgroundColor: colorFondo,
         appBar: appbar(),
         body: SafeArea(
-          child: Stack(
-            children: [
-              SingleChildScrollView(
-                child: Center(
-                  child: Padding(
-                    padding: const EdgeInsets.all(24.0),
-                    child: Container(
-                      width: 700,
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(16.0),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.08),
-                            blurRadius: 20,
-                            offset: Offset(0, 4),
-                          ),
-                        ],
+          child: SingleChildScrollView(
+            child: Center(
+              child: Padding(
+                padding: const EdgeInsets.all(24.0),
+                child: Container(
+                  width: 700,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16.0),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.08),
+                        blurRadius: 20,
+                        offset: Offset(0, 4),
                       ),
-                      child: Padding(
-                        padding: const EdgeInsets.all(32.0),
-                        child: Column(
+                    ],
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(32.0),
+                    child: Column(
+                      children: [
+                        const SizedBox(height: 20),
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            const SizedBox(height: 20),
-                            Row(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              mainAxisAlignment: MainAxisAlignment.center,
+                            Column(
                               children: [
-                                Column(
+                                Row(
                                   children: [
-                                    Row(
-                                      children: [
-                                        perfil(),
-                                        SizedBox(width: 20),
-                                        Visibility(
-                                          visible: ajustando,
-                                          child: Container(
-                                            decoration: BoxDecoration(
-                                              color: colorFondo,
-                                              borderRadius:
-                                                  BorderRadius.circular(8),
-                                            ),
-                                            child: IconButton(
-                                              icon: Icon(
-                                                Icons.settings_outlined,
-                                                size: 24,
-                                                color: colorTextoSecundario,
-                                              ),
-                                              onPressed: () {
-                                                setState(() {
-                                                  tamanofoto = 175;
-                                                  infoperfil =
-                                                      configuraciondeinformacion();
-                                                  ajustando = false;
-                                                });
-                                              },
-                                            ),
+                                    perfil(),
+                                    SizedBox(width: 20),
+                                    Visibility(
+                                      visible: ajustando,
+                                      child: Container(
+                                        decoration: BoxDecoration(
+                                          color: colorFondo,
+                                          borderRadius: BorderRadius.circular(
+                                            8,
                                           ),
                                         ),
-                                      ],
-                                    ),
-                                    const SizedBox(height: 24),
-                                    infoperfil,
-                                    const SizedBox(height: 24),
-                                    Container(
-                                      width: 350,
-                                      height: tamanofoto,
-                                      decoration: BoxDecoration(
-                                        color: Colors.white,
-                                        borderRadius: BorderRadius.circular(
-                                          12.0,
-                                        ),
-                                        boxShadow: [
-                                          BoxShadow(
-                                            color: Colors.black.withOpacity(
-                                              0.05,
-                                            ),
-                                            blurRadius: 10,
-                                            offset: Offset(0, 2),
+                                        child: IconButton(
+                                          icon: Icon(
+                                            Icons.settings_outlined,
+                                            size: 24,
+                                            color: colorTextoSecundario,
                                           ),
-                                        ],
-                                      ),
-                                      child: ClipRRect(
-                                        borderRadius: BorderRadius.circular(
-                                          12.0,
-                                        ),
-                                        child: Image.asset(
-                                          "images/foto1.jpg",
-                                          fit: BoxFit.cover,
+                                          onPressed: () {
+                                            setState(() {
+                                              tamanofoto = 175;
+                                              infoperfil =
+                                                  configuraciondeinformacion();
+                                              ajustando = false;
+                                            });
+                                          },
                                         ),
                                       ),
                                     ),
                                   ],
                                 ),
-                                const SizedBox(width: 24),
-                                Column(
-                                  children: [
-                                    const SizedBox(height: 24),
-                                    Container(
-                                      width: 250,
-                                      height: 390,
-                                      decoration: BoxDecoration(
-                                        color: Colors.white,
-                                        borderRadius: BorderRadius.circular(
-                                          12.0,
-                                        ),
-                                        boxShadow: [
-                                          BoxShadow(
-                                            color: Colors.black.withOpacity(
-                                              0.05,
-                                            ),
-                                            blurRadius: 10,
-                                            offset: Offset(0, 2),
-                                          ),
-                                        ],
-                                      ),
-                                      child: ClipRRect(
-                                        borderRadius: BorderRadius.circular(
-                                          12.0,
-                                        ),
-                                        child: Image.asset(
-                                          'images/foto2.jpg',
-                                          fit: BoxFit.cover,
-                                        ),
-                                      ),
-                                    ),
-                                    const SizedBox(height: 24),
-                                    proyectosrealizados(),
-                                    const SizedBox(height: 24),
-                                  ],
-                                ),
+                                const SizedBox(height: 24),
+                                infoperfil,
+                                const SizedBox(height: 24),
+                              ],
+                            ),
+                            const SizedBox(width: 24),
+                            Column(
+                              children: [
+                                const SizedBox(height: 24),
+                                proyectosrealizados(),
+                                const SizedBox(height: 24),
                               ],
                             ),
                           ],
                         ),
-                      ),
+                      ],
                     ),
                   ),
                 ),
               ),
-            ],
+            ),
           ),
         ),
       ),
