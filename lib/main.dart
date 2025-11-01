@@ -7,7 +7,7 @@ import 'package:proyecto_final/Page_Ui/perfil_usuario/perfil_usuario_new.dart';
 //import 'package:proyecto_final/Page_Ui/perfil_usuario/usuario.dart';
 import 'firebase_options.dart';
 import 'package:proyecto_final/Page_Ui/pagina_principal/page_principal.dart';
-
+import 'package:proyecto_final/Page_Ui/pagina_login/nueva_contrasena.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -35,6 +35,7 @@ class MyApp extends StatelessWidget {
         '/reset_password': (context) => const Olvidecontrasena(),
         '/perfil': (context) => const PerfilUsuarioNew(),
         '/principal': (context) => const PaginaPrincipal(),
+        '/cambiar_contrasena': (context) => const NuevaContrasenaScreen(),
       },
     );
   }

@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 import 'perfil_header.dart';
 import 'proyecto_list.dart';
 import 'editable_item.dart';
+import 'package:proyecto_final/Color/Color.dart';
 
 class PerfilUsuarioNew extends StatefulWidget {
   const PerfilUsuarioNew({Key? key}) : super(key: key);
@@ -96,7 +97,15 @@ class _PerfilUsuarioNewState extends State<PerfilUsuarioNew> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Perfil Usuario'), centerTitle: true),
+      appBar: AppBar(
+        title: const Text('Perfil Usuario'),
+        centerTitle: true,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: primaryOrange),
+          onPressed: () => Navigator.pushNamedAndRemoveUntil(context, '/principal', (route) => false),
+        ),
+      ),
+      
       body: _isLoading
           ? SafeArea(
               child: Center(
@@ -209,7 +218,7 @@ class _PerfilUsuarioNewState extends State<PerfilUsuarioNew> {
                               ),
                               const SizedBox(height: 10),
                               TextButton(onPressed: () {
-                                //Navigator.pushNamed(context, '/cambiar_contrasena');
+                                Navigator.pushNamed(context, '/cambiar_contrasena');
                               },
                               child: const Text('Cambiar Contraseña'),
                               ),
