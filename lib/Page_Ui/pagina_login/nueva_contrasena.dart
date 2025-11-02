@@ -21,7 +21,7 @@ class _NuevaContrasenaScreenState extends State<NuevaContrasenaScreen> {
   final TextEditingController _viejaContrasena = TextEditingController();
   Text advertencia = const Text(
     '',
-    style: TextStyle(color: Color.fromARGB(255, 255, 17, 0)),
+    style: TextStyle(color: Colors.white),
   );
   bool visibilidadAdvertencia = false;
 
@@ -31,138 +31,153 @@ class _NuevaContrasenaScreenState extends State<NuevaContrasenaScreen> {
       home: Scaffold(
         backgroundColor: const Color.fromRGBO(255, 255, 255, 1),
         appBar: AppBar(
-          title: const Text(
-            "MetroBox",
-            style: TextStyle(
-              color: Color.fromRGBO(240, 83, 43, 1),
-              fontWeight: FontWeight.bold,
-            ),
+          title: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Image.asset('images/Logo.png', height: 40, width: 40),
+              const SizedBox(width: 10),
+              const Text(
+                "MetroBox",
+                style: TextStyle(
+                  color: Color.fromRGBO(240, 83, 43, 1),
+                  fontWeight: FontWeight.bold,
+                  fontSize: 24,
+                ),
+              ),
+            ],
           ),
           backgroundColor: const Color.fromARGB(255, 255, 255, 255),
           centerTitle: true,
-          leading: Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Image.asset('images/Logo.png', height: 200, width: 200),
-          ),
+          elevation: 2,
+          shadowColor: Colors.black.withOpacity(0.1),
         ),
-        body: Column(
+        body: Stack(
           children: <Widget>[
-            const Divider(
-              color: Color.fromRGBO(65, 64, 64, 95),
-              height: 4,
-              thickness: 10,
-              indent: 0,
-              endIndent: 0,
-            ),
-            const SizedBox(height: 100),
-            Container(
-              width: 400.0,
-              margin: const EdgeInsets.all(30),
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.1),
-                    blurRadius: 10,
-                    offset: const Offset(0, 5),
-                  ),
-                ],
-                borderRadius: BorderRadius.circular(12),
-              ),
+            Center(
               child: Column(
-                children: [
-                  const Align(
-                    alignment: Alignment.topLeft,
-                    child: Text(
-                      'Nueva Contraseña',
-                      style: TextStyle(
-                        fontSize: 50,
-                        color: Color.fromRGBO(240, 83, 43, 1),
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                  const Divider(
-                    color: Color.fromRGBO(65, 64, 64, 95),
-                    height: 4,
-                    thickness: 4,
-                    indent: 0,
-                    endIndent: 0,
-                  ),
-                  const SizedBox(height: 20),
-                  TextField(
-                    controller: _viejaContrasena,
-                    obscureText: true,
-                    decoration: const InputDecoration(
-                      filled: true,
-                      fillColor: Colors.white,
-                      labelText: 'Contraseña Anterior',
-                      border: OutlineInputBorder(),
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  TextField(
-                    controller: _nuevaContrasenaController,
-                    obscureText: true,
-                    decoration: const InputDecoration(
-                      labelText: 'Nueva contraseña',
-                      border: OutlineInputBorder(),
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  TextField(
-                    controller: _confirmarContrasenaController,
-                    obscureText: true,
-                    decoration: const InputDecoration(
-                      labelText: 'Confirmar contraseña',
-                      border: OutlineInputBorder(),
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  Visibility(
-                      visible: visibilidadAdvertencia, child: advertencia),
-                  const SizedBox(height: 20),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                            backgroundColor: colorBoton,
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 24, vertical: 12),
-                            shape: const RoundedRectangleBorder(
-                              borderRadius:
-                                  BorderRadius.all(Radius.circular(10)),
-                            )),
-                        onPressed: () {
-                          Navigator.pushNamed(context, '/perfil');
-                        },
-                        child: const Text(
-                          'Regresar',
-                          style: TextStyle(fontSize: 18, color: Colors.white),
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: <Widget>[
+                  Container(
+                    width: 400.0,
+                    margin: const EdgeInsets.all(30),
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.1),
+                          blurRadius: 10,
+                          offset: const Offset(0, 5),
                         ),
-                      ),
-                      ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                            backgroundColor: colorBoton,
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 24, vertical: 12),
-                            shape: const RoundedRectangleBorder(
-                              borderRadius:
-                                  BorderRadius.all(Radius.circular(10)),
-                            )),
-                        onPressed: () {
-                          _guardarNuevaContrasena();
-                        },
-                        child: const Text(
-                          'Guardar contraseña',
-                          style: TextStyle(fontSize: 18, color: Colors.white),
+                      ],
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Column(
+                      children: [
+                        const Icon(
+                          Icons.person,
+                          size: 60,
+                          color: Color.fromRGBO(40, 34, 32, 0.921),
                         ),
-                      ),
-                    ],
-                  )
+                        const SizedBox(height: 10),
+                        const Align(
+                          alignment: Alignment.topLeft,
+                          child: Text(
+                            'Nueva Contraseña',
+                            style: TextStyle(
+                              fontSize: 24,
+                              color: Colors.black,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+                        TextField(
+                          controller: _viejaContrasena,
+                          obscureText: true,
+                          decoration: const InputDecoration(
+                            filled: true,
+                            fillColor: Colors.white,
+                            labelText: 'Contraseña Anterior',
+                            border: OutlineInputBorder(),
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        TextField(
+                          controller: _nuevaContrasenaController,
+                          obscureText: true,
+                          decoration: const InputDecoration(
+                            labelText: 'Nueva contraseña',
+                            border: OutlineInputBorder(),
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        TextField(
+                          controller: _confirmarContrasenaController,
+                          obscureText: true,
+                          decoration: const InputDecoration(
+                            labelText: 'Confirmar contraseña',
+                            border: OutlineInputBorder(),
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                  backgroundColor: colorBoton,
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 24, vertical: 12),
+                                  shape: const RoundedRectangleBorder(
+                                    borderRadius:
+                                        BorderRadius.all(Radius.circular(10)),
+                                  )),
+                              onPressed: () {
+                                Navigator.pushNamed(context, '/perfil');
+                              },
+                              child: const Text(
+                                'Regresar',
+                                style: TextStyle(
+                                    fontSize: 18, color: Colors.white),
+                              ),
+                            ),
+                            ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                  backgroundColor: colorBoton,
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 24, vertical: 12),
+                                  shape: const RoundedRectangleBorder(
+                                    borderRadius:
+                                        BorderRadius.all(Radius.circular(10)),
+                                  )),
+                              onPressed: () {
+                                _guardarNuevaContrasena();
+                              },
+                              child: const Text(
+                                'Guardar contraseña',
+                                style: TextStyle(
+                                    fontSize: 18, color: Colors.white),
+                              ),
+                            ),
+                          ],
+                        )
+                      ],
+                    ),
+                  ),
                 ],
+              ),
+            ),
+            Visibility(
+              visible: visibilidadAdvertencia,
+              child: Align(
+                alignment: Alignment.bottomCenter,
+                child: Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(16),
+                  color: Colors.red,
+                  child: advertencia,
+                ),
               ),
             ),
           ],
@@ -186,8 +201,7 @@ class _NuevaContrasenaScreenState extends State<NuevaContrasenaScreen> {
       setState(() {
         advertencia = const Text(
           'Completa ambos campos.',
-          style:
-              TextStyle(fontSize: 24, color: Color.fromARGB(255, 255, 17, 0)),
+          style: TextStyle(fontSize: 20, color: Colors.white),
         );
         visibilidadAdvertencia = true;
       });
@@ -198,8 +212,7 @@ class _NuevaContrasenaScreenState extends State<NuevaContrasenaScreen> {
       setState(() {
         advertencia = const Text(
           'Las contraseñas no coinciden.',
-          style:
-              TextStyle(fontSize: 24, color: Color.fromARGB(255, 255, 17, 0)),
+          style: TextStyle(fontSize: 24, color: Colors.white),
         );
         visibilidadAdvertencia = true;
       });
@@ -211,8 +224,7 @@ class _NuevaContrasenaScreenState extends State<NuevaContrasenaScreen> {
         setState(() {
           advertencia = const Text(
             'No debe de tener espacios.',
-            style:
-                TextStyle(fontSize: 24, color: Color.fromARGB(255, 255, 17, 0)),
+            style: TextStyle(fontSize: 24, color: Colors.white),
           );
           visibilidadAdvertencia = true;
         });
@@ -232,12 +244,12 @@ class _NuevaContrasenaScreenState extends State<NuevaContrasenaScreen> {
     );
   }
 
-  void regresar() async{
+  void regresar() async {
     // Lógica para regresar a la pantalla de iniciar sesión
     setState(() {
       advertencia = const Text(
         'Contraseña cambiada con éxito.',
-        style: TextStyle(fontSize: 24, color: Colors.green),
+        style: TextStyle(fontSize: 24, color: Colors.white),
       );
       visibilidadAdvertencia = true;
     });
@@ -246,7 +258,7 @@ class _NuevaContrasenaScreenState extends State<NuevaContrasenaScreen> {
     setState(() {
       advertencia = const Text(
         'Por favor, inicie sesión con su nueva contraseña.',
-        style: TextStyle(fontSize: 24, color: Colors.green),
+        style: TextStyle(fontSize: 24, color: Colors.white),
       );
       visibilidadAdvertencia = true;
     });
