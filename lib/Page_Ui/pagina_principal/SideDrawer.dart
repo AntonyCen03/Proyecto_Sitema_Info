@@ -74,8 +74,16 @@ class SideDrawer extends StatelessWidget {
                             Icons.dashboard,
                             color: primaryOrange,
                           ),
-                          title: const Text('Dashboard y Reportes'),
-                          onTap: () => Navigator.pop(context),
+                          title: const Text('Dashboard'),
+                          onTap: () => Navigator.pushNamed(context, '/dashboard'),
+                        ),
+                        ListTile(
+                          leading: const Icon(
+                            Icons.dashboard,
+                            color: primaryOrange,
+                          ),
+                          title: const Text('Reportes'),
+                          onTap: () => Navigator.pushNamed(context, '/reportes'),
                         ),
                         ListTile(
                           leading: const Icon(
