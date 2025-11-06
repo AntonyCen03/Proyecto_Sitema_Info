@@ -8,6 +8,8 @@ import 'package:proyecto_final/Page_Ui/perfil_usuario/perfil_usuario_new.dart';
 import 'firebase_options.dart';
 import 'package:proyecto_final/Page_Ui/pagina_principal/page_principal.dart';
 import 'package:proyecto_final/Page_Ui/pagina_login/nueva_contrasena.dart';
+import 'package:proyecto_final/Page_Ui/reporte_dashboard/dashboard_page.dart';
+import 'package:proyecto_final/Page_Ui/reporte_dashboard/reportes_page.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -26,7 +28,7 @@ class MyApp extends StatelessWidget {
       title: 'MetroBox',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        scaffoldBackgroundColor: const Color.fromARGB(250, 250, 250, 250), 
+        scaffoldBackgroundColor: const Color.fromARGB(250, 250, 250, 250),
       ),
       initialRoute: '/principal',
       routes: {
@@ -36,8 +38,9 @@ class MyApp extends StatelessWidget {
         '/perfil': (context) => const PerfilUsuarioNew(),
         '/principal': (context) => const PaginaPrincipal(),
         '/cambiar_contrasena': (context) => const NuevaContrasenaScreen(),
+        '/dashboard': (context) => const DashboardPage(),
+        '/reportes': (context) => const ReportesPage(),
       },
     );
   }
 }
-

@@ -132,7 +132,7 @@ class AuthService {
         code: 'no-current-user',
         message: 'No hay un usuario autenticado actualmente.',
       );
-    }
+    } 
     try {
       // Reautenticar con las credenciales de correo/contraseña.
       final credential = EmailAuthProvider.credential(
@@ -153,9 +153,26 @@ class AuthService {
 
       // Actualizar la contraseña (también con timeout por seguridad de red)
       try {
-        await user
-            .updatePassword(newPassword)
-            .timeout(const Duration(seconds: 10));
+        if (newPassword == currentPassword) {
+          throw FirebaseAuthException(
+            code: 'weak-password',
+            message: 'La nueva contraseña debe ser diferente a la anterior.',
+          );
+        } else if (newPassword.length < 6) {
+          throw FirebaseAuthException(
+            code: 'weak-password',
+            message: 'La nueva contraseña es demasiado débil.',
+          );
+        } else if (newPassword.length > 30) {
+          throw FirebaseAuthException(
+            code: 'weak-password',
+            message: 'La nueva contraseña es demasiado larga.',
+          );
+        } else {
+          await user
+              .updatePassword(newPassword)
+              .timeout(const Duration(seconds: 10));
+        }
       } on FirebaseAuthException catch (e) {
         final code = (e.code);
         throw FirebaseAuthException(

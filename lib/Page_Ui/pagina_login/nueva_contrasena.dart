@@ -203,7 +203,7 @@ class _NuevaContrasenaScreenState extends State<NuevaContrasenaScreen> {
     if (nueva.isEmpty || confirmar.isEmpty) {
       setState(() {
         advertencia = const Text(
-          'Completa ambos campos.',
+          'No debe dejar campos vacíos.',
           style: TextStyle(fontSize: 20, color: Colors.white),
         );
         visibilidadAdvertencia = true;

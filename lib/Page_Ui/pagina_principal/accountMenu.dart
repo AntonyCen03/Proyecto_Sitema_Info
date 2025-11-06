@@ -49,10 +49,19 @@ class AccountMenu extends StatelessWidget {
               );
               items.add(
                 PopupMenuItem<String>(
-                  value: 'dashboard_reportes',
+                  value: 'dashboard',
                   child: ListTile(
                     leading: const Icon(Icons.dashboard, color: _primaryOrange),
-                    title: const Text('Dashboard y Reportes'),
+                    title: const Text('Dashboard'),
+                  ),
+                ),
+              );
+              items.add(
+                PopupMenuItem(
+                  value: 'reportes',
+                  child: ListTile(
+                    leading: const Icon(Icons.insert_chart, color: _primaryOrange),
+                    title: const Text('Reportes'),
                   ),
                 ),
               );
@@ -102,8 +111,11 @@ class AccountMenu extends StatelessWidget {
               case 'calendario':
                 //Navigator.pushNamed(context, '/calendario');
                 break;
-              case 'dashboard_reportes':
-                //Navigator.pushNamed(context, '/dashboard_reportes');
+              case 'dashboard':
+                Navigator.pushNamed(context, '/dashboard');
+                break;
+              case 'reportes':
+                Navigator.pushNamed(context, '/reportes');
                 break;
               case 'ajustes':
                 Navigator.pushNamed(context, '/perfil');
