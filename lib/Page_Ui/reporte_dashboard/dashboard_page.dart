@@ -3,6 +3,7 @@ import 'models.dart';
 import 'proyecto_repository.dart';
 import 'widgets.dart';
 import 'package:proyecto_final/Color/Color.dart';
+import 'package:proyecto_final/Page_Ui/widgets/metro_app_bar.dart';
 
 class DashboardPage extends StatefulWidget {
   const DashboardPage({super.key});
@@ -30,9 +31,10 @@ class _DashboardPageState extends State<DashboardPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Dashboard de Proyectos'),
-        centerTitle: true,
+      appBar: MetroAppBar(
+        title: 'Dashboard de Proyectos',
+        onBackPressed: () => Navigator.pushNamedAndRemoveUntil(
+            context, '/principal', (route) => false),
       ),
       body: FutureBuilder<List<Proyecto>>(
         future: _future,
@@ -70,6 +72,9 @@ class _DashboardPageState extends State<DashboardPage> {
                     );
                     if (picked != null) setState(() => _range = picked);
                   },
+                  onClearDateRange: _range == null
+                      ? null
+                      : () => setState(() => _range = null),
                   estadoValue: _estado,
                   onChangeEstado: (v) => setState(() => _estado = v),
                   onApply: () => setState(() {
@@ -93,7 +98,7 @@ class _DashboardPageState extends State<DashboardPage> {
                       color: primaryBlue,
                     ),
                     SummaryCard(
-                      title: 'Activos',
+                      title: 'En curso',
                       value: stats.proyectosActivos.toString(),
                       icon: Icons.play_circle,
                       color: primaryOrange,
@@ -117,6 +122,7 @@ class _DashboardPageState extends State<DashboardPage> {
                     style: Theme.of(context).textTheme.titleLarge),
                 const SizedBox(height: 12),
                 Card(
+                  color: Colors.white,
                   child: ListView.separated(
                     shrinkWrap: true,
                     physics: const NeverScrollableScrollPhysics(),
@@ -125,14 +131,23 @@ class _DashboardPageState extends State<DashboardPage> {
                       final fecha =
                           p.fechaEntrega?.toString().split(' ').first ?? '';
                       return ListTile(
-                        leading:
-                            CircleAvatar(child: Text(p.idProyecto.toString())),
+                        leading: CircleAvatar(
+                          backgroundColor: (p.estado
+                              ? statusCompletedColor
+                              : statusActiveColor),
+                          child: Text(
+                            p.idProyecto.toString(),
+                            style: const TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                        ),
                         title: Text(p.nombreProyecto),
                         subtitle:
                             Text('Equipo: ${p.nombreEquipo} • Entrega: $fecha'),
                         trailing: Icon(
-                          p.estado ? Icons.check : Icons.play_arrow,
-                          color: p.estado ? primaryGreen : primaryOrange,
+                          p.estado ? Icons.check : Icons.hourglass_empty,
+                          color: p.estado
+                              ? statusCompletedColor
+                              : statusActiveColor,
                         ),
                       );
                     },
@@ -157,6 +172,7 @@ class _DashboardPageState extends State<DashboardPage> {
                       final fecha =
                           p.fechaCreacion?.toString().split(' ').first ?? '';
                       return Card(
+                        color: Colors.white,
                         child: Padding(
                           padding: const EdgeInsets.all(12.0),
                           child: Column(
@@ -165,7 +181,15 @@ class _DashboardPageState extends State<DashboardPage> {
                               Row(
                                 children: [
                                   CircleAvatar(
-                                      child: Text(p.idProyecto.toString())),
+                                    backgroundColor: (p.estado
+                                        ? statusCompletedColor
+                                        : statusActiveColor),
+                                    child: Text(
+                                      p.idProyecto.toString(),
+                                      style: const TextStyle(
+                                          fontWeight: FontWeight.bold),
+                                    ),
+                                  ),
                                   const SizedBox(width: 12),
                                   Expanded(
                                     child: Column(
@@ -185,17 +209,26 @@ class _DashboardPageState extends State<DashboardPage> {
                                     ),
                                   ),
                                   Chip(
-                                    label: Text(
-                                        p.estado ? 'Completado' : 'Activo'),
-                                    backgroundColor: (p.estado
-                                            ? primaryGreen
-                                            : primaryOrange)
-                                        .withOpacity(0.15),
-                                  )
+                                      label: Text(
+                                          p.estado ? 'Completado' : 'En curso'),
+                                      backgroundColor: (p.estado
+                                          ? statusCompletedColor
+                                          : statusActiveColor))
                                 ],
                               ),
                               const SizedBox(height: 8),
-                              LinearProgressIndicator(value: pct),
+                              LinearProgressIndicator(
+                                value: pct,
+                                backgroundColor: (p.estado
+                                        ? statusCompletedColor
+                                        : statusActiveColor)
+                                    .withOpacity(0.18),
+                                valueColor: AlwaysStoppedAnimation<Color>(
+                                  p.estado
+                                      ? statusCompletedColor
+                                      : statusActiveColor,
+                                ),
+                              ),
                               const SizedBox(height: 4),
                               Text(
                                   'Progreso: $done/$total (${(pct * 100).round()}%)'),

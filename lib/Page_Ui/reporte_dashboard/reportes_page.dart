@@ -3,6 +3,7 @@ import 'models.dart';
 import 'proyecto_repository.dart';
 import 'widgets.dart';
 import 'csv_saver.dart';
+import 'package:proyecto_final/Page_Ui/widgets/metro_app_bar.dart';
 
 class ReportesPage extends StatefulWidget {
   const ReportesPage({super.key});
@@ -59,15 +60,16 @@ class _ReportesPageState extends State<ReportesPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Reportes de Proyectos'),
-        centerTitle: true,
+      appBar: MetroAppBar(
+        title: 'Reportes de Proyectos',
+        onBackPressed: () => Navigator.pushNamedAndRemoveUntil(
+            context, '/principal', (route) => false),
         actions: [
           IconButton(
             tooltip: 'Exportar CSV',
             icon: const Icon(Icons.download),
             onPressed: _exportCsv,
-          )
+          ),
         ],
       ),
       body: FutureBuilder<List<Proyecto>>(
@@ -107,6 +109,9 @@ class _ReportesPageState extends State<ReportesPage> {
                   searchController: _searchCtrl,
                   dateRange: _range,
                   onPickDateRange: _pickRange,
+                  onClearDateRange: _range == null
+                      ? null
+                      : () => setState(() => _range = null),
                   estadoValue: _estado,
                   onChangeEstado: (v) => setState(() => _estado = v),
                   onApply: () => setState(() {

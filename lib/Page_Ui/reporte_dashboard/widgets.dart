@@ -57,6 +57,7 @@ class FilterBar extends StatelessWidget {
   final TextEditingController searchController;
   final DateTimeRange? dateRange;
   final VoidCallback onPickDateRange;
+  final VoidCallback? onClearDateRange; // limpiar rango
   final String estadoValue; // 'todos' | 'activos' | 'completados'
   final ValueChanged<String> onChangeEstado;
   final VoidCallback onApply; // aplica filtro (botón o Enter)
@@ -66,6 +67,7 @@ class FilterBar extends StatelessWidget {
     required this.searchController,
     required this.dateRange,
     required this.onPickDateRange,
+    this.onClearDateRange,
     required this.estadoValue,
     required this.onChangeEstado,
     required this.onApply,
@@ -120,6 +122,14 @@ class FilterBar extends StatelessWidget {
                   : '${dateRange!.start.toString().split(' ').first} → ${dateRange!.end.toString().split(' ').first}'),
               onPressed: onPickDateRange,
             ),
+            if (dateRange != null) ...[
+              const SizedBox(width: 6),
+              TextButton.icon(
+                icon: const Icon(Icons.clear),
+                label: const Text('Limpiar'),
+                onPressed: onClearDateRange,
+              ),
+            ],
           ],
         ),
         ElevatedButton.icon(
@@ -138,30 +148,38 @@ class ProyectoTable extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: DataTable(
-        columns: const [
-          DataColumn(label: Text('ID')),
-          DataColumn(label: Text('Proyecto')),
-          DataColumn(label: Text('Equipo')),
-          DataColumn(label: Text('Tareas')),
-          DataColumn(label: Text('Estado')),
-          DataColumn(label: Text('Creación')),
-          DataColumn(label: Text('Entrega')),
-        ],
-        rows: rows
-            .map((r) => DataRow(cells: [
-                  DataCell(Text(r['id'] ?? '')),
-                  DataCell(Text(r['nombre'] ?? '')),
-                  DataCell(Text(r['equipo'] ?? '')),
-                  DataCell(Text(r['tareas'] ?? '')),
-                  DataCell(Text(r['estado'] ?? '')),
-                  DataCell(Text(r['creacion'] ?? '')),
-                  DataCell(Text(r['entrega'] ?? '')),
-                ]))
-            .toList(),
-      ),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: ConstrainedBox(
+            constraints: BoxConstraints(minWidth: constraints.maxWidth),
+            child: DataTable(
+              columnSpacing: 24,
+              columns: const [
+                DataColumn(label: Text('ID')),
+                DataColumn(label: Text('Proyecto')),
+                DataColumn(label: Text('Equipo')),
+                DataColumn(label: Text('Tareas')),
+                DataColumn(label: Text('Estado')),
+                DataColumn(label: Text('Creación')),
+                DataColumn(label: Text('Entrega')),
+              ],
+              rows: rows
+                  .map((r) => DataRow(cells: [
+                        DataCell(Text(r['id'] ?? '')),
+                        DataCell(Text(r['nombre'] ?? '')),
+                        DataCell(Text(r['equipo'] ?? '')),
+                        DataCell(Text(r['tareas'] ?? '')),
+                        DataCell(Text(r['estado'] ?? '')),
+                        DataCell(Text(r['creacion'] ?? '')),
+                        DataCell(Text(r['entrega'] ?? '')),
+                      ]))
+                  .toList(),
+            ),
+          ),
+        );
+      },
     );
   }
 }
