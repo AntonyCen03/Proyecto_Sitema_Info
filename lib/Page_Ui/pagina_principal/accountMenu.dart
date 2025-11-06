@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:proyecto_final/services/auth_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:proyecto_final/services/firebase_services.dart' as api;
 
 // Paleta de colores consistente
 const Color _primaryOrange = Color(0xFFF57C00);
@@ -16,123 +17,140 @@ class AccountMenu extends StatelessWidget {
       builder: (context, snapshot) {
         final bool isLoggedIn = snapshot.data != null;
 
-        return PopupMenuButton<String>(
-          icon: const Icon(
-            Icons.account_circle,
-            color: _primaryOrange,
-            size: 28,
-          ),
-          offset: const Offset(0, 50),
-          itemBuilder: (BuildContext context) {
-            final List<PopupMenuEntry<String>> items = [];
-            if (isLoggedIn) {
-              items.add(
-                PopupMenuItem<String>(
-                  value: 'mis_proyectos',
-                  child: ListTile(
-                    leading: const Icon(Icons.folder, color: _primaryOrange),
-                    title: const Text('Mis Proyectos'),
-                  ),
-                ),
-              );
-              items.add(
-                PopupMenuItem<String>(
-                  value: 'calendario',
-                  child: ListTile(
-                    leading: const Icon(
-                      Icons.calendar_today,
-                      color: _primaryOrange,
+        // Determinar si es admin (solo si hay sesión)
+        final Future<bool> isAdminFut = isLoggedIn
+            ? api.isCurrentUserAdmin(context)
+            : Future<bool>.value(false);
+
+        return FutureBuilder<bool>(
+          future: isAdminFut,
+          builder: (context, snap) {
+            final bool isAdmin = snap.data == true;
+            return PopupMenuButton<String>(
+              icon: const Icon(
+                Icons.account_circle,
+                color: _primaryOrange,
+                size: 28,
+              ),
+              offset: const Offset(0, 50),
+              itemBuilder: (BuildContext context) {
+                final List<PopupMenuEntry<String>> items = [];
+                if (isLoggedIn) {
+                  items.add(
+                    PopupMenuItem<String>(
+                      value: 'mis_proyectos',
+                      child: ListTile(
+                        leading:
+                            const Icon(Icons.folder, color: _primaryOrange),
+                        title: const Text('Mis Proyectos'),
+                      ),
                     ),
-                    title: const Text('Calendario'),
-                  ),
-                ),
-              );
-              items.add(
-                PopupMenuItem<String>(
-                  value: 'dashboard',
-                  child: ListTile(
-                    leading: const Icon(Icons.dashboard, color: _primaryOrange),
-                    title: const Text('Dashboard'),
-                  ),
-                ),
-              );
-              items.add(
-                PopupMenuItem(
-                  value: 'reportes',
-                  child: ListTile(
-                    leading: const Icon(Icons.insert_chart, color: _primaryOrange),
-                    title: const Text('Reportes'),
-                  ),
-                ),
-              );
-              items.add(
-                PopupMenuItem<String>(
-                  value: 'ajustes',
-                  child: ListTile(
-                    leading: const Icon(Icons.settings, color: _primaryOrange),
-                    title: const Text('Ajustes de Usuario'),
-                    contentPadding: EdgeInsets.zero,
-                  ),
-                ),
-              );
-              items.add(const PopupMenuDivider());
-              items.add(
-                PopupMenuItem<String>(
-                  value: 'cerrar_sesion',
-                  child: ListTile(
-                    leading: const Icon(Icons.logout, color: Colors.red),
-                    title: const Text(
-                      'Cerrar Sesión',
-                      style: TextStyle(color: Colors.red),
+                  );
+                  items.add(
+                    PopupMenuItem<String>(
+                      value: 'calendario',
+                      child: ListTile(
+                        leading: const Icon(
+                          Icons.calendar_today,
+                          color: _primaryOrange,
+                        ),
+                        title: const Text('Calendario'),
+                      ),
                     ),
-                    contentPadding: EdgeInsets.zero,
-                  ),
-                ),
-              );
-            } else {
-              items.add(
-                PopupMenuItem<String>(
-                  value: 'iniciar_sesion',
-                  child: ListTile(
-                    leading: const Icon(Icons.login, color: _primaryOrange),
-                    title: const Text('Iniciar Sesión'),
-                    contentPadding: EdgeInsets.zero,
-                  ),
-                ),
-              );
-            }
-            return items;
-          },
-          onSelected: (String value) async {
-            switch (value) {
-              case 'mis_proyectos':
-                //Navigator.pushNamed(context, '/mis_proyectos');
-                break;
-              case 'calendario':
-                //Navigator.pushNamed(context, '/calendario');
-                break;
-              case 'dashboard':
-                Navigator.pushNamed(context, '/dashboard');
-                break;
-              case 'reportes':
-                Navigator.pushNamed(context, '/reportes');
-                break;
-              case 'ajustes':
-                Navigator.pushNamed(context, '/perfil');
-                break;
-              case 'iniciar_sesion':
-                Navigator.pushNamed(context, '/login');
-                break;
-              case 'cerrar_sesion':
-                await AuthService().signOut();
-                // After sign out, return to principal (will rebuild reactively)
-                Navigator.pushNamedAndRemoveUntil(
-                  context,
-                  '/principal',
-                  (route) => false,
-                );
-                break;
-            }
+                  );
+                  items.add(
+                    PopupMenuItem<String>(
+                      value: 'dashboard',
+                      child: ListTile(
+                        leading:
+                            const Icon(Icons.dashboard, color: _primaryOrange),
+                        title: const Text('Dashboard'),
+                      ),
+                    ),
+                  );
+                  if (isAdmin) {
+                    items.add(
+                      PopupMenuItem(
+                        value: 'reportes',
+                        child: ListTile(
+                          leading: const Icon(Icons.insert_chart,
+                              color: _primaryOrange),
+                          title: const Text('Reportes'),
+                        ),
+                      ),
+                    );
+                  }
+                  items.add(
+                    PopupMenuItem<String>(
+                      value: 'ajustes',
+                      child: ListTile(
+                        leading:
+                            const Icon(Icons.settings, color: _primaryOrange),
+                        title: const Text('Ajustes de Usuario'),
+                        contentPadding: EdgeInsets.zero,
+                      ),
+                    ),
+                  );
+                  items.add(const PopupMenuDivider());
+                  items.add(
+                    PopupMenuItem<String>(
+                      value: 'cerrar_sesion',
+                      child: ListTile(
+                        leading: const Icon(Icons.logout, color: Colors.red),
+                        title: const Text(
+                          'Cerrar Sesión',
+                          style: TextStyle(color: Colors.red),
+                        ),
+                        contentPadding: EdgeInsets.zero,
+                      ),
+                    ),
+                  );
+                } else {
+                  items.add(
+                    PopupMenuItem<String>(
+                      value: 'iniciar_sesion',
+                      child: ListTile(
+                        leading: const Icon(Icons.login, color: _primaryOrange),
+                        title: const Text('Iniciar Sesión'),
+                        contentPadding: EdgeInsets.zero,
+                      ),
+                    ),
+                  );
+                }
+                return items;
+              },
+              onSelected: (String value) async {
+                switch (value) {
+                  case 'mis_proyectos':
+                    //Navigator.pushNamed(context, '/mis_proyectos');
+                    break;
+                  case 'calendario':
+                    //Navigator.pushNamed(context, '/calendario');
+                    break;
+                  case 'dashboard':
+                    Navigator.pushNamed(context, '/dashboard');
+                    break;
+                  case 'reportes':
+                    Navigator.pushNamed(context, '/reportes');
+                    break;
+                  case 'ajustes':
+                    Navigator.pushNamed(context, '/perfil');
+                    break;
+                  case 'iniciar_sesion':
+                    Navigator.pushNamed(context, '/login');
+                    break;
+                  case 'cerrar_sesion':
+                    await AuthService().signOut();
+                    // After sign out, return to principal (will rebuild reactively)
+                    Navigator.pushNamedAndRemoveUntil(
+                      context,
+                      '/principal',
+                      (route) => false,
+                    );
+                    break;
+                }
+              },
+            );
           },
         );
       },

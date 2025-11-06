@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 FirebaseFirestore db = FirebaseFirestore.instance;
 
@@ -241,4 +242,35 @@ Future<List<Map<String, dynamic>>> getProyecto(BuildContext context) async {
     return [];
   }
   return proyectos;
+}
+
+/// Verifica si el usuario autenticado es administrador (isadmin == true)
+/// Busca al usuario en la colección `user` utilizando la lista de `getUser`
+/// y compara por email. Si no hay usuario autenticado o no se encuentra,
+/// devuelve false.
+Future<bool> isCurrentUserAdmin(BuildContext context) async {
+  try {
+    final current = FirebaseAuth.instance.currentUser;
+    if (current == null) return false;
+    final email = current.email?.trim().toLowerCase();
+    if (email == null || email.isEmpty) return false;
+
+    final users = await getUser(context);
+    for (final u in users) {
+      final uEmail = (u['email'] ?? '').toString().trim().toLowerCase();
+      if (uEmail == email) {
+        final v = u['isadmin'];
+        return v == true ||
+            v == 1 ||
+            (v is String && (v.toLowerCase() == 'true' || v == '1'));
+      }
+    }
+    return false;
+  } catch (e) {
+    // Opcional: avisar en UI; retornar false por seguridad
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Error verificando permisos: $e')),
+    );
+    return false;
+  }
 }
