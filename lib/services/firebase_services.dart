@@ -1,7 +1,65 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 FirebaseFirestore db = FirebaseFirestore.instance;
+
+// Helpers de normalización para lecturas robustas desde Firestore
+bool _toBool(dynamic v) {
+  if (v is bool) return v;
+  if (v is num) return v != 0;
+  if (v is String) {
+    final s = v.trim().toLowerCase();
+    return s == 'true' || s == '1' || s == 'yes' || s == 'si';
+  }
+  return false;
+}
+
+DateTime? _toDate(dynamic v) {
+  if (v == null) return null;
+  if (v is Timestamp) return v.toDate();
+  if (v is DateTime) return v;
+  if (v is String) {
+    try {
+      return DateTime.tryParse(v);
+    } catch (_) {
+      return null;
+    }
+  }
+  return null;
+}
+
+List<String> _toStringList(dynamic v) {
+  if (v is List) {
+    return v
+        .map((e) => e?.toString() ?? '')
+        .where((s) => s.isNotEmpty)
+        .cast<String>()
+        .toList();
+  }
+  return <String>[];
+}
+
+Map<String, bool> _toTasks(dynamic raw) {
+  if (raw is Map) {
+    final out = <String, bool>{};
+    raw.forEach((k, val) {
+      final key = k?.toString() ?? '';
+      if (key.isEmpty) return;
+      out[key] = _toBool(val);
+    });
+    return out;
+  }
+  if (raw is List) {
+    final m = <String, bool>{};
+    for (final e in raw) {
+      final key = e?.toString() ?? '';
+      if (key.isNotEmpty) m[key] = false;
+    }
+    return m;
+  }
+  return <String, bool>{};
+}
 
 Future<List<Map<String, dynamic>>> getUser(BuildContext context) async {
   final List<Map<String, dynamic>> users = [];
@@ -17,11 +75,11 @@ Future<List<Map<String, dynamic>>> getUser(BuildContext context) async {
           ? int.tryParse(data['id_carnet'].toString()) ?? 0
           : 0;
       final cedula = data['cedula'] ?? '';
-      final dateLogin = data['date_login'] != null && data['date_login'] is Timestamp
-          ? (data['date_login'] as Timestamp).toDate()
-          : null;
+      final dateLogin =
+          data['date_login'] != null && data['date_login'] is Timestamp
+              ? (data['date_login'] as Timestamp).toDate()
+              : null;
       final uid = doc.id;
-          
 
       final person = {
         'name': name,
@@ -90,3 +148,129 @@ Future<void> deleteUser(String uid) async {
   await db.collection('user').doc(uid).delete();
 }
 
+Future<void> addProyecto(
+  int idProyecto,
+  String nombreProyecto,
+  String descripcion,
+  List<String> integrante,
+  String nombreEqipo,
+  Map<String, bool> tareas,
+  bool estado,
+  DateTime fechaCreacion,
+  DateTime fechaEntrega,
+) async {
+  await db.collection('list_proyecto').add({
+    'id_proyecto': idProyecto,
+    'nombre_proyecto': nombreProyecto,
+    'descripcion': descripcion,
+    'integrante': integrante,
+    'nombre_equipo': nombreEqipo,
+    'tareas': tareas,
+    'estado': estado,
+    'fecha_creacion': fechaCreacion,
+    'fecha_entrega': fechaEntrega,
+  });
+}
+
+Future<void> updateProyecto(
+  int idProyecto,
+  String nombreProyecto,
+  String descripcion,
+  List<String> integrante,
+  String nombreEqipo,
+  Map<String, bool> tareas,
+  bool estado,
+  DateTime fechaCreacion,
+  DateTime fechaEntrega,
+  String docId,
+) async {
+  await db.collection('list_proyecto').doc(docId).update({
+    'id_proyecto': idProyecto,
+    'nombre_proyecto': nombreProyecto,
+    'descripcion': descripcion,
+    'integrante': integrante,
+    'nombre_equipo': nombreEqipo,
+    'estado': estado,
+    'tareas': tareas,
+    'fecha_creacion': fechaCreacion,
+    'fecha_entrega': fechaEntrega,
+  });
+}
+
+Future<void> deleteProyecto(String docId) async {
+  await db.collection('list_proyecto').doc(docId).delete();
+}
+
+Future<List<Map<String, dynamic>>> getProyecto(BuildContext context) async {
+  final List<Map<String, dynamic>> proyectos = [];
+  try {
+    final QuerySnapshot querySnapshot =
+        await db.collection('list_proyecto').get();
+    for (final doc in querySnapshot.docs) {
+      final data = doc.data() as Map<String, dynamic>? ?? {};
+      final idProyecto = data['id_proyecto'] != null
+          ? int.tryParse(data['id_proyecto'].toString()) ?? 0
+          : 0;
+      final nombreProyecto = (data['nombre_proyecto'] ?? '').toString();
+      final descripcion = (data['descripcion'] ?? '').toString();
+      final integrante = _toStringList(data['integrante']);
+      final nombreEquipo = (data['nombre_equipo'] ?? '').toString();
+      final tareas = _toTasks(data['tareas']);
+      final estado = _toBool(data['estado']);
+      final fechaCreacion = _toDate(data['fecha_creacion']);
+      final fechaEntrega = _toDate(data['fecha_entrega']);
+      final docId = doc.id;
+
+      final proyecto = {
+        'id_proyecto': idProyecto,
+        'nombre_proyecto': nombreProyecto,
+        'descripcion': descripcion,
+        'integrante': integrante,
+        'nombre_equipo': nombreEquipo,
+        'tareas': tareas,
+        'estado': estado,
+        'fecha_creacion': fechaCreacion,
+        'fecha_entrega': fechaEntrega,
+        'docId': docId,
+      };
+      proyectos.add(proyecto);
+    }
+  } catch (e) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Error de conexion: $e')),
+    );
+    return [];
+  }
+  return proyectos;
+}
+
+/// Verifica si el usuario autenticado es administrador (isadmin == true)
+/// Busca al usuario en la colección `user` utilizando la lista de `getUser`
+/// y compara por email. Si no hay usuario autenticado o no se encuentra,
+/// devuelve false.
+Future<bool> isCurrentUserAdmin(BuildContext context) async {
+  try {
+    final current = FirebaseAuth.instance.currentUser;
+    if (current == null) return false;
+    final email = current.email?.trim().toLowerCase();
+    if (email == null || email.isEmpty) return false;
+
+    final users = await getUser(context);
+    for (final u in users) {
+      final uEmail = (u['email'] ?? '').toString().trim().toLowerCase();
+      if (uEmail == email) {
+        final v = u['isadmin'];
+        return v == true ||
+            v == 1 ||
+            (v is String && (v.toLowerCase() == 'true' || v == '1'));
+      }
+    }
+    return false;
+  } catch (e) {
+    // Opcional: avisar en UI; retornar false por seguridad
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Error verificando permisos: $e')),
+    );
+    return false;
+  }
+}

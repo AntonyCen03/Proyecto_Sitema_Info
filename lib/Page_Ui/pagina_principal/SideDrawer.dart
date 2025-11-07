@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:proyecto_final/services/auth_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:proyecto_final/Color/Color.dart';
+import 'package:proyecto_final/services/firebase_services.dart' as api;
 
 class SideDrawer extends StatelessWidget {
   const SideDrawer();
@@ -74,8 +75,26 @@ class SideDrawer extends StatelessWidget {
                             Icons.dashboard,
                             color: primaryOrange,
                           ),
-                          title: const Text('Dashboard y Reportes'),
-                          onTap: () => Navigator.pop(context),
+                          title: const Text('Dashboard'),
+                          onTap: () =>
+                              Navigator.pushNamed(context, '/dashboard'),
+                        ),
+                        // Reportes solo para administradores
+                        FutureBuilder<bool>(
+                          future: api.isCurrentUserAdmin(context),
+                          builder: (context, snap) {
+                            final isAdmin = snap.data == true;
+                            if (!isAdmin) return const SizedBox.shrink();
+                            return ListTile(
+                              leading: const Icon(
+                                Icons.insert_chart_outlined,
+                                color: primaryOrange,
+                              ),
+                              title: const Text('Reportes'),
+                              onTap: () =>
+                                  Navigator.pushNamed(context, '/reportes'),
+                            );
+                          },
                         ),
                         ListTile(
                           leading: const Icon(

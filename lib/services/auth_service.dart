@@ -1,4 +1,4 @@
-
+import 'dart:async';
 import 'package:firebase_auth/firebase_auth.dart';
 
 /// AuthService proporciona métodos utilitarios para operar con
@@ -132,23 +132,69 @@ class AuthService {
         code: 'no-current-user',
         message: 'No hay un usuario autenticado actualmente.',
       );
-    }
-
+    } 
     try {
       // Reautenticar con las credenciales de correo/contraseña.
       final credential = EmailAuthProvider.credential(
         email: user.email!.trim(),
         password: currentPassword,
       );
+      // un timeout para evitar que la llamada quede bloqueada indefinidamente
+      try {
+        await user
+            .reauthenticateWithCredential(credential)
+            .timeout(const Duration(seconds: 10));
+      } on FirebaseAuthException catch (e) {
+        // Normalizar y relanzar con un código consistente
+        final code = (e.code);
+        throw FirebaseAuthException(
+            code: code, message: e.message ?? 'Error al reautenticar');
+      }
 
-      await user.reauthenticateWithCredential(credential);
-
-      // Actualizar la contraseña.
-      await user.updatePassword(newPassword);
+      // Actualizar la contraseña (también con timeout por seguridad de red)
+      try {
+        if (newPassword == currentPassword) {
+          throw FirebaseAuthException(
+            code: 'weak-password',
+            message: 'La nueva contraseña debe ser diferente a la anterior.',
+          );
+        } else if (newPassword.length < 6) {
+          throw FirebaseAuthException(
+            code: 'weak-password',
+            message: 'La nueva contraseña es demasiado débil.',
+          );
+        } else if (newPassword.length > 30) {
+          throw FirebaseAuthException(
+            code: 'weak-password',
+            message: 'La nueva contraseña es demasiado larga.',
+          );
+        } else {
+          await user
+              .updatePassword(newPassword)
+              .timeout(const Duration(seconds: 10));
+        }
+      } on FirebaseAuthException catch (e) {
+        final code = (e.code);
+        throw FirebaseAuthException(
+            code: code,
+            message: e.message ?? 'Error al actualizar la contraseña');
+      }
     } on FirebaseAuthException {
       // Re-lanzar para que la UI lo maneje (mostrar mensajes adecuados al usuario).
       rethrow;
+    } on TimeoutException catch (_) {
+      // Convertir timeout a FirebaseAuthException para que la UI lo maneje igual
+      throw FirebaseAuthException(
+        code: 'timeout',
+        message:
+            'La operación tardó demasiado. Verifica tu conexión e intenta de nuevo.',
+      );
+    } catch (e) {
+      // En caso de otro error inesperado, envolverlo para la UI
+      throw FirebaseAuthException(
+        code: 'unknown-error',
+        message: e.toString(),
+      );
     }
   }
 }
-
