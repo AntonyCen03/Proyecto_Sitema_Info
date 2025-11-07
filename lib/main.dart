@@ -7,16 +7,17 @@ import 'package:proyecto_final/Page_Ui/perfil_usuario/perfil_usuario_new.dart';
 //import 'package:proyecto_final/Page_Ui/perfil_usuario/usuario.dart';
 import 'firebase_options.dart';
 import 'package:proyecto_final/Page_Ui/pagina_principal/page_principal.dart';
-<<<<<<< HEAD
-=======
 import 'package:proyecto_final/Page_Ui/pagina_login/nueva_contrasena.dart';
 import 'package:proyecto_final/Page_Ui/reporte_dashboard/dashboard_page.dart';
 import 'package:proyecto_final/Page_Ui/reporte_dashboard/reportes_page.dart';
->>>>>>> 4f9d6fc7b28492c1decbd70108e45d3f41a7644b
+import 'package:intl/date_symbol_data_local.dart';
+import 'package:proyecto_final/Page_Ui/calendario.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  await initializeDateFormatting('es_ES', null);
   runApp(MyApp());
 }
 
@@ -31,6 +32,16 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         scaffoldBackgroundColor: const Color.fromARGB(250, 250, 250, 250),
       ),
+      locale: const Locale('es', 'ES'),
+      supportedLocales: const [
+        Locale('es', 'ES'),
+        Locale('en', 'US'),
+      ],
+      localizationsDelegates: const [
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
       initialRoute: '/principal',
       routes: {
         '/login': (context) => const PageLogin(),
@@ -41,6 +52,7 @@ class MyApp extends StatelessWidget {
         '/cambiar_contrasena': (context) => const NuevaContrasenaScreen(),
         '/dashboard': (context) => const DashboardPage(),
         '/reportes': (context) => const ReportesPage(),
+        '/calendario': (context) => const CalendarScreen(),
       },
     );
   }

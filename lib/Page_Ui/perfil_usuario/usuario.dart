@@ -73,8 +73,8 @@ class _PerfilUsuarioState extends State<PerfilUsuario> {
       if (currentEmail != null && currentEmail.isNotEmpty) {
         try {
           user = users.cast<Map<String, dynamic>>().firstWhere(
-            (u) => (u['email'] ?? '').toString().trim() == currentEmail,
-          );
+                (u) => (u['email'] ?? '').toString().trim() == currentEmail,
+              );
           print("Usuario encontrado por email");
         } catch (_) {
           user = users.isNotEmpty ? users.first : null;
@@ -84,7 +84,6 @@ class _PerfilUsuarioState extends State<PerfilUsuario> {
         user = users.isNotEmpty ? users.first : null;
         print("Sin email, usando primer usuario");
       }
-<<<<<<< HEAD
 
       print("Datos del usuario: $user");
 
@@ -118,34 +117,6 @@ class _PerfilUsuarioState extends State<PerfilUsuario> {
       print("Error: $e");
       print("StackTrace: $stackTrace");
 
-=======
-      setState(() {
-        correo = user?['email']?.toString().trim() ?? '';
-        cedula = user?['cedula']?.toString() ?? "";
-        nombreu = user?['name']?.toString() ?? "";
-        carnet = user?['id_carnet']?.toString() ?? "";
-        // Populate controllers so the edit form shows current values
-        nombre.text = nombreu;
-        carnetusuario.text = carnet;
-        cedulausuario.text = cedula;
-        if (user?['isadmin'] == true) {
-          grado = "Administrador";
-        } else {
-          grado = "Usuario";
-        }
-        ultimaconecion = user?['date_login']?.toString() ?? '';
-        advertenciacarnet = Text(
-          "Introduzca el carnet",
-          style: TextStyle(fontSize: 10, color: Colors.red),
-        );
-        advertenciacedula = Text(
-          "Introduzca la cedula",
-          style: TextStyle(fontSize: 10, color: Colors.red),
-        );
-        infoperfil = informacion();
-      });
-    } catch (e) {
->>>>>>> 4f9d6fc7b28492c1decbd70108e45d3f41a7644b
       if (!mounted) return;
       setState(() {
         correo = AuthService().currentUser?.email ?? 'error al cargar';
@@ -250,57 +221,54 @@ class _PerfilUsuarioState extends State<PerfilUsuario> {
   }
 
   void actualizarinfousuario() {
-    getUser(context)
-        .then((users) async {
+    getUser(context).then((users) async {
+      try {
+        final currentEmail =
+            AuthService().currentUser?.email?.toString().trim();
+        Map<String, dynamic>? user;
+        if (currentEmail != null && currentEmail.isNotEmpty) {
           try {
-            final currentEmail = AuthService().currentUser?.email
-                ?.toString()
-                .trim();
-            Map<String, dynamic>? user;
-            if (currentEmail != null && currentEmail.isNotEmpty) {
-              try {
-                user = users.cast<Map<String, dynamic>>().firstWhere(
+            user = users.cast<Map<String, dynamic>>().firstWhere(
                   (u) => (u['email'] ?? '').toString().trim() == currentEmail,
                 );
-              } catch (_) {
-                user = users.isNotEmpty ? users.first : null;
-              }
-            } else {
-              user = users.isNotEmpty ? users.first : null;
-            }
-
-            final String uid = user?['uid']?.toString() ?? "";
-            // Normalizar entradas: eliminar todo lo que no sea dígito
-            final carnetDigits = carnetusuario.text.replaceAll(
-              RegExp(r'\D'),
-              '',
-            );
-            final cedulaDigits = cedulausuario.text.replaceAll(
-              RegExp(r'\D'),
-              '',
-            );
-            final carnetInt = int.tryParse(carnetDigits) ?? 0;
-            await updateUser(nombre.text, carnetInt, cedulaDigits, uid);
-
-            setState(() {
-              tamanofoto = 200;
-              ajustando = true;
-              nombre.clear();
-              cedulausuario.clear();
-              carnetusuario.clear();
-              infoperfil = informacion();
-            });
-          } catch (e) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('Error al actualizar usuario: $e')),
-            );
+          } catch (_) {
+            user = users.isNotEmpty ? users.first : null;
           }
-        })
-        .catchError((e) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Error al obtener usuarios: $e')),
-          );
+        } else {
+          user = users.isNotEmpty ? users.first : null;
+        }
+
+        final String uid = user?['uid']?.toString() ?? "";
+        // Normalizar entradas: eliminar todo lo que no sea dígito
+        final carnetDigits = carnetusuario.text.replaceAll(
+          RegExp(r'\D'),
+          '',
+        );
+        final cedulaDigits = cedulausuario.text.replaceAll(
+          RegExp(r'\D'),
+          '',
+        );
+        final carnetInt = int.tryParse(carnetDigits) ?? 0;
+        await updateUser(nombre.text, carnetInt, cedulaDigits, uid);
+
+        setState(() {
+          tamanofoto = 200;
+          ajustando = true;
+          nombre.clear();
+          cedulausuario.clear();
+          carnetusuario.clear();
+          infoperfil = informacion();
         });
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error al actualizar usuario: $e')),
+        );
+      }
+    }).catchError((e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error al obtener usuarios: $e')),
+      );
+    });
   }
 
   PreferredSizeWidget appbar() {

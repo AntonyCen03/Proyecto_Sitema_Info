@@ -68,7 +68,8 @@ class SideDrawer extends StatelessWidget {
                             color: primaryOrange,
                           ),
                           title: const Text('Calendario'),
-                          onTap: () => Navigator.pop(context),
+                          onTap: () =>
+                              Navigator.pushNamed(context, '/calendario'),
                         ),
                         ListTile(
                           leading: const Icon(

@@ -125,7 +125,7 @@ class AccountMenu extends StatelessWidget {
                     //Navigator.pushNamed(context, '/mis_proyectos');
                     break;
                   case 'calendario':
-                    //Navigator.pushNamed(context, '/calendario');
+                    Navigator.pushNamed(context, '/calendario');
                     break;
                   case 'dashboard':
                     Navigator.pushNamed(context, '/dashboard');
