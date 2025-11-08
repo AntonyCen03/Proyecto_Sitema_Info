@@ -29,16 +29,7 @@ DateTime? _toDate(dynamic v) {
   return null;
 }
 
-List<String> _toStringList(dynamic v) {
-  if (v is List) {
-    return v
-        .map((e) => e?.toString() ?? '')
-        .where((s) => s.isNotEmpty)
-        .cast<String>()
-        .toList();
-  }
-  return <String>[];
-}
+// _toStringList removido: ya no se usa tras migrar integrantes a lista de mapas
 
 Map<String, bool> _toTasks(dynamic raw) {
   if (raw is Map) {
@@ -46,7 +37,12 @@ Map<String, bool> _toTasks(dynamic raw) {
     raw.forEach((k, val) {
       final key = k?.toString() ?? '';
       if (key.isEmpty) return;
-      out[key] = _toBool(val);
+      if (val is Map) {
+        // Nuevo formato: {done: bool, nombre: String?, cedula: String?}
+        out[key] = _toBool(val['done']);
+      } else {
+        out[key] = _toBool(val);
+      }
     });
     return out;
   }
@@ -59,6 +55,24 @@ Map<String, bool> _toTasks(dynamic raw) {
     return m;
   }
   return <String, bool>{};
+}
+
+/// Envuelve tareas simples (Map<String,bool>) al nuevo formato para Firestore
+/// { "tarea": { done: true/false, nombre: null, cedula: null } }
+Map<String, Map<String, dynamic>> _wrapTasks(
+  Map<String, bool> tareas, {
+  Map<String, String?>? nombres,
+  Map<String, String?>? cedulas,
+}) {
+  final out = <String, Map<String, dynamic>>{};
+  tareas.forEach((k, v) {
+    out[k] = {
+      'done': _toBool(v),
+      'nombre': nombres != null ? nombres[k] : null,
+      'cedula': cedulas != null ? cedulas[k] : null,
+    };
+  });
+  return out;
 }
 
 Future<List<Map<String, dynamic>>> getUser(BuildContext context) async {
@@ -148,11 +162,14 @@ Future<void> deleteUser(String uid) async {
   await db.collection('user').doc(uid).delete();
 }
 
+/// Agrega un proyecto donde "integrante" ahora es una lista de mapas
+/// con las llaves: nombre, email, cedula. Ej:
+/// [ {"nombre":"Ana","email":"ana@x.com","cedula":"123"}, ... ]
 Future<void> addProyecto(
   int idProyecto,
   String nombreProyecto,
   String descripcion,
-  List<String> integrante,
+  List<Map<String, String>> integrantesDetalle,
   String nombreEqipo,
   Map<String, bool> tareas,
   bool estado,
@@ -163,20 +180,22 @@ Future<void> addProyecto(
     'id_proyecto': idProyecto,
     'nombre_proyecto': nombreProyecto,
     'descripcion': descripcion,
-    'integrante': integrante,
+    'integrante': integrantesDetalle, // se guarda la lista de mapas
     'nombre_equipo': nombreEqipo,
-    'tareas': tareas,
+    // Guardar tareas en formato enriquecido (nombre/cedula por defecto null)
+    'tareas': _wrapTasks(tareas),
     'estado': estado,
     'fecha_creacion': fechaCreacion,
     'fecha_entrega': fechaEntrega,
   });
 }
 
+/// Actualiza un proyecto usando la nueva estructura de integrantes detalle
 Future<void> updateProyecto(
   int idProyecto,
   String nombreProyecto,
   String descripcion,
-  List<String> integrante,
+  List<Map<String, String>> integrantesDetalle,
   String nombreEqipo,
   Map<String, bool> tareas,
   bool estado,
@@ -188,10 +207,11 @@ Future<void> updateProyecto(
     'id_proyecto': idProyecto,
     'nombre_proyecto': nombreProyecto,
     'descripcion': descripcion,
-    'integrante': integrante,
+    'integrante': integrantesDetalle,
     'nombre_equipo': nombreEqipo,
     'estado': estado,
-    'tareas': tareas,
+    // Guardar tareas en formato enriquecido (nombre/cedula por defecto null)
+    'tareas': _wrapTasks(tareas),
     'fecha_creacion': fechaCreacion,
     'fecha_entrega': fechaEntrega,
   });
@@ -199,6 +219,167 @@ Future<void> updateProyecto(
 
 Future<void> deleteProyecto(String docId) async {
   await db.collection('list_proyecto').doc(docId).delete();
+}
+
+/// Devuelve los proyectos donde el email (en minúsculas) aparece en `integrantes_detalle`
+Future<List<Map<String, dynamic>>> getProyectosByMemberEmail(
+    BuildContext context, String emailLower) async {
+  final all = await getProyecto(context);
+  final filtered = <Map<String, dynamic>>[];
+  for (final p in all) {
+    final List integrantesDetalle = (p['integrantes_detalle'] ?? []) as List;
+    for (final i in integrantesDetalle) {
+      if (i is Map) {
+        final mail = (i['email'] ?? '').toString().trim().toLowerCase();
+        if (mail.isNotEmpty && mail == emailLower) {
+          filtered.add(p);
+          break;
+        }
+      }
+    }
+  }
+  return filtered;
+}
+
+/// Devuelve los proyectos donde participa el usuario autenticado (por email)
+Future<List<Map<String, dynamic>>> getProyectosDelUsuarioActual(
+    BuildContext context) async {
+  final current = FirebaseAuth.instance.currentUser;
+  if (current == null) return [];
+  final emailLower = current.email?.trim().toLowerCase();
+  if (emailLower == null || emailLower.isEmpty) return [];
+  return getProyectosByMemberEmail(context, emailLower);
+}
+
+/// Construye un mapa de eventos de entrega para el usuario (clave = fecha normalizada)
+/// Cada evento es un Map con: title, date, docId, id_proyecto, nombre_proyecto
+Future<Map<DateTime, List<Map<String, dynamic>>>> getEventosEntregaUsuario(
+    BuildContext context,
+    {String? emailLower}) async {
+  String? email = emailLower;
+  if (email == null || email.isEmpty) {
+    final current = FirebaseAuth.instance.currentUser;
+    email = current?.email?.trim().toLowerCase();
+  }
+  if (email == null || email.isEmpty) return {};
+
+  final proyectos = await getProyectosByMemberEmail(context, email);
+  final out = <DateTime, List<Map<String, dynamic>>>{};
+  for (final p in proyectos) {
+    final DateTime? fechaEntrega = p['fecha_entrega'] as DateTime?;
+    if (fechaEntrega == null) continue;
+    final normalized =
+        DateTime.utc(fechaEntrega.year, fechaEntrega.month, fechaEntrega.day);
+    final bool estado = p['estado'] == true; // true = completado?
+    final bool vencido = !estado && fechaEntrega.isBefore(DateTime.now());
+    final event = <String, dynamic>{
+      'title': 'Entrega: ' + (p['nombre_proyecto']?.toString() ?? ''),
+      'date': fechaEntrega,
+      'docId': p['docId']?.toString(),
+      'id_proyecto': p['id_proyecto'],
+      'nombre_proyecto': p['nombre_proyecto'],
+      'vencido': vencido,
+      'estado': estado,
+    };
+    out.putIfAbsent(normalized, () => <Map<String, dynamic>>[]);
+    out[normalized]!.add(event);
+  }
+  return out;
+}
+
+/// Genera notificaciones basadas en proximidad a fecha_entrega.
+/// Regresa lista de mapas con: mensaje, proyecto, docId, tipo, dateEntrega, horasRestantes, minutosRestantes.
+Future<List<Map<String, dynamic>>> generarNotificacionesEntrega(
+    BuildContext context,
+    {String? emailLower}) async {
+  final now = DateTime.now();
+  String? email = emailLower;
+  if (email == null || email.isEmpty) {
+    final current = FirebaseAuth.instance.currentUser;
+    email = current?.email?.trim().toLowerCase();
+  }
+  if (email == null || email.isEmpty) return [];
+
+  final proyectos = await getProyectosByMemberEmail(context, email);
+  final notifs = <Map<String, dynamic>>[];
+  for (final p in proyectos) {
+    final DateTime? entrega = p['fecha_entrega'] as DateTime?;
+    final bool estado = p['estado'] == true; // completado => no avisar
+    if (entrega == null || estado) continue; // no avisar si ya completado
+
+    final diff = entrega.difference(now); // positiva si futuro
+    final horas = diff.inHours;
+    final minutos = diff.inMinutes;
+
+    // Notificación a 1 día (entre 24h y <25h para evitar repetir; simple ventana)
+    if (horas == 24) {
+      notifs.add({
+        'tipo': '24h',
+        'mensaje': 'Falta 1 día para entregar: ${p['nombre_proyecto']}',
+        'proyecto': p['nombre_proyecto'],
+        'docId': p['docId'],
+        'dateEntrega': entrega,
+        'horasRestantes': horas,
+        'minutosRestantes': minutos,
+      });
+    }
+
+    // Notificación a 1 hora (exacta)
+    if (horas == 1 && minutos >= 60 && minutos < 120) {
+      notifs.add({
+        'tipo': '1h',
+        'mensaje': 'Falta 1 hora para entregar: ${p['nombre_proyecto']}',
+        'proyecto': p['nombre_proyecto'],
+        'docId': p['docId'],
+        'dateEntrega': entrega,
+        'horasRestantes': horas,
+        'minutosRestantes': minutos,
+      });
+    }
+
+    // Notificación vencido (entrega pasada y estado false)
+    if (entrega.isBefore(now)) {
+      notifs.add({
+        'tipo': 'vencido',
+        'mensaje': 'Proyecto vencido: ${p['nombre_proyecto']}',
+        'proyecto': p['nombre_proyecto'],
+        'docId': p['docId'],
+        'dateEntrega': entrega,
+        'horasRestantes': horas,
+        'minutosRestantes': minutos,
+      });
+    }
+  }
+  return notifs;
+}
+
+// Funciones de FCM removidas a pedido del usuario
+
+/// Convierte la lista dinámica de integrantes en una lista de mapas estandarizada
+List<Map<String, String>> _toIntegrantesDetalle(dynamic raw) {
+  final out = <Map<String, String>>[];
+  if (raw is List) {
+    for (final e in raw) {
+      if (e is Map) {
+        final nombre = (e['nombre'] ?? e['name'] ?? '').toString();
+        final email = (e['email'] ?? '').toString();
+        final cedula = (e['cedula'] ?? '').toString();
+        if (nombre.isEmpty && email.isEmpty && cedula.isEmpty) continue;
+        out.add({
+          'nombre': nombre,
+          'email': email,
+          'cedula': cedula,
+        });
+      } else if (e is String) {
+        // Compatibilidad con antiguo formato (solo nombre)
+        final nombre = e.trim();
+        if (nombre.isNotEmpty) {
+          out.add({'nombre': nombre, 'email': '', 'cedula': ''});
+        }
+      }
+    }
+  }
+  return out;
 }
 
 Future<List<Map<String, dynamic>>> getProyecto(BuildContext context) async {
@@ -213,7 +394,11 @@ Future<List<Map<String, dynamic>>> getProyecto(BuildContext context) async {
           : 0;
       final nombreProyecto = (data['nombre_proyecto'] ?? '').toString();
       final descripcion = (data['descripcion'] ?? '').toString();
-      final integrante = _toStringList(data['integrante']);
+      final integrantesDetalle = _toIntegrantesDetalle(data['integrante']);
+      final integrante = integrantesDetalle
+          .map((m) => (m['nombre'] ?? '').trim())
+          .where((s) => s.isNotEmpty)
+          .toList();
       final nombreEquipo = (data['nombre_equipo'] ?? '').toString();
       final tareas = _toTasks(data['tareas']);
       final estado = _toBool(data['estado']);
@@ -226,6 +411,8 @@ Future<List<Map<String, dynamic>>> getProyecto(BuildContext context) async {
         'nombre_proyecto': nombreProyecto,
         'descripcion': descripcion,
         'integrante': integrante,
+        'integrantes_detalle':
+            integrantesDetalle, // nuevo campo con detalle completo
         'nombre_equipo': nombreEquipo,
         'tareas': tareas,
         'estado': estado,

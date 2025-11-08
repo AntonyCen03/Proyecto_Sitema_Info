@@ -6,6 +6,7 @@ import 'package:proyecto_final/models/event_model.dart';
 import 'package:proyecto_final/Page_Ui/widgets/metro_app_bar.dart';
 import 'package:proyecto_final/Page_Ui/widgets/calendar_controls.dart';
 import 'package:proyecto_final/Page_Ui/widgets/calendar_core_view.dart';
+import 'package:proyecto_final/services/firebase_services.dart';
 
 class CalendarScreen extends StatefulWidget {
   const CalendarScreen({super.key});
@@ -26,6 +27,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
   void initState() {
     super.initState();
     _selectedDay = _focusedDay;
+    _cargarEventosUsuario();
   }
 
   @override
@@ -69,6 +71,50 @@ class _CalendarScreenState extends State<CalendarScreen> {
   List<EventModel> _getEventsForDay(DateTime day) {
     DateTime normalizedDay = DateTime.utc(day.year, day.month, day.day);
     return _events[normalizedDay] ?? [];
+  }
+
+  Future<void> _cargarEventosUsuario() async {
+    try {
+      // Usar helper desde firebase_services.dart
+      final raw = await getEventosEntregaUsuario(context);
+      final Map<DateTime, List<EventModel>> temp = {};
+      raw.forEach((date, list) {
+        for (final e in list) {
+          final title = (e['title'] ?? '').toString();
+          final DateTime dateTime = e['date'] as DateTime;
+          final idProyecto = e['id_proyecto'] as int?;
+          final docId = e['docId']?.toString();
+          final bool vencido = e['vencido'] == true;
+          final bool estado = e['estado'] == true; // completado
+          final Color eventColor =
+              estado ? primaryGreen : (vencido ? primaryRed : primaryOrange);
+          temp.putIfAbsent(date, () => []);
+          temp[date]!.add(EventModel(
+            title: title,
+            date: dateTime,
+            color: eventColor,
+            destacado: true,
+            proyectoDocId: docId,
+            idProyecto: idProyecto,
+          ));
+        }
+      });
+
+      if (mounted) {
+        setState(() {
+          _events
+            ..clear()
+            ..addAll(temp);
+        });
+      }
+    } catch (e) {
+      // Mostrar error mínimo en UI
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error cargando eventos: $e')),
+        );
+      }
+    }
   }
 
   @override
