@@ -13,6 +13,7 @@ import 'package:proyecto_final/Page_Ui/reporte_dashboard/reportes_page.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:proyecto_final/Page_Ui/pagina_calendario/calendario.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:proyecto_final/Page_Ui/crear_proyecto/page_create_project.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -53,6 +54,7 @@ class MyApp extends StatelessWidget {
         '/dashboard': (context) => const DashboardPage(),
         '/reportes': (context) => const ReportesPage(),
         '/calendario': (context) => const CalendarScreen(),
+        '/crear_proyecto': (context) => const PageCreateProject(),
       },
     );
   }
