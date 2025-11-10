@@ -13,6 +13,7 @@ Guía rápida y completa de los archivos dentro de `lib/`, cómo se conectan ent
 	- Inicializa Firebase (`Firebase.initializeApp` usando `firebase_options.dart`).
 	- Define rutas: `/login`, `/registrar`, `/reset_password`, `/perfil`, `/principal`.
 	- Aplica tema base y desactiva el banner de debug.
+	- (Antes) Se tenía un servicio de logging y captura global; a solicitud del equipo, el guardado de errores se deshabilitó.
 
 ### Servicios (capa de datos y auth)
 - `lib/services/auth_service.dart`
@@ -31,6 +32,14 @@ Guía rápida y completa de los archivos dentro de `lib/`, cómo se conectan ent
 		- `UsernameField` (valida correo institucional), `PasswordField` (widget separado) y botón `IniciarSesion` (widget separado).
 		- Imagen de usuario con fallback a ícono si falla la carga.
 		- Botón “Registrarse” → navega a `/registrar`.
+
+	- `lib/Page_Ui/reporte_dashboard/` — Dashboard y Reportes
+		- `dashboard_page.dart`: métricas, próximos a entregar y progreso por proyecto.
+		- `reportes_page.dart`: tabla filtrable (por ID/nombre, fecha y estado) y exportación a CSV.
+		- `proyecto_repository.dart`: acceso y filtrado de datos de proyectos, cálculo de KPIs.
+		- `models.dart`: modelos `Proyecto`, `ProyectoFilter`, `DashboardStats`.
+		- `widgets.dart`: UI reutilizable (barra de filtros, tarjetas de resumen y tabla).
+
 
 - `lib/Page_Ui/pagina_login/widget_password.dart`
 	- Campo de contraseña con toggle de visibilidad y validaciones básicas.

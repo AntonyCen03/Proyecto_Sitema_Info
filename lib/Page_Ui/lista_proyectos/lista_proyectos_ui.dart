@@ -17,8 +17,7 @@ class ListaProyectosUi extends State<ListaProyectos>{
   
   int numero = 0;
   bool administrador = true;
-  List<Map<String, dynamic>> proyectos = 
-  [
+  List<Map<String, dynamic>> proyectos = [
     {
     'id': 0,
     'title': 'Proyecto A (Inicial)', 
@@ -80,18 +79,22 @@ class ListaProyectosUi extends State<ListaProyectos>{
     'view': 15
   },
   ];
-  List<Widget> listaproyectos = [];
   List<int> ids = [];
+  List<Widget> listaproyectos = [];
+  String filtro = "view";
+
   @override
   void initState() {
-    arreglarlista();
+    administrador = false;
+    arrreglarlista();
+    reorganizarlista();
     super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        backgroundColor: Color.fromRGBO(255, 255, 255, 1),
+        backgroundColor: colorFondo,
         extendBodyBehindAppBar: false,
         appBar: _buildAppBar(context),
         drawer: const SideDrawer(),
@@ -204,11 +207,11 @@ class ListaProyectosUi extends State<ListaProyectos>{
       primary: false,
       padding: const EdgeInsets.all(16),
       children: <Widget>[
-        listaproyectos[ids[numero]],
-        listaproyectos[ids[numero+1]],
-        listaproyectos[ids[numero+2]],
-        listaproyectos[ids[numero+3]],
-        listaproyectos[ids[numero+4]],
+        listaproyectos[numero],
+        listaproyectos[numero+1],
+        listaproyectos[numero+2],
+        listaproyectos[numero+3],
+        listaproyectos[numero+4],
       ],
     );
   }
@@ -219,23 +222,48 @@ class ListaProyectosUi extends State<ListaProyectos>{
     );
   }
 
-  void arreglarlista(){
+  void arreglarlistaproyectos(){
+    listaproyectos.clear();
     for(int i = 0; i < proyectos.length; i++){
       listaproyectos.add(
         ProyectosDeLaLista(
-          proyectos: proyectos[i],
+          proyectos: proyectos[ids[i]],
           onTap: () {
           },
         ),
       );
     }
+    
+  }
+
+  void arrreglarlista(){
     for(int i = 0; i < proyectos.length; i++){
       ids.add(proyectos[i]['id']);
     }
+    arreglarlistaproyectos();
   }
 
   void reorganizarlista(){
-    
+    bool cambios = false;
+    for(int i = 0; i < proyectos.length- 1; i++){
+      int posicion = i;
+      for(int j = i+1; j < proyectos.length; j++){
+        if(proyectos[ids[posicion]][filtro] < proyectos[ids[j]][filtro]){
+          posicion = j;
+          }
+     }
+      if(posicion != i){
+        cambios = true;
+        int aux = ids[i];
+        ids[i] = ids[posicion];
+        ids[posicion] = aux;
+      }
+    }
+    if (cambios){
+      setState(() {
+        arreglarlistaproyectos();
+        });
+    }
   }
 
   void buscador(){
