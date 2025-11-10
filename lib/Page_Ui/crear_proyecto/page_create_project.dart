@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:proyecto_final/Color/Color.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class Integrante {
   final String nombre;
@@ -182,7 +183,19 @@ class _PageCreateProjectState extends State<PageCreateProject> {
     });
   }
 
-  void _createProject() {
+  // ... dentro de la clase _PageCreateProjectState ...
+
+  // Función para convertir la lista de tareas al formato Map<String, bool> requerido por Firebase
+  Map<String, bool> _getTareasMap() {
+    return _tareas;
+  }
+
+  // Función para convertir la lista de integrantes al formato List<String> (solo nombres)
+  List<String> _getIntegrantesList() {
+    return _integrantes.map((i) => '${i.nombre} (${i.rol})').toList();
+  }
+
+  void _createProject() async {
     if (_formKey.currentState!.validate()) {
       if (_startDate == null || _deliveryDate == null) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -203,22 +216,36 @@ class _PageCreateProjectState extends State<PageCreateProject> {
         return;
       }
 
-      print('Proyecto a guardar:');
-      print('Nombre: ${_projectNameController.text}');
-      print('Equipo: ${_teamNameController.text}');
-      print('Inicio: $_startDate');
-      print('Entrega: $_deliveryDate');
-      print(
-        'Integrantes: ${_integrantes.map((i) => '${i.nombre} (${i.rol})').toList()}',
-      );
-      print('Tareas: $_tareas');
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Proyecto creado exitosamente (simulado)'),
-        ),
-      );
-      Navigator.pop(context);
+      final projectData = <String, dynamic>{
+        'descripcion': _descriptionController.text.trim(),
+        'estado': false,
+        'fecha_creacion': _startDate,
+        'fecha_entrega': _deliveryDate,
+        'integrantes': _getIntegrantesList(),
+        'nombre_equipo': _teamNameController.text.trim(),
+        'nombre_proyecto': _projectNameController.text.trim(),
+        'tareas': _getTareasMap(),
+      };
+      try {
+        await FirebaseFirestore.instance
+            .collection('proyectos')
+            .add(projectData);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('✅ Proyecto creado y guardado exitosamente.'),
+            backgroundColor: Colors.green,
+          ),
+        );
+        Navigator.pop(context);
+      } catch (e) {
+        print('Error al guardar en Firestore: $e');
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('❌ Error al crear el proyecto: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     }
   }
 
@@ -414,7 +441,6 @@ class _PageCreateProjectState extends State<PageCreateProject> {
             ),
             const SizedBox(width: 10),
 
-            // CORRECCIÓN: Se envuelve el DropdownButtonFormField en Expanded.
             Expanded(
               child: DropdownButtonFormField<String>(
                 isExpanded: true,
@@ -582,6 +608,7 @@ class _PageCreateProjectState extends State<PageCreateProject> {
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
           elevation: 5,
         ),
+        // AQUÍ ES DONDE SE LLAMA LA FUNCIÓN:
         onPressed: _createProject,
         child: const Text(
           'Crear Proyecto',
