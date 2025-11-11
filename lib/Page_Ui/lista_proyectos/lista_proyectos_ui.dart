@@ -4,6 +4,7 @@ import 'package:proyecto_final/Page_Ui/pagina_principal/MenuNotificacion.dart';
 import 'package:proyecto_final/Page_Ui/pagina_principal/sideDrawer.dart';
 import 'package:proyecto_final/Color/Color.dart';
 import 'package:proyecto_final/Page_Ui/pagina_principal/accountMenu.dart';
+import 'dart:math';
 
 class ListaProyectos extends StatefulWidget{
   const ListaProyectos({super.key});
@@ -13,6 +14,7 @@ class ListaProyectos extends StatefulWidget{
   
 }
 
+enum Filtro { views, percentaje }
 class ListaProyectosUi extends State<ListaProyectos>{
   
   int numero = 0;
@@ -82,12 +84,13 @@ class ListaProyectosUi extends State<ListaProyectos>{
   List<int> ids = [];
   List<Widget> listaproyectos = [];
   String filtro = "view";
+  Widget listadeproyectos = Container();
 
   @override
   void initState() {
     administrador = false;
     arrreglarlista();
-    reorganizarlista();
+    listadeproyectos = proyectoslist();
     super.initState();
   }
 
@@ -141,15 +144,7 @@ class ListaProyectosUi extends State<ListaProyectos>{
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Row(children: [
-                ElevatedButton.icon(
-                  label: Text("Filtro"),
-                  icon: Icon(Icons.filter_list),
-                  onPressed: () {
-                    // Acción al presionar el ícono
-                  setState(() {
-                  });
-                  },
-                ),
+                filtros(),
                 SizedBox(width: 16,),
                 SizedBox(
                   width: 300,
@@ -181,7 +176,7 @@ class ListaProyectosUi extends State<ListaProyectos>{
             ]
           ),
           SizedBox(height: 16.0),
-          proyectoslist(),
+          listadeproyectos,
         ],
       ),
     );
@@ -202,17 +197,13 @@ class ListaProyectosUi extends State<ListaProyectos>{
   }
 
   Widget proyectoslist(){
+    final int inicio = numero;
+    final int fin = min(numero + 5, listaproyectos.length);
     return ListView(
       shrinkWrap: true,
       primary: false,
       padding: const EdgeInsets.all(16),
-      children: <Widget>[
-        listaproyectos[numero],
-        listaproyectos[numero+1],
-        listaproyectos[numero+2],
-        listaproyectos[numero+3],
-        listaproyectos[numero+4],
-      ],
+      children: listaproyectos.sublist(inicio, fin)
     );
   }
 
@@ -222,9 +213,37 @@ class ListaProyectosUi extends State<ListaProyectos>{
     );
   }
 
+  Widget filtros(){
+    return PopupMenuButton<Filtro>(
+      onSelected: (Filtro result){
+        switch (result) {
+          case Filtro.views:
+            filtro = "view";
+            reorganizarlista();
+            break;
+          case Filtro.percentaje:
+            filtro = "percent";
+            reorganizarlista();
+            break;
+        }
+      },
+      itemBuilder: (BuildContext context) => <PopupMenuEntry<Filtro>>[
+        const PopupMenuItem<Filtro>(
+          value: Filtro.views,
+          child: Text('Más Vistos'),
+        ),
+        const PopupMenuItem<Filtro>(
+          value: Filtro.percentaje,
+          child: Text('Proyectos Finalizados'),
+      ),
+    ],
+    icon:  Icon(Icons.filter_list),
+    );
+  }
+
   void arreglarlistaproyectos(){
     listaproyectos.clear();
-    for(int i = 0; i < proyectos.length; i++){
+    for(int i = 0; i < ids.length; i++){
       listaproyectos.add(
         ProyectosDeLaLista(
           proyectos: proyectos[ids[i]],
@@ -244,25 +263,42 @@ class ListaProyectosUi extends State<ListaProyectos>{
   }
 
   void reorganizarlista(){
-    bool cambios = false;
-    for(int i = 0; i < proyectos.length- 1; i++){
-      int posicion = i;
-      for(int j = i+1; j < proyectos.length; j++){
-        if(proyectos[ids[posicion]][filtro] < proyectos[ids[j]][filtro]){
-          posicion = j;
-          }
-     }
-      if(posicion != i){
-        cambios = true;
-        int aux = ids[i];
-        ids[i] = ids[posicion];
-        ids[posicion] = aux;
-      }
+    if (ids.length < proyectos.length){
+      arrreglarlista();
     }
-    if (cambios){
+    if (filtro == 'view'){
+      bool cambios = false;
+      for(int i = 0; i < proyectos.length- 1; i++){
+        int posicion = i;
+        for(int j = i+1; j < proyectos.length; j++){
+          if(proyectos[ids[posicion]][filtro] < proyectos[ids[j]][filtro]){
+            posicion = j;
+            }
+        }
+        if(posicion != i){
+          cambios = true;
+          int aux = ids[i];
+          ids[i] = ids[posicion];
+          ids[posicion] = aux;
+        }
+      }
+      if (cambios){
+        setState(() {
+          arreglarlistaproyectos();
+          listadeproyectos = proyectoslist();
+        });
+      }
+    } else if (filtro == 'percent'){
+      ids.clear();
+      for(int i = 0; i < proyectos.length; i++){
+        if(proyectos[i]['percent'] == 100.0){
+          ids.add(proyectos[i]['id']);
+        }
+      }
       setState(() {
         arreglarlistaproyectos();
-        });
+        listadeproyectos = proyectoslist();
+      });
     }
   }
 
@@ -271,5 +307,3 @@ class ListaProyectosUi extends State<ListaProyectos>{
   }
 
 }
-
-
