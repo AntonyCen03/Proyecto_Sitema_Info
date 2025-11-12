@@ -6,7 +6,14 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 class Integrante {
   final String nombre;
   final String rol;
-  Integrante({required this.nombre, required this.rol});
+  final String cedula;
+  final String correo;
+  Integrante({
+    required this.nombre,
+    required this.rol,
+    required this.cedula,
+    required this.correo,
+  });
 }
 
 class PageCreateProject extends StatefulWidget {
@@ -22,27 +29,46 @@ class _PageCreateProjectState extends State<PageCreateProject> {
     'description': TextEditingController(),
     'teamName': TextEditingController(),
     'newIntegrante': TextEditingController(),
+    'newCedula': TextEditingController(),
+    'newCorreo': TextEditingController(),
     'newTask': TextEditingController(),
     'startDate': TextEditingController(),
     'deliveryDate': TextEditingController(),
   };
   DateTime? _startDate, _deliveryDate;
-  final _availableRoles = [
-    'Líder',
-    'Desarrollador',
-    'Diseñador',
-    'Tester',
-    'Documentador',
-    'Otro',
-  ];
+
   final _integrantes = <Integrante>[];
-  String _selectedRole = 'Desarrollador';
   final _tareas = <String, bool>{};
 
   @override
   void dispose() {
     _controllers.values.forEach((c) => c.dispose());
     super.dispose();
+  }
+
+  String? _validateCedula(String? value) {
+    if (value == null || value.isEmpty) return null;
+
+    if (value.length < 6 || value.length > 8) {
+      return 'La Cédula debe tener entre 6 y 8 dígitos.';
+    }
+    final isNumeric = RegExp(r'^[0-9]+$').hasMatch(value);
+    if (!isNumeric) {
+      return 'La Cédula solo puede contener números.';
+    }
+    return null;
+  }
+
+  String? _validateEmail(String? value) {
+    if (value == null || value.isEmpty) return null;
+
+    final emailRegex = RegExp(
+      r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$',
+    );
+    if (!emailRegex.hasMatch(value)) {
+      return 'Por favor, ingrese un correo electrónico válido.';
+    }
+    return null;
   }
 
   Future<void> _selectDate(bool isStart) async {
@@ -100,25 +126,42 @@ class _PageCreateProjectState extends State<PageCreateProject> {
 
   void _addIntegrante() {
     final name = _controllers['newIntegrante']!.text.trim();
-    if (name.isNotEmpty) {
-      final rol = _integrantes.isEmpty ? 'Líder' : _selectedRole;
-      if (rol == 'Líder' && _integrantes.any((i) => i.rol == 'Líder')) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text(
-              'Ya existe un Líder en el equipo. Por favor, asigne otro rol.',
-            ),
+    final cedula = _controllers['newCedula']!.text.trim();
+    final correo = _controllers['newCorreo']!.text.trim();
+
+    String? nameError = name.isEmpty
+        ? 'Debe ingresar el nombre completo.'
+        : null;
+
+    String? cedulaError = cedula.isEmpty
+        ? 'Debe ingresar la Cédula.'
+        : _validateCedula(cedula);
+
+    String? correoError = correo.isEmpty
+        ? 'Debe ingresar el Correo.'
+        : _validateEmail(correo);
+
+    if (nameError != null || cedulaError != null || correoError != null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Por favor, complete y corrija todos los campos del integrante.',
           ),
-        );
-        return;
-      }
-      setState(() {
-        _integrantes.add(Integrante(nombre: name, rol: rol));
-        _controllers['newIntegrante']!.clear();
-        if (_integrantes.length == 1 && rol == 'Líder')
-          _selectedRole = 'Desarrollador';
-      });
+        ),
+      );
+      return;
     }
+
+    const rol = 'Miembro';
+
+    setState(() {
+      _integrantes.add(
+        Integrante(nombre: name, rol: rol, cedula: cedula, correo: correo),
+      );
+      _controllers['newIntegrante']!.clear();
+      _controllers['newCedula']!.clear();
+      _controllers['newCorreo']!.clear();
+    });
   }
 
   void _removeIntegrante(int index) =>
@@ -139,6 +182,7 @@ class _PageCreateProjectState extends State<PageCreateProject> {
 
   void _createProject() async {
     if (!_formKey.currentState!.validate()) return;
+
     if (_startDate == null || _deliveryDate == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -149,9 +193,7 @@ class _PageCreateProjectState extends State<PageCreateProject> {
     }
     if (_integrantes.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Debe agregar al menos un integrante (el Líder)'),
-        ),
+        const SnackBar(content: Text('Debe agregar al menos un integrante')),
       );
       return;
     }
@@ -160,7 +202,16 @@ class _PageCreateProjectState extends State<PageCreateProject> {
       'estado': false,
       'fecha_creacion': _startDate,
       'fecha_entrega': _deliveryDate,
-      'integrantes': _integrantes.map((i) => '${i.nombre} (${i.rol})').toList(),
+      'integrantes': _integrantes
+          .map(
+            (i) => {
+              'nombre': i.nombre,
+              'rol': i.rol,
+              'cedula': i.cedula,
+              'correo': i.correo,
+            },
+          )
+          .toList(),
       'nombre_equipo': _controllers['teamName']!.text.trim(),
       'nombre_proyecto': _controllers['projectName']!.text.trim(),
       'tareas': _tareas,
@@ -283,18 +334,27 @@ class _PageCreateProjectState extends State<PageCreateProject> {
     String label,
     IconData icon, {
     int maxLines = 1,
+    TextInputType keyboardType = TextInputType.text,
+    int? maxLength,
+    String? Function(String?)? customValidator,
   }) => TextFormField(
     controller: controller,
-    keyboardType: maxLines > 1 ? TextInputType.multiline : TextInputType.text,
+    keyboardType: maxLines > 1 ? TextInputType.multiline : keyboardType,
     maxLines: maxLines,
+    maxLength: maxLength,
     decoration: InputDecoration(
       labelText: label,
       hintText: label,
       border: const OutlineInputBorder(),
       prefixIcon: Icon(icon),
+      counterText: maxLength != null ? '' : null,
     ),
-    validator: (value) =>
-        value == null || value.isEmpty ? 'Por favor, ingrese $label' : null,
+    validator: (value) {
+      if (value == null || value.isEmpty) {
+        return 'Por favor, ingrese $label';
+      }
+      return customValidator?.call(value);
+    },
   );
 
   Widget _buildDateField(bool isStart) => TextFormField(
@@ -317,7 +377,7 @@ class _PageCreateProjectState extends State<PageCreateProject> {
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
       const Text(
-        'Integrantes del Proyecto y Roles',
+        'Integrantes del Proyecto',
         style: TextStyle(
           fontSize: 16,
           fontWeight: FontWeight.bold,
@@ -325,54 +385,48 @@ class _PageCreateProjectState extends State<PageCreateProject> {
         ),
       ),
       const SizedBox(height: 10),
+      _buildTextField(
+        _controllers['newIntegrante']!,
+        'Nombre Completo',
+        Icons.person,
+      ),
+      const SizedBox(height: 15),
       Row(
         children: [
           Expanded(
-            child: TextFormField(
-              controller: _controllers['newIntegrante']!,
-              decoration: const InputDecoration(
-                hintText: 'Nombre del integrante',
-                border: OutlineInputBorder(),
-                contentPadding: EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 0,
-                ),
-              ),
-              onFieldSubmitted: (_) => _addIntegrante(),
+            child: _buildTextField(
+              _controllers['newCedula']!,
+              'Cédula',
+              Icons.badge,
+              keyboardType: TextInputType.number,
+              maxLength: 8,
+              customValidator: _validateCedula,
             ),
           ),
-          const SizedBox(width: 10),
+          const SizedBox(width: 15),
           Expanded(
-            child: DropdownButtonFormField<String>(
-              isExpanded: true,
-              value: _selectedRole,
-              decoration: const InputDecoration(
-                labelText: 'Rol a asignar',
-                border: OutlineInputBorder(),
-                contentPadding: EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 18,
-                ),
-              ),
-              items: _availableRoles
-                  .map(
-                    (role) => DropdownMenuItem(value: role, child: Text(role)),
-                  )
-                  .toList(),
-              onChanged: (value) => setState(() => _selectedRole = value!),
+            child: _buildTextField(
+              _controllers['newCorreo']!,
+              'Correo Electrónico',
+              Icons.email,
+              keyboardType: TextInputType.emailAddress,
+              customValidator: _validateEmail,
             ),
-          ),
-          const SizedBox(width: 10),
-          ElevatedButton(
-            onPressed: _addIntegrante,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: primaryOrange,
-              foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 15),
-            ),
-            child: const Text('Añadir'),
           ),
         ],
+      ),
+      const SizedBox(height: 15),
+      SizedBox(
+        width: double.infinity,
+        child: ElevatedButton(
+          onPressed: _addIntegrante,
+          style: ElevatedButton.styleFrom(
+            backgroundColor: primaryOrange,
+            foregroundColor: Colors.white,
+            padding: const EdgeInsets.symmetric(vertical: 15),
+          ),
+          child: const Text('Añadir Integrante'),
+        ),
       ),
       if (_integrantes.isNotEmpty) ...[
         const SizedBox(height: 10),
@@ -384,10 +438,8 @@ class _PageCreateProjectState extends State<PageCreateProject> {
               .entries
               .map(
                 (e) => Chip(
-                  backgroundColor: e.value.rol == 'Líder'
-                      ? Colors.red.shade100
-                      : Colors.blue.shade100,
-                  label: Text('${e.value.nombre} (${e.value.rol})'),
+                  backgroundColor: Colors.blue.shade100,
+                  label: Text('${e.value.nombre} (${e.value.cedula})'),
                   deleteIcon: const Icon(Icons.close, size: 18),
                   onDeleted: () => _removeIntegrante(e.key),
                 ),
@@ -420,7 +472,7 @@ class _PageCreateProjectState extends State<PageCreateProject> {
                 border: OutlineInputBorder(),
                 contentPadding: EdgeInsets.symmetric(
                   horizontal: 10,
-                  vertical: 0,
+                  vertical: 18,
                 ),
               ),
               onFieldSubmitted: (_) => _addTask(),
@@ -432,7 +484,7 @@ class _PageCreateProjectState extends State<PageCreateProject> {
             style: ElevatedButton.styleFrom(
               backgroundColor: primaryOrange,
               foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 15),
+              padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 19),
             ),
             child: const Text('Añadir'),
           ),
