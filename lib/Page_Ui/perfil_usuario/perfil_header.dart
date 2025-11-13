@@ -1,15 +1,20 @@
 import 'package:flutter/material.dart';
+import 'profile_image_picker.dart';
 
 class PerfilHeader extends StatelessWidget {
   final String nombre;
   final String grado;
   final VoidCallback? onSettings;
+  final String? photoUrl;
+  final ValueChanged<String>? onUploaded;
 
   const PerfilHeader({
     Key? key,
     required this.nombre,
     required this.grado,
     this.onSettings,
+    this.photoUrl,
+    this.onUploaded,
   }) : super(key: key);
 
   @override
@@ -27,25 +32,11 @@ class PerfilHeader extends StatelessWidget {
 
     return Row(
       children: [
-        Container(
+        SizedBox(
           width: 76,
           height: 76,
-          decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              colors: [Color(0xFF7DD3FC), Color(0xFF06B6D4)],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-            shape: BoxShape.circle,
-            boxShadow: const [
-              BoxShadow(
-                color: Colors.black12,
-                blurRadius: 6,
-                offset: Offset(0, 2),
-              ),
-            ],
-          ),
-          child: const Icon(Icons.person, size: 40, color: Colors.white),
+          child: ProfileImagePicker(
+              photoUrl: photoUrl, radius: 36, onUploaded: onUploaded),
         ),
         const SizedBox(width: 14),
         Column(

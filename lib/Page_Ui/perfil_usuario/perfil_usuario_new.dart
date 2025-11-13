@@ -4,7 +4,6 @@ import 'package:proyecto_final/services/firebase_services.dart';
 import 'package:flutter/services.dart';
 
 import 'perfil_header.dart';
-import 'proyecto_list.dart';
 import 'editable_item.dart';
 import 'package:proyecto_final/Color/Color.dart';
 
@@ -18,6 +17,7 @@ class PerfilUsuarioNew extends StatefulWidget {
 class _PerfilUsuarioNewState extends State<PerfilUsuarioNew> {
   String nombre = '';
   String correo = '';
+  String? photoUrl;
   String carnet = '';
   String cedula = '';
   String grado = '';
@@ -46,8 +46,8 @@ class _PerfilUsuarioNewState extends State<PerfilUsuarioNew> {
       if (currentEmail != null && currentEmail.isNotEmpty) {
         try {
           user = users.cast<Map<String, dynamic>>().firstWhere(
-            (u) => (u['email'] ?? '').toString().trim() == currentEmail,
-          );
+                (u) => (u['email'] ?? '').toString().trim() == currentEmail,
+              );
         } catch (_) {
           user = users.isNotEmpty ? users.first : null;
         }
@@ -58,6 +58,7 @@ class _PerfilUsuarioNewState extends State<PerfilUsuarioNew> {
       setState(() {
         correo = user?['email']?.toString() ?? '';
         nombre = user?['name']?.toString() ?? '';
+        photoUrl = user?['photo_url']?.toString() ?? '';
         carnet = user?['id_carnet']?.toString() ?? '';
         cedula = user?['cedula']?.toString() ?? '';
         ultimaConexion = user?['date_login']?.toString() ?? '';
@@ -102,10 +103,10 @@ class _PerfilUsuarioNewState extends State<PerfilUsuarioNew> {
         centerTitle: true,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: primaryOrange),
-          onPressed: () => Navigator.pushNamedAndRemoveUntil(context, '/principal', (route) => false),
+          onPressed: () => Navigator.pushNamedAndRemoveUntil(
+              context, '/principal', (route) => false),
         ),
       ),
-      
       body: _isLoading
           ? SafeArea(
               child: Center(
@@ -135,11 +136,16 @@ class _PerfilUsuarioNewState extends State<PerfilUsuarioNew> {
                     child: Column(
                       children: [
                         const SizedBox(height: 8),
-                        // Información del usuario (arriba)
+                        // Información del usuario (arriba) — avatar integrado a la izquierda
                         PerfilHeader(
                           nombre: nombre.isNotEmpty ? nombre : 'Sin nombre',
                           grado: grado,
+                          photoUrl: photoUrl,
                           onSettings: () {},
+                          onUploaded: (url) async {
+                            // Recargar el usuario desde Firestore para mantener consistencia
+                            await _loadUser();
+                          },
                         ),
                         const SizedBox(height: 16),
                         Container(
@@ -217,17 +223,16 @@ class _PerfilUsuarioNewState extends State<PerfilUsuarioNew> {
                                 editable: false,
                               ),
                               const SizedBox(height: 10),
-                              TextButton(onPressed: () {
-                                Navigator.pushNamed(context, '/cambiar_contrasena');
-                              },
-                              child: const Text('Cambiar Contraseña'),
+                              TextButton(
+                                onPressed: () {
+                                  Navigator.pushNamed(
+                                      context, '/cambiar_contrasena');
+                                },
+                                child: const Text('Cambiar Contraseña'),
                               ),
                             ],
                           ),
                         ),
-                        const SizedBox(height: 20),
-                        // Lista de proyectos ahora va debajo de la información y gráficos
-                        ProyectoList(proyectos: proyectos),
                       ],
                     ),
                   ),

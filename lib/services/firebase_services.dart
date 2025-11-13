@@ -1,6 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_storage/firebase_storage.dart';
+import 'dart:io';
 
 FirebaseFirestore db = FirebaseFirestore.instance;
 
@@ -188,6 +190,33 @@ Future<void> addProyecto(
     'fecha_creacion': fechaCreacion,
     'fecha_entrega': fechaEntrega,
   });
+}
+
+/// Obtiene el siguiente id_proyecto secuencial basado en el mayor actual.
+/// Si no hay proyectos, retorna 1.
+Future<int> getNextProyectoId() async {
+  try {
+    final snap = await db
+        .collection('list_proyecto')
+        .orderBy('id_proyecto', descending: true)
+        .limit(1)
+        .get();
+    if (snap.docs.isEmpty) return 1;
+    final data = snap.docs.first.data() as Map<String, dynamic>? ?? {};
+    final raw = data['id_proyecto'];
+    int maxVal = 0;
+    if (raw is int) {
+      maxVal = raw;
+    } else if (raw is String) {
+      maxVal = int.tryParse(raw) ?? 0;
+    } else if (raw is num) {
+      maxVal = raw.toInt();
+    }
+    return (maxVal + 1);
+  } catch (_) {
+    // En caso de error, fallback a 1 para no bloquear la creación
+    return 1;
+  }
 }
 
 /// Actualiza un proyecto usando la nueva estructura de integrantes detalle
@@ -459,5 +488,29 @@ Future<bool> isCurrentUserAdmin(BuildContext context) async {
       SnackBar(content: Text('Error verificando permisos: $e')),
     );
     return false;
+  }
+}
+
+/// Sube una imagen de perfil a Firebase Storage y actualiza la URL en
+/// el documento del usuario en la colección `user`.
+///
+/// - [file]: archivo local (dart:io File) de la imagen.
+/// - [uid]: id del documento de usuario en Firestore (normalmente uid).
+///
+/// Retorna la URL pública de la imagen si la operación fue exitosa,
+/// o lanza una excepción en caso de error.
+Future<String> uploadProfileImage(File file, String uid) async {
+  try {
+    final storage = FirebaseStorage.instance;
+    final ext = file.path.split('.').last;
+    final ref = storage.ref().child('user_photos').child('$uid.$ext');
+    final uploadTask = ref.putFile(file);
+    final snapshot = await uploadTask.whenComplete(() {});
+    final url = await snapshot.ref.getDownloadURL();
+    // Actualizar documento del usuario en Firestore
+    await db.collection('user').doc(uid).update({'photo_url': url});
+    return url;
+  } catch (e) {
+    rethrow;
   }
 }
