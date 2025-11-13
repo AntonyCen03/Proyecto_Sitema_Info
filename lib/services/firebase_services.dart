@@ -190,6 +190,33 @@ Future<void> addProyecto(
   });
 }
 
+/// Obtiene el siguiente id_proyecto secuencial basado en el mayor actual.
+/// Si no hay proyectos, retorna 1.
+Future<int> getNextProyectoId() async {
+  try {
+    final snap = await db
+        .collection('list_proyecto')
+        .orderBy('id_proyecto', descending: true)
+        .limit(1)
+        .get();
+    if (snap.docs.isEmpty) return 1;
+    final data = snap.docs.first.data() as Map<String, dynamic>? ?? {};
+    final raw = data['id_proyecto'];
+    int maxVal = 0;
+    if (raw is int) {
+      maxVal = raw;
+    } else if (raw is String) {
+      maxVal = int.tryParse(raw) ?? 0;
+    } else if (raw is num) {
+      maxVal = raw.toInt();
+    }
+    return (maxVal + 1);
+  } catch (_) {
+    // En caso de error, fallback a 1 para no bloquear la creación
+    return 1;
+  }
+}
+
 /// Actualiza un proyecto usando la nueva estructura de integrantes detalle
 Future<void> updateProyecto(
   int idProyecto,
