@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:proyecto_final/Page_Ui/validator/validar_alfa_num.dart';
 import 'package:intl/intl.dart';
 import 'package:proyecto_final/Color/Color.dart';
 // Reemplazado acceso directo a Firestore por servicios centralizados
@@ -262,29 +264,32 @@ class _PageCreateProjectState extends State<PageCreateProject> {
       setState(() => _integrantes.removeAt(index));
   void _addTask() {
     final task = _controllers['newTask']!.text.trim();
-    if (task.isNotEmpty) {
-      // Evitar caracteres no permitidos en claves de Firestore: . # $ [ ] /
-      final invalid = RegExp(r'[.#$/\[\]/]');
-      if (invalid.hasMatch(task)) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content:
-                Text('El nombre de la tarea no puede contener . # \$ [ ] /'),
-            backgroundColor: Colors.red,
-          ),
-        );
-        return;
-      }
-      setState(() {
-        _tareas[task] = false;
-        _controllers['newTask']!.clear();
-      });
+    // Usar validador centralizado (letras/números/espacios y no vacío)
+    final err = validarAlfaNum(task, campo: 'Tarea', maxLength: 50);
+    if (err != null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(err), backgroundColor: Colors.red),
+      );
+      return;
     }
+    // Evitar caracteres prohibidos por Firestore en keys (defensa adicional)
+    final invalid = RegExp(r'[.#$/\[\]/]');
+    if (invalid.hasMatch(task)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('El nombre de la tarea no puede contener . # \$ [ ] /'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+    setState(() {
+      _tareas[task] = false; // siempre inicializa en false
+      _controllers['newTask']!.clear();
+    });
   }
 
   void _removeTask(String task) => setState(() => _tareas.remove(task));
-  void _toggleTask(String task) =>
-      setState(() => _tareas[task] = !_tareas[task]!);
 
   void _onFormFieldChanged() {
     // Actualiza el estado del botón "Crear Proyecto" al escribir
@@ -424,27 +429,18 @@ class _PageCreateProjectState extends State<PageCreateProject> {
                       _controllers['projectName']!,
                       'Nombre del Proyecto',
                       Icons.lightbulb_outline,
-                      customValidator: (v) => (v == null || v.trim().isEmpty)
-                          ? 'El nombre del proyecto es obligatorio'
-                          : null,
+                      customValidator: (v) => validarAlfaNum(v,
+                          campo: 'Nombre del Proyecto', maxLength: 50),
+                      inputFormatters: alfaNumEsFormatters(maxLength: 50),
                     ),
                     const SizedBox(height: 25),
                     _buildTextField(
                       _controllers['teamName']!,
                       'Nombre del Equipo',
                       Icons.group,
-                      customValidator: (v) => (v == null || v.trim().isEmpty)
-                          ? 'El nombre del equipo es obligatorio'
-                          : null,
-                    ),
-                    const SizedBox(height: 25),
-                    _buildIntegrantesField(),
-                    const SizedBox(height: 25),
-                    _buildTextField(
-                      _controllers['description']!,
-                      'Descripción del Proyecto',
-                      Icons.description,
-                      maxLines: 3,
+                      customValidator: (v) => validarAlfaNum(v,
+                          campo: 'Nombre del Equipo', maxLength: 30),
+                      inputFormatters: alfaNumEsFormatters(maxLength: 30),
                     ),
                     const SizedBox(height: 25),
                     Row(
@@ -455,8 +451,10 @@ class _PageCreateProjectState extends State<PageCreateProject> {
                       ],
                     ),
                     const SizedBox(height: 25),
+                    _buildIntegrantesField(),
+                    const SizedBox(height: 25),
                     _buildTareasField(),
-                    const SizedBox(height: 40),
+                    const SizedBox(height: 25),
                     _buildCreateProjectButton(),
                   ],
                 ),
@@ -477,6 +475,7 @@ class _PageCreateProjectState extends State<PageCreateProject> {
     int? maxLength,
     String? Function(String?)? customValidator,
     bool readOnly = false,
+    List<TextInputFormatter>? inputFormatters,
   }) =>
       TextFormField(
         controller: controller,
@@ -485,6 +484,7 @@ class _PageCreateProjectState extends State<PageCreateProject> {
         maxLength: maxLength,
         readOnly: readOnly,
         validator: customValidator,
+        inputFormatters: inputFormatters,
         decoration: InputDecoration(
           labelText: label,
           hintText: label,
@@ -630,6 +630,7 @@ class _PageCreateProjectState extends State<PageCreateProject> {
                       vertical: 18,
                     ),
                   ),
+                  inputFormatters: alfaNumEsFormatters(maxLength: 50),
                   onFieldSubmitted: (_) => _addTask(),
                 ),
               ),
@@ -661,17 +662,8 @@ class _PageCreateProjectState extends State<PageCreateProject> {
                             Expanded(
                               child: Text(
                                 e.key,
-                                style: TextStyle(
-                                  decoration: e.value
-                                      ? TextDecoration.lineThrough
-                                      : TextDecoration.none,
-                                ),
+                                // sin decoración: no se puede cambiar el estado aquí
                               ),
-                            ),
-                            Checkbox(
-                              value: e.value,
-                              onChanged: (_) => _toggleTask(e.key),
-                              activeColor: primaryOrange,
                             ),
                             IconButton(
                               icon: const Icon(Icons.delete, color: Colors.red),
