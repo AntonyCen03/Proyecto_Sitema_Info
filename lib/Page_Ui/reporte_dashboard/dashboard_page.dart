@@ -4,6 +4,7 @@ import 'proyecto_repository.dart';
 import 'widgets.dart';
 import 'package:proyecto_final/Color/Color.dart';
 import 'package:proyecto_final/Page_Ui/widgets/metro_app_bar.dart';
+import 'package:proyecto_final/Page_Ui/widgets/paginacion.dart';
 
 class DashboardPage extends StatefulWidget {
   const DashboardPage({super.key});
@@ -14,18 +15,20 @@ class DashboardPage extends StatefulWidget {
 
 class _DashboardPageState extends State<DashboardPage> {
   final _repo = const ProyectoRepository();
-  late Future<List<Proyecto>> _future;
   // filtros
   final _searchCtrl = TextEditingController();
   DateTimeRange? _range;
   String _estado = 'todos';
   String? _appliedQuery; // query aplicada al presionar botón/enter
   List<Proyecto> _cache = const [];
+  // paginación
+  static const int _pageSize = 5;
+  int _proyectosPage = 0;
+  int _proximosPage = 0;
 
   @override
   void initState() {
     super.initState();
-    _future = _repo.fetch(context);
   }
 
   @override
@@ -36,8 +39,8 @@ class _DashboardPageState extends State<DashboardPage> {
         onBackPressed: () => Navigator.pushNamedAndRemoveUntil(
             context, '/principal', (route) => false),
       ),
-      body: FutureBuilder<List<Proyecto>>(
-        future: _future,
+      body: StreamBuilder<List<Proyecto>>(
+        stream: _repo.stream(),
         builder: (context, snap) {
           if (snap.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
@@ -52,7 +55,16 @@ class _DashboardPageState extends State<DashboardPage> {
           final proximos = [...proyectos]
             ..removeWhere((p) => p.fechaEntrega == null)
             ..sort((a, b) => a.fechaEntrega!.compareTo(b.fechaEntrega!));
-          final top5 = proximos.take(5).toList();
+          // Paginación para "Próximos a entregar"
+          final pagedProx = paginateList<Proyecto>(
+            proximos,
+            page: _proximosPage,
+            pageSize: _pageSize,
+          );
+          // normalizar la página en caso de quedar fuera de rango
+          if (_proximosPage != pagedProx.currentPage) {
+            _proximosPage = pagedProx.currentPage;
+          }
 
           return Padding(
             padding: const EdgeInsets.all(16.0),
@@ -70,16 +82,31 @@ class _DashboardPageState extends State<DashboardPage> {
                       lastDate: DateTime(now.year + 5),
                       initialDateRange: _range,
                     );
-                    if (picked != null) setState(() => _range = picked);
+                    if (picked != null)
+                      setState(() {
+                        _range = picked;
+                        _proyectosPage = 0;
+                        _proximosPage = 0;
+                      });
                   },
                   onClearDateRange: _range == null
                       ? null
-                      : () => setState(() => _range = null),
+                      : () => setState(() {
+                            _range = null;
+                            _proyectosPage = 0;
+                            _proximosPage = 0;
+                          }),
                   estadoValue: _estado,
-                  onChangeEstado: (v) => setState(() => _estado = v),
+                  onChangeEstado: (v) => setState(() {
+                    _estado = v;
+                    _proyectosPage = 0;
+                    _proximosPage = 0;
+                  }),
                   onApply: () => setState(() {
                     final q = _searchCtrl.text.trim();
                     _appliedQuery = q.isEmpty ? null : q;
+                    _proyectosPage = 0;
+                    _proximosPage = 0;
                   }),
                 ),
                 const SizedBox(height: 16),
@@ -127,7 +154,7 @@ class _DashboardPageState extends State<DashboardPage> {
                     shrinkWrap: true,
                     physics: const NeverScrollableScrollPhysics(),
                     itemBuilder: (_, i) {
-                      final p = top5[i];
+                      final p = pagedProx.items[i];
                       final fecha =
                           p.fechaEntrega?.toString().split(' ').first ?? '';
                       return ListTile(
@@ -152,8 +179,20 @@ class _DashboardPageState extends State<DashboardPage> {
                       );
                     },
                     separatorBuilder: (_, __) => const Divider(height: 1),
-                    itemCount: top5.length,
+                    itemCount: pagedProx.items.length,
                   ),
+                ),
+                // Controles de página para Próximos
+                const SizedBox(height: 8),
+                PaginationControls(
+                  currentPage: _proximosPage,
+                  totalPages: pagedProx.totalPages,
+                  onPrev: _proximosPage > 0
+                      ? () => setState(() => _proximosPage--)
+                      : null,
+                  onNext: (_proximosPage < pagedProx.totalPages - 1)
+                      ? () => setState(() => _proximosPage++)
+                      : null,
                 ),
                 const SizedBox(height: 24),
                 Text('Proyectos',
@@ -161,11 +200,23 @@ class _DashboardPageState extends State<DashboardPage> {
                 const SizedBox(height: 12),
                 Builder(builder: (_) {
                   final filtered = _repo.applyFilter(_cache, _currentFilter());
+                  final paged = paginateList<Proyecto>(
+                    filtered,
+                    page: _proyectosPage,
+                    pageSize: _pageSize,
+                  );
+                  if (_proyectosPage != paged.currentPage) {
+                    // sincroniza por si el filtro cambió el total
+                    WidgetsBinding.instance.addPostFrameCallback((_) {
+                      if (mounted)
+                        setState(() => _proyectosPage = paged.currentPage);
+                    });
+                  }
                   return ListView.separated(
                     shrinkWrap: true,
                     physics: const NeverScrollableScrollPhysics(),
                     itemBuilder: (_, i) {
-                      final p = filtered[i];
+                      final p = paged.items[i];
                       final total = p.tareas.length;
                       final done = p.tareas.values.where((v) => v).length;
                       final pct = total == 0 ? 0.0 : done / total;
@@ -238,7 +289,27 @@ class _DashboardPageState extends State<DashboardPage> {
                       );
                     },
                     separatorBuilder: (_, __) => const SizedBox(height: 8),
-                    itemCount: filtered.length,
+                    itemCount: paged.items.length,
+                  );
+                }),
+                // Controles de página para Proyectos
+                const SizedBox(height: 8),
+                Builder(builder: (_) {
+                  final filtered = _repo.applyFilter(_cache, _currentFilter());
+                  final paged = paginateList<Proyecto>(
+                    filtered,
+                    page: _proyectosPage,
+                    pageSize: _pageSize,
+                  );
+                  return PaginationControls(
+                    currentPage: _proyectosPage,
+                    totalPages: paged.totalPages,
+                    onPrev: _proyectosPage > 0
+                        ? () => setState(() => _proyectosPage--)
+                        : null,
+                    onNext: (_proyectosPage < paged.totalPages - 1)
+                        ? () => setState(() => _proyectosPage++)
+                        : null,
                   );
                 }),
               ],

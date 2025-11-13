@@ -458,6 +458,48 @@ Future<List<Map<String, dynamic>>> getProyecto(BuildContext context) async {
   return proyectos;
 }
 
+/// Stream en tiempo real de los proyectos, con la misma normalización de getProyecto
+Stream<List<Map<String, dynamic>>> streamProyecto() {
+  return db.collection('list_proyecto').snapshots().map((querySnapshot) {
+    final proyectos = <Map<String, dynamic>>[];
+    for (final doc in querySnapshot.docs) {
+      final data = doc.data() as Map<String, dynamic>? ?? {};
+      final idProyecto = data['id_proyecto'] != null
+          ? int.tryParse(data['id_proyecto'].toString()) ?? 0
+          : 0;
+      final nombreProyecto = (data['nombre_proyecto'] ?? '').toString();
+      final descripcion = (data['descripcion'] ?? '').toString();
+      final integrantesDetalle = _toIntegrantesDetalle(data['integrante']);
+      final integrante = integrantesDetalle
+          .map((m) => (m['nombre'] ?? '').trim())
+          .where((s) => s.isNotEmpty)
+          .toList();
+      final nombreEquipo = (data['nombre_equipo'] ?? '').toString();
+      final tareas = _toTasks(data['tareas']);
+      final estado = _toBool(data['estado']);
+      final fechaCreacion = _toDate(data['fecha_creacion']);
+      final fechaEntrega = _toDate(data['fecha_entrega']);
+      final docId = doc.id;
+
+      final proyecto = {
+        'id_proyecto': idProyecto,
+        'nombre_proyecto': nombreProyecto,
+        'descripcion': descripcion,
+        'integrante': integrante,
+        'integrantes_detalle': integrantesDetalle,
+        'nombre_equipo': nombreEquipo,
+        'tareas': tareas,
+        'estado': estado,
+        'fecha_creacion': fechaCreacion,
+        'fecha_entrega': fechaEntrega,
+        'docId': docId,
+      };
+      proyectos.add(proyecto);
+    }
+    return proyectos;
+  });
+}
+
 /// Verifica si el usuario autenticado es administrador (isadmin == true)
 /// Busca al usuario en la colección `user` utilizando la lista de `getUser`
 /// y compara por email. Si no hay usuario autenticado o no se encuentra,
