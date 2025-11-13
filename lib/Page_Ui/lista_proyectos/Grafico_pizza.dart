@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:pie_chart/pie_chart.dart';
-
+//Esta clase se encarga de crear el grafico de pizza que se usara para mostrar el porcentaje de completacion de cada proyecto en la lista de proyectos.
 class GraficoPizza extends StatefulWidget{
  final  Map<String, dynamic> proyectos; 
   
