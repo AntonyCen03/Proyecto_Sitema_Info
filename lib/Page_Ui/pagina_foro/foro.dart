@@ -16,7 +16,7 @@ class _ForoPageState extends State<ForoPage> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  void enviarMensaje() async {
+  void enviarMensaje(int? idProyecto) async {
     if (_mensajeController.text.trim().isEmpty) return;
 
     final user = _auth.currentUser;
@@ -25,12 +25,14 @@ class _ForoPageState extends State<ForoPage> {
         'texto': _mensajeController.text.trim(),
         'usuario': user.email,
         'timestamp': FieldValue.serverTimestamp(),
+        'id_proyecto': idProyecto, // guardar id del proyecto para filtrar
       });
       _mensajeController.clear();
     }
   }
 
-  Widget construirBurbujaMensajeConHora(String texto, String nombreUsuario, String hora, bool esPropio) {
+  Widget construirBurbujaMensajeConHora(
+      String texto, String nombreUsuario, String hora, bool esPropio) {
     return Align(
       alignment: esPropio ? Alignment.centerRight : Alignment.centerLeft,
       child: Container(
@@ -84,6 +86,12 @@ class _ForoPageState extends State<ForoPage> {
   @override
   Widget build(BuildContext context) {
     final user = _auth.currentUser;
+    final args = ModalRoute.of(context)?.settings.arguments as Map?;
+    final dynamic rawId = args != null ? args['id_proyecto'] : null;
+    final int? idProyecto =
+        rawId is int ? rawId : (rawId is String ? int.tryParse(rawId) : null);
+    final String? tituloProyecto =
+        args != null ? args['title'] as String? : null;
 
     if (user == null) {
       return Scaffold(
@@ -95,8 +103,10 @@ class _ForoPageState extends State<ForoPage> {
             onPressed: () => Navigator.pop(context),
           ),
           centerTitle: true,
-          title: const Text(
-            'Foro General',
+          title: Text(
+            tituloProyecto != null && tituloProyecto.isNotEmpty
+                ? 'Foro: ' + tituloProyecto
+                : 'Foro General',
             style: TextStyle(
               fontSize: 22,
               fontWeight: FontWeight.bold,
@@ -122,26 +132,41 @@ class _ForoPageState extends State<ForoPage> {
 
     return Scaffold(
       appBar: MetroAppBar(
-        title: 'Foro General',
+        title: (tituloProyecto != null && tituloProyecto.isNotEmpty)
+            ? 'Foro: ' + tituloProyecto
+            : 'Foro General',
         backgroundColor: grisClaro,
         foregroundColor: primaryOrange,
         onBackPressed: () => Navigator.pushNamedAndRemoveUntil(
-            context, '/principal', (route) => false),
-        ),
+            context, '/proyectos_lista', (route) => false),
+      ),
       body: Column(
         children: [
           Expanded(
             child: StreamBuilder<QuerySnapshot>(
-              stream: _firestore
-                  .collection('foro_mensajes')
-                  .orderBy('timestamp', descending: false)
-                  .snapshots(),
+              stream: (idProyecto != null)
+                  ? _firestore
+                      .collection('foro_mensajes')
+                      .where('id_proyecto', isEqualTo: idProyecto)
+                      .snapshots()
+                  : _firestore.collection('foro_mensajes').snapshots(),
               builder: (context, snapshot) {
                 if (!snapshot.hasData) {
                   return const Center(child: CircularProgressIndicator());
                 }
 
-                final mensajes = snapshot.data!.docs;
+                final mensajes = snapshot.data!.docs.toList();
+                // Ordenar por timestamp ascendente en cliente para evitar requerir índice compuesto
+                mensajes.sort((a, b) {
+                  final ta = a['timestamp'] as Timestamp?;
+                  final tb = b['timestamp'] as Timestamp?;
+                  final da = ta?.toDate();
+                  final db = tb?.toDate();
+                  if (da == null && db == null) return 0;
+                  if (da == null) return -1;
+                  if (db == null) return 1;
+                  return da.compareTo(db);
+                });
 
                 Map<String, List<QueryDocumentSnapshot>> mensajesPorDia = {};
 
@@ -180,13 +205,15 @@ class _ForoPageState extends State<ForoPage> {
                           final usuario = msg['usuario'];
                           final timestamp = msg['timestamp'] as Timestamp?;
                           final hora = timestamp != null
-                              ? TimeOfDay.fromDateTime(timestamp.toDate()).format(context)
+                              ? TimeOfDay.fromDateTime(timestamp.toDate())
+                                  .format(context)
                               : '';
 
                           final esPropio = user.email == usuario;
                           final nombreUsuario = usuario;
 
-                          return construirBurbujaMensajeConHora(texto, nombreUsuario, hora, esPropio);
+                          return construirBurbujaMensajeConHora(
+                              texto, nombreUsuario, hora, esPropio);
                         }).toList(),
                       ],
                     );
@@ -212,7 +239,7 @@ class _ForoPageState extends State<ForoPage> {
                 ),
                 IconButton(
                   icon: const Icon(Icons.send, color: Colors.orange),
-                  onPressed: enviarMensaje,
+                  onPressed: () => enviarMensaje(idProyecto),
                 ),
               ],
             ),

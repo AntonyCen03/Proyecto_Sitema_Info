@@ -187,6 +187,7 @@ Future<void> addProyecto(
     'estado': estado,
     'fecha_creacion': fechaCreacion,
     'fecha_entrega': fechaEntrega,
+    'like': 0, // nuevo campo inicializado en 0
   });
 }
 
@@ -432,6 +433,15 @@ Future<List<Map<String, dynamic>>> getProyecto(BuildContext context) async {
       final fechaCreacion = _toDate(data['fecha_creacion']);
       final fechaEntrega = _toDate(data['fecha_entrega']);
       final docId = doc.id;
+      final likeRaw = data['like'];
+      int like = 0;
+      if (likeRaw is int) {
+        like = likeRaw;
+      } else if (likeRaw is num) {
+        like = likeRaw.toInt();
+      } else if (likeRaw is String) {
+        like = int.tryParse(likeRaw) ?? 0;
+      }
 
       final proyecto = {
         'id_proyecto': idProyecto,
@@ -446,6 +456,7 @@ Future<List<Map<String, dynamic>>> getProyecto(BuildContext context) async {
         'fecha_creacion': fechaCreacion,
         'fecha_entrega': fechaEntrega,
         'docId': docId,
+        'like': like,
       };
       proyectos.add(proyecto);
     }
@@ -480,6 +491,15 @@ Stream<List<Map<String, dynamic>>> streamProyecto() {
       final fechaCreacion = _toDate(data['fecha_creacion']);
       final fechaEntrega = _toDate(data['fecha_entrega']);
       final docId = doc.id;
+      final likeRaw = data['like'];
+      int like = 0;
+      if (likeRaw is int) {
+        like = likeRaw;
+      } else if (likeRaw is num) {
+        like = likeRaw.toInt();
+      } else if (likeRaw is String) {
+        like = int.tryParse(likeRaw) ?? 0;
+      }
 
       final proyecto = {
         'id_proyecto': idProyecto,
@@ -493,11 +513,20 @@ Stream<List<Map<String, dynamic>>> streamProyecto() {
         'fecha_creacion': fechaCreacion,
         'fecha_entrega': fechaEntrega,
         'docId': docId,
+        'like': like,
       };
       proyectos.add(proyecto);
     }
     return proyectos;
   });
+}
+
+/// Incrementa en 1 el campo "like" de un proyecto por docId
+Future<void> incrementarLikeProyecto(String docId) async {
+  await db
+      .collection('list_proyecto')
+      .doc(docId)
+      .update({'like': FieldValue.increment(1)});
 }
 
 /// Verifica si el usuario autenticado es administrador (isadmin == true)
