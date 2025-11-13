@@ -277,6 +277,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.16.0"
+  number_pagination:
+    dependency: "direct main"
+    description:
+      name: number_pagination
+      sha256: "75d3a28616196e7c8df431d0fb7c48e811e462155f4cf3b5b4167b3408421327"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.1.6"
   path:
     dependency: transitive
     description:
@@ -333,6 +341,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.3.0"
+  pie_chart:
+    dependency: "direct main"
+    description:
+      name: pie_chart
+      sha256: "58e6a46999ac938bfa1c3e5be414d6e149f037647197dca03ba3614324c12c82"
+      url: "https://pub.dev"
+    source: hosted
+    version: "5.4.0"
   platform:
     dependency: transitive
     description:

@@ -122,7 +122,7 @@ class AccountMenu extends StatelessWidget {
               onSelected: (String value) async {
                 switch (value) {
                   case 'mis_proyectos':
-                    Navigator.pushNamed(context, '/crear_proyecto');
+                    Navigator.pushNamed(context, '/proyectos_lista');
                     break;
                   case 'calendario':
                     Navigator.pushNamed(context, '/calendario');
