@@ -34,8 +34,9 @@ class _ArchivoDialogState extends State<ArchivoDialog> {
     if (v == null || v.trim().isEmpty) return 'URL requerida';
     final url = v.trim();
     final pattern = RegExp(r'^(https?:\/\/)[^\s]+$');
-    if (!pattern.hasMatch(url))
+    if (!pattern.hasMatch(url)) {
       return 'URL inválida (debe iniciar con http/https)';
+    }
     return null;
   }
 
