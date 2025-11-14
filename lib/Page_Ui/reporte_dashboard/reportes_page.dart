@@ -14,7 +14,7 @@ class ReportesPage extends StatefulWidget {
 
 class _ReportesPageState extends State<ReportesPage> {
   final _repo = const ProyectoRepository();
-  late Future<List<Proyecto>> _future;
+  // realtime stream en vez de future
 
   // filtros
   final _searchCtrl = TextEditingController();
@@ -27,7 +27,6 @@ class _ReportesPageState extends State<ReportesPage> {
   @override
   void initState() {
     super.initState();
-    _future = _repo.fetch(context);
   }
 
   @override
@@ -72,8 +71,8 @@ class _ReportesPageState extends State<ReportesPage> {
           ),
         ],
       ),
-      body: FutureBuilder<List<Proyecto>>(
-        future: _future,
+      body: StreamBuilder<List<Proyecto>>(
+        stream: _repo.stream(),
         builder: (context, snap) {
           if (snap.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());

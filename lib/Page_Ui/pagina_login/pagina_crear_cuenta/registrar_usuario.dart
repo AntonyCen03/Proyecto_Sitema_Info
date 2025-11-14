@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:proyecto_final/Page_Ui/validator/validar_alfa_num.dart';
 import 'package:proyecto_final/Page_Ui/validator/validar_email.dart';
 import 'package:proyecto_final/services/firebase_services.dart';
 import 'package:proyecto_final/services/auth_service.dart';
@@ -84,12 +85,8 @@ class _SignUpScreenState extends State<PageSignUp> {
         border: OutlineInputBorder(),
         prefixIcon: Icon(Icons.person),
       ),
-      validator: (value) {
-        if (value == null || value.isEmpty) {
-          return 'Por favor, ingrese su nombre completo';
-        }
-        return null;
-      },
+      validator: (value) => validarSoloLetras(value, campo: 'Nombre', maxLength: 100, minLength: 3),
+      inputFormatters: soloLetrasFormatters(maxLength: 100),
     );
   }
 
@@ -105,20 +102,8 @@ class _SignUpScreenState extends State<PageSignUp> {
         prefixIcon: Icon(Icons.credit_card),
         counterText: '',
       ),
-      validator: (value) {
-        if (value == null || value.isEmpty) {
-          return 'Por favor, ingrese su Cédula';
-        }
-        // Validación de 6 a 8 dígitos numéricos
-        if (value.length < 6 || value.length > 8) {
-          return 'La Cédula debe tener entre 6 y 8 dígitos.';
-        }
-        final isNumeric = RegExp(r'^[0-9]+$').hasMatch(value);
-        if (!isNumeric) {
-          return 'La Cédula solo puede contener números.';
-        }
-        return null;
-      },
+      validator: (value) => validarSoloNumeros(value, campo: 'Cédula', maxLength: 8, minLength: 6),
+      inputFormatters: soloNumerosFormatters(maxLength: 8),
     );
   }
 
@@ -182,19 +167,8 @@ class _SignUpScreenState extends State<PageSignUp> {
         border: OutlineInputBorder(),
         prefixIcon: Icon(Icons.badge),
       ),
-      validator: (value) {
-        if (value == null || value.isEmpty) {
-          return 'Por favor, ingrese su Carnet';
-        }
-        if (value.length != 11) {
-          return 'El Carnet debe tener exactamente 11 dígitos.';
-        }
-        final isNumeric = RegExp(r'^[0-9]+$').hasMatch(value);
-        if (!isNumeric) {
-          return 'El Carnet solo puede contener números.';
-        }
-        return null;
-      },
+      validator: (value) => validarSoloNumeros(value, campo: 'Carnet', maxLength: 11, minLength: 11),
+      inputFormatters: soloNumerosFormatters(maxLength: 11),
     );
   }
 

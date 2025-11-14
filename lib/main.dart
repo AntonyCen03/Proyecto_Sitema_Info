@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:proyecto_final/Page_Ui/lista_proyectos/lista_proyectos_ui.dart';
 import 'package:proyecto_final/Page_Ui/pagina_login/pagina_crear_cuenta/registrar_usuario.dart';
 import 'package:proyecto_final/Page_Ui/pagina_login/login.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -44,7 +45,7 @@ class MyApp extends StatelessWidget {
         GlobalWidgetsLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,
       ],
-      initialRoute: '/principal',
+      initialRoute: '/proyectos_lista',
       routes: {
         '/login': (context) => const PageLogin(),
         '/registrar': (context) => const PageSignUp(),
@@ -57,6 +58,7 @@ class MyApp extends StatelessWidget {
         '/calendario': (context) => const CalendarScreen(),
         '/crear_proyecto': (context) => const PageCreateProject(),
         '/foro_page': (context) => const ForoPage(),
+        '/proyectos_lista': (context) => const ListaProyectos(),
       },
     );
   }

@@ -189,6 +189,7 @@ Future<void> addProyecto(
     'estado': estado,
     'fecha_creacion': fechaCreacion,
     'fecha_entrega': fechaEntrega,
+    'like': 0, // nuevo campo inicializado en 0
   });
 }
 
@@ -434,6 +435,15 @@ Future<List<Map<String, dynamic>>> getProyecto(BuildContext context) async {
       final fechaCreacion = _toDate(data['fecha_creacion']);
       final fechaEntrega = _toDate(data['fecha_entrega']);
       final docId = doc.id;
+      final likeRaw = data['like'];
+      int like = 0;
+      if (likeRaw is int) {
+        like = likeRaw;
+      } else if (likeRaw is num) {
+        like = likeRaw.toInt();
+      } else if (likeRaw is String) {
+        like = int.tryParse(likeRaw) ?? 0;
+      }
 
       final proyecto = {
         'id_proyecto': idProyecto,
@@ -448,6 +458,7 @@ Future<List<Map<String, dynamic>>> getProyecto(BuildContext context) async {
         'fecha_creacion': fechaCreacion,
         'fecha_entrega': fechaEntrega,
         'docId': docId,
+        'like': like,
       };
       proyectos.add(proyecto);
     }
@@ -458,6 +469,66 @@ Future<List<Map<String, dynamic>>> getProyecto(BuildContext context) async {
     return [];
   }
   return proyectos;
+}
+
+/// Stream en tiempo real de los proyectos, con la misma normalización de getProyecto
+Stream<List<Map<String, dynamic>>> streamProyecto() {
+  return db.collection('list_proyecto').snapshots().map((querySnapshot) {
+    final proyectos = <Map<String, dynamic>>[];
+    for (final doc in querySnapshot.docs) {
+      final data = doc.data() as Map<String, dynamic>? ?? {};
+      final idProyecto = data['id_proyecto'] != null
+          ? int.tryParse(data['id_proyecto'].toString()) ?? 0
+          : 0;
+      final nombreProyecto = (data['nombre_proyecto'] ?? '').toString();
+      final descripcion = (data['descripcion'] ?? '').toString();
+      final integrantesDetalle = _toIntegrantesDetalle(data['integrante']);
+      final integrante = integrantesDetalle
+          .map((m) => (m['nombre'] ?? '').trim())
+          .where((s) => s.isNotEmpty)
+          .toList();
+      final nombreEquipo = (data['nombre_equipo'] ?? '').toString();
+      final tareas = _toTasks(data['tareas']);
+      final estado = _toBool(data['estado']);
+      final fechaCreacion = _toDate(data['fecha_creacion']);
+      final fechaEntrega = _toDate(data['fecha_entrega']);
+      final docId = doc.id;
+      final likeRaw = data['like'];
+      int like = 0;
+      if (likeRaw is int) {
+        like = likeRaw;
+      } else if (likeRaw is num) {
+        like = likeRaw.toInt();
+      } else if (likeRaw is String) {
+        like = int.tryParse(likeRaw) ?? 0;
+      }
+
+      final proyecto = {
+        'id_proyecto': idProyecto,
+        'nombre_proyecto': nombreProyecto,
+        'descripcion': descripcion,
+        'integrante': integrante,
+        'integrantes_detalle': integrantesDetalle,
+        'nombre_equipo': nombreEquipo,
+        'tareas': tareas,
+        'estado': estado,
+        'fecha_creacion': fechaCreacion,
+        'fecha_entrega': fechaEntrega,
+        'docId': docId,
+        'like': like,
+      };
+      proyectos.add(proyecto);
+    }
+    return proyectos;
+  });
+}
+
+/// Incrementa en 1 el campo "like" de un proyecto por docId
+Future<void> incrementarLikeProyecto(String docId) async {
+  await db
+      .collection('list_proyecto')
+      .doc(docId)
+      .update({'like': FieldValue.increment(1)});
 }
 
 /// Verifica si el usuario autenticado es administrador (isadmin == true)

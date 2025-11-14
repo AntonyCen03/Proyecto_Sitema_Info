@@ -10,6 +10,12 @@ class ProyectoRepository {
     return raw.map((e) => Proyecto.fromMap(e)).toList(growable: false);
   }
 
+  Stream<List<Proyecto>> stream() {
+    return api.streamProyecto().map(
+          (raw) => raw.map((e) => Proyecto.fromMap(e)).toList(growable: false),
+        );
+  }
+
   DashboardStats computeStats(List<Proyecto> proyectos) {
     final total = proyectos.length;
     final activos = proyectos.where((p) => p.estado == false).length;
