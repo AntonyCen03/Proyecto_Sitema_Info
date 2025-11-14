@@ -311,6 +311,9 @@ class ListaProyectosUi extends State<ListaProyectos> {
         // Extras por si se requieren luego
         'docId': p['docId'],
         'id_proyecto': p['id_proyecto'],
+        'presupuesto_solicitado': p['presupuesto_solicitado'],
+        'presupuesto_aprobado': p['presupuesto_aprobado'],
+        'presupuesto_motivo': p['presupuesto_motivo'],
       });
     }
     return salida;

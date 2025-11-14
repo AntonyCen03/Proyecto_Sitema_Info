@@ -105,6 +105,25 @@ class PLista extends State<ProyectosDeLaLista> {
                               },
                             ),
                             SizedBox(width: 8),
+                            if (!widget.isAdmin && widget.canAddLink)
+                              IconButton(
+                                tooltip: 'Presupuesto',
+                                icon: const Icon(Icons.attach_money,
+                                    color: Colors.orange),
+                                onPressed: () {
+                                  final args = {
+                                    'docId':
+                                        widget.proyectos['docId']?.toString(),
+                                    'id_proyecto':
+                                        widget.proyectos['id_proyecto'],
+                                    'title': widget.proyectos['title'],
+                                  };
+                                  Navigator.pushNamed(
+                                      context, '/finanzas_proyecto',
+                                      arguments: args);
+                                },
+                              ),
+                            SizedBox(width: 8),
                             IconButton(
                               tooltip: 'Tareas',
                               icon: Icon(Icons.assignment_turned_in_outlined,

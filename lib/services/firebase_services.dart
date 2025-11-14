@@ -526,6 +526,19 @@ Future<List<Map<String, dynamic>>> getProyecto(BuildContext context) async {
         like = int.tryParse(likeRaw) ?? 0;
       }
 
+      // Presupuesto y finanzas
+      final presupuestoRaw = data['presupuesto_solicitado'];
+      double? presupuestoSolicitado;
+      if (presupuestoRaw is num) {
+        presupuestoSolicitado = presupuestoRaw.toDouble();
+      } else if (presupuestoRaw is String) {
+        presupuestoSolicitado = double.tryParse(presupuestoRaw);
+      }
+      final bool presupuestoAprobado =
+          (data['presupuesto_aprobado'] ?? false) == true;
+      final String presupuestoMotivo =
+          (data['presupuesto_motivo'] ?? '').toString();
+
       final proyecto = {
         'id_proyecto': idProyecto,
         'nombre_proyecto': nombreProyecto,
@@ -543,6 +556,9 @@ Future<List<Map<String, dynamic>>> getProyecto(BuildContext context) async {
         'notif_24h': (data['notif_24h'] ?? true) != false,
         'notif_1h': (data['notif_1h'] ?? true) != false,
         'notif_vencido': (data['notif_vencido'] ?? true) != false,
+        'presupuesto_solicitado': presupuestoSolicitado,
+        'presupuesto_aprobado': presupuestoAprobado,
+        'presupuesto_motivo': presupuestoMotivo,
       };
       proyectos.add(proyecto);
     }
@@ -587,6 +603,19 @@ Stream<List<Map<String, dynamic>>> streamProyecto() {
         like = int.tryParse(likeRaw) ?? 0;
       }
 
+      // Presupuesto y finanzas (stream)
+      final presupuestoRaw = data['presupuesto_solicitado'];
+      double? presupuestoSolicitado;
+      if (presupuestoRaw is num) {
+        presupuestoSolicitado = presupuestoRaw.toDouble();
+      } else if (presupuestoRaw is String) {
+        presupuestoSolicitado = double.tryParse(presupuestoRaw);
+      }
+      final bool presupuestoAprobado =
+          (data['presupuesto_aprobado'] ?? false) == true;
+      final String presupuestoMotivo =
+          (data['presupuesto_motivo'] ?? '').toString();
+
       final proyecto = {
         'id_proyecto': idProyecto,
         'nombre_proyecto': nombreProyecto,
@@ -600,6 +629,9 @@ Stream<List<Map<String, dynamic>>> streamProyecto() {
         'fecha_entrega': fechaEntrega,
         'docId': docId,
         'like': like,
+        'presupuesto_solicitado': presupuestoSolicitado,
+        'presupuesto_aprobado': presupuestoAprobado,
+        'presupuesto_motivo': presupuestoMotivo,
       };
       proyectos.add(proyecto);
     }
@@ -762,4 +794,206 @@ Future<void> setTodasLasTareas(String docId, bool done) async {
   });
   await db.collection('list_proyecto').doc(docId).update(updates);
   await checkAndUpdateProyectoEstado(docId);
+}
+
+/// Registra una solicitud de presupuesto para un proyecto.
+/// - Guarda `presupuesto_solicitado` (double), `presupuesto_motivo` (string opcional),
+///   `presupuesto_fecha_solicitud` (serverTimestamp) y no toca `presupuesto_aprobado` si ya existe.
+Future<void> solicitarPresupuestoProyecto(
+  String docId,
+  num monto, {
+  String? motivo,
+}) async {
+  final updates = <String, Object?>{
+    'presupuesto_solicitado': monto.toDouble(),
+    'presupuesto_motivo': (motivo ?? '').trim(),
+    'presupuesto_fecha_solicitud': FieldValue.serverTimestamp(),
+  };
+  await db.collection('list_proyecto').doc(docId).update(updates);
+}
+
+/// Registra un gasto en el subcolector `gastos` de un proyecto.
+/// Cada gasto contiene: monto (double), descripcion (string), fecha (timestamp), created_by (string opcional)
+Future<void> registrarGastoProyecto(
+  String docId,
+  double monto,
+  String descripcion, {
+  DateTime? fecha,
+  String? usuarioEmail,
+}) async {
+  // No permitir registrar gasto si el presupuesto no está aprobado
+  final proyectoSnap = await db.collection('list_proyecto').doc(docId).get();
+  final aprobado =
+      (proyectoSnap.data()?['presupuesto_aprobado'] ?? false) == true;
+  if (!aprobado) {
+    throw Exception('El presupuesto aún no está aprobado.');
+  }
+  final data = <String, Object?>{
+    'monto': monto,
+    'descripcion': descripcion.trim(),
+    'fecha': fecha != null
+        ? Timestamp.fromDate(fecha)
+        : FieldValue.serverTimestamp(),
+    'created_by': (usuarioEmail ?? '').trim(),
+  };
+  await db
+      .collection('list_proyecto')
+      .doc(docId)
+      .collection('gastos')
+      .add(data);
+}
+
+/// Calcula el total de gastos del proyecto sumando el subcolector `gastos`.
+Future<double> calcularTotalGastosProyecto(String docId) async {
+  final snap = await db
+      .collection('list_proyecto')
+      .doc(docId)
+      .collection('gastos')
+      .get();
+  double total = 0.0;
+  for (final d in snap.docs) {
+    final data = d.data();
+    final v = data['monto'];
+    if (v is num) {
+      total += v.toDouble();
+    } else if (v is String) {
+      total += double.tryParse(v) ?? 0.0;
+    }
+  }
+  return total;
+}
+
+/// Retorna un resumen financiero del proyecto:
+/// { presupuesto: double?, totalGastos: double, saldo: double?, sobrepasado: bool }
+Future<Map<String, dynamic>> getResumenFinancieroProyecto(String docId) async {
+  final doc = await db.collection('list_proyecto').doc(docId).get();
+  double? presupuesto;
+  bool aprobado = false;
+  if (doc.exists) {
+    final data = doc.data() ?? <String, dynamic>{};
+    final raw = data['presupuesto_solicitado'];
+    if (raw is num) presupuesto = raw.toDouble();
+    if (raw is String) presupuesto = double.tryParse(raw);
+    aprobado = (data['presupuesto_aprobado'] ?? false) == true;
+  }
+  final totalGastos = await calcularTotalGastosProyecto(docId);
+  double? saldo;
+  bool sobrepasado = false;
+  if (presupuesto != null) {
+    saldo = presupuesto - totalGastos;
+    sobrepasado = saldo < 0;
+  }
+  return {
+    'presupuesto': presupuesto,
+    'presupuestoAprobado': aprobado,
+    'totalGastos': totalGastos,
+    'saldo': saldo,
+    'sobrepasado': sobrepasado,
+  };
+}
+
+/// Establece el estado de aprobación del presupuesto del proyecto.
+/// También registra fecha y (opcional) quién aprobó/revocó.
+Future<void> setPresupuestoAprobado(
+  String docId,
+  bool aprobado, {
+  String? aprobadoPor,
+}) async {
+  final updates = <String, Object?>{
+    'presupuesto_aprobado': aprobado,
+    'presupuesto_aprobado_fecha': FieldValue.serverTimestamp(),
+  };
+  if (aprobadoPor != null && aprobadoPor.isNotEmpty) {
+    updates['presupuesto_aprobado_por'] = aprobadoPor;
+  }
+  await db.collection('list_proyecto').doc(docId).update(updates);
+}
+
+/// Totales financieros para el usuario autenticado (suma por proyectos donde participa):
+/// { totalSolicitado, totalAprobado, totalGasto, saldoRestante }
+Future<Map<String, double>> getTotalesFinancierosUsuario(
+    BuildContext context) async {
+  final proyectos = await getProyectosDelUsuarioActual(context);
+  double totalSolicitado = 0.0;
+  double totalAprobado = 0.0;
+  double totalGasto = 0.0;
+  double saldoRestante = 0.0;
+
+  for (final p in proyectos) {
+    final docId = (p['docId'] ?? '').toString();
+    final aprobado = (p['presupuesto_aprobado'] ?? false) == true;
+    final presupRaw = p['presupuesto_solicitado'];
+    double presupuesto = 0.0;
+    if (presupRaw is num) presupuesto = presupRaw.toDouble();
+    if (presupRaw is String) presupuesto = double.tryParse(presupRaw) ?? 0.0;
+
+    if (presupuesto > 0) {
+      totalSolicitado += presupuesto;
+    }
+
+    if (aprobado) {
+      totalAprobado += presupuesto;
+      if (docId.isNotEmpty) {
+        final gastos = await calcularTotalGastosProyecto(docId);
+        totalGasto += gastos;
+        saldoRestante += (presupuesto - gastos);
+      }
+    }
+  }
+
+  return {
+    'totalSolicitado': totalSolicitado,
+    'totalAprobado': totalAprobado,
+    'totalGasto': totalGasto,
+    'saldoRestante': saldoRestante,
+  };
+}
+
+/// Devuelve un conteo por día de tareas completadas en los últimos [dias].
+/// Cuenta sólo proyectos donde participa el usuario autenticado.
+/// La clave del mapa es la fecha normalizada (UTC, sin hora).
+Future<Map<DateTime, int>> getTareasCompletadasPorDiaUltimos(
+  BuildContext context, {
+  int dias = 30,
+}) async {
+  // Rango de fechas
+  final now = DateTime.now();
+  final from = now.subtract(Duration(days: dias - 1));
+  final startUtc = DateTime.utc(from.year, from.month, from.day);
+  final endUtc = DateTime.utc(now.year, now.month, now.day);
+
+  // Inicializa mapa con 0 para cada día del rango
+  final counts = <DateTime, int>{};
+  for (int i = 0; i < dias; i++) {
+    final d = startUtc.add(Duration(days: i));
+    counts[d] = 0;
+  }
+
+  // Proyectos del usuario
+  final proyectos = await getProyectosDelUsuarioActual(context);
+  for (final p in proyectos) {
+    final docId = (p['docId'] ?? '').toString();
+    if (docId.isEmpty) continue;
+    try {
+      final snap = await db.collection('list_proyecto').doc(docId).get();
+      final data = snap.data() ?? <String, dynamic>{};
+      final tareas = data['tareas'];
+      if (tareas is! Map) continue;
+      tareas.forEach((key, value) {
+        if (value is Map) {
+          final done = _toBool(value['done']);
+          if (!done) return;
+          final dt = _toDate(value['fecha_termino']);
+          if (dt == null) return;
+          final norm = DateTime.utc(dt.year, dt.month, dt.day);
+          if (!norm.isBefore(startUtc) && !norm.isAfter(endUtc)) {
+            counts[norm] = (counts[norm] ?? 0) + 1;
+          }
+        }
+      });
+    } catch (_) {
+      // Ignorar errores de lectura individuales
+    }
+  }
+  return counts;
 }
