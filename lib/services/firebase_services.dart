@@ -997,3 +997,97 @@ Future<Map<DateTime, int>> getTareasCompletadasPorDiaUltimos(
   }
   return counts;
 }
+
+// ==========================
+// Recursos Materiales (colección separada)
+// ==========================
+
+/// Crea un recurso material con cantidad total y disponible inicial igual.
+Future<void> addRecursoMaterial({
+  required String nombre,
+  String descripcion = '',
+  required int cantidadTotal,
+}) async {
+  final now = FieldValue.serverTimestamp();
+  await db.collection('recursos_materiales').add({
+    'nombre': nombre.trim(),
+    'descripcion': descripcion.trim(),
+    'cantidad_total': cantidadTotal,
+    'cantidad_disponible': cantidadTotal,
+    'created_at': now,
+    'updated_at': now,
+  });
+}
+
+Future<void> updateRecursoMaterial(String docId, {
+  String? nombre,
+  String? descripcion,
+  int? cantidadTotal,
+  int? cantidadDisponible,
+}) async {
+  final updates = <String, Object?>{'updated_at': FieldValue.serverTimestamp()};
+  if (nombre != null) updates['nombre'] = nombre.trim();
+  if (descripcion != null) updates['descripcion'] = descripcion.trim();
+  if (cantidadTotal != null) updates['cantidad_total'] = cantidadTotal;
+  if (cantidadDisponible != null) updates['cantidad_disponible'] = cantidadDisponible;
+  await db.collection('recursos_materiales').doc(docId).update(updates);
+}
+
+Stream<List<Map<String, dynamic>>> streamRecursosMateriales() {
+  return db.collection('recursos_materiales').snapshots().map((snap) {
+    return snap.docs.map((d) {
+      final m = d.data();
+      m['docId'] = d.id;
+      return m;
+    }).toList(growable: false);
+  });
+}
+
+/// Asigna un recurso a una tarea de un proyecto, decrementando disponible atómicamente.
+Future<void> asignarRecursoATarea({
+  required String recursoId,
+  required String proyectoDocId,
+  required String tareaKey,
+  required int cantidad,
+  String? asignadoPorEmail,
+}) async {
+  await db.runTransaction((txn) async {
+    final ref = db.collection('recursos_materiales').doc(recursoId);
+    final snap = await txn.get(ref);
+    if (!snap.exists) throw Exception('Recurso no existe');
+    final data = snap.data() ?? <String, dynamic>{};
+    final disp = (data['cantidad_disponible'] is int)
+        ? data['cantidad_disponible'] as int
+        : int.tryParse(data['cantidad_disponible']?.toString() ?? '0') ?? 0;
+    if (cantidad <= 0) throw Exception('Cantidad inválida');
+    if (disp < cantidad) throw Exception('No hay suficiente disponible');
+
+    txn.update(ref, {
+      'cantidad_disponible': disp - cantidad,
+      'updated_at': FieldValue.serverTimestamp(),
+    });
+
+    final asignRef = ref.collection('asignaciones').doc();
+    txn.set(asignRef, {
+      'proyecto_docId': proyectoDocId,
+      'tarea_key': tareaKey,
+      'cantidad': cantidad,
+      'asignado_por': (asignadoPorEmail ?? '').trim(),
+      'fecha': FieldValue.serverTimestamp(),
+    });
+
+    // Opcional: registrar también en el proyecto para consulta invertida
+    final projAssignRef = db
+        .collection('list_proyecto')
+        .doc(proyectoDocId)
+        .collection('asignaciones_recursos')
+        .doc();
+    txn.set(projAssignRef, {
+      'recurso_id': recursoId,
+      'tarea_key': tareaKey,
+      'cantidad': cantidad,
+      'fecha': FieldValue.serverTimestamp(),
+      'asignado_por': (asignadoPorEmail ?? '').trim(),
+    });
+  });
+}

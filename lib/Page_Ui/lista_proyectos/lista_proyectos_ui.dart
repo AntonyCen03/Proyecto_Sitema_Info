@@ -136,11 +136,18 @@ class ListaProyectosUi extends State<ListaProyectos> {
                         ],
                       ),
                       const SizedBox(height: 12),
-                      if (administrador)
-                        Align(
-                          alignment: Alignment.centerLeft,
-                          child: _crearProyectoButton(),
-                        ),
+                       if (administrador)
+                         Align(
+                           alignment: Alignment.centerLeft,
+                           child: Row(
+                             mainAxisSize: MainAxisSize.min,
+                             children: [
+                               _crearProyectoButton(),
+                               const SizedBox(width: 8),
+                               _recursosButton(),
+                             ],
+                           ),
+                         ),
                     ],
                   )
                 : Row(
@@ -160,7 +167,13 @@ class ListaProyectosUi extends State<ListaProyectos> {
                           ),
                         ],
                       ),
-                      if (administrador) _crearProyectoButton(),
+                       if (administrador) Row(
+                         children: [
+                           _crearProyectoButton(),
+                           const SizedBox(width: 8),
+                           _recursosButton(),
+                         ],
+                       ),
                     ],
                   ),
 
@@ -249,6 +262,26 @@ class ListaProyectosUi extends State<ListaProyectos> {
       style: ElevatedButton.styleFrom(
         backgroundColor: Colors.white,
         side: BorderSide(color: primaryOrange, width: 2),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(8.0),
+        ),
+        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+        textStyle: const TextStyle(fontSize: 16.0, fontWeight: FontWeight.bold),
+      ),
+    );
+  }
+
+  // Botón para abrir la página de recursos materiales
+  Widget _recursosButton() {
+    return ElevatedButton.icon(
+      onPressed: () {
+        Navigator.pushNamed(context, '/recursos');
+      },
+      icon: Icon(Icons.inventory_2_outlined, color: primaryBlue),
+      label: Text("Recursos", style: TextStyle(color: primaryBlue)),
+      style: ElevatedButton.styleFrom(
+        backgroundColor: Colors.white,
+        side: BorderSide(color: primaryBlue, width: 2),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(8.0),
         ),
