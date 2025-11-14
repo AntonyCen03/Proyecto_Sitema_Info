@@ -45,7 +45,7 @@ class MyApp extends StatelessWidget {
         GlobalWidgetsLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,
       ],
-      initialRoute: '/proyectos_lista',
+      initialRoute: '/principal',
       routes: {
         '/login': (context) => const PageLogin(),
         '/registrar': (context) => const PageSignUp(),
