@@ -5,6 +5,8 @@ import 'widgets.dart';
 import 'package:proyecto_final/Color/Color.dart';
 import 'package:proyecto_final/Page_Ui/widgets/metro_app_bar.dart';
 import 'package:proyecto_final/Page_Ui/widgets/paginacion.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:proyecto_final/services/firebase_services.dart' as api;
 
 class DashboardPage extends StatefulWidget {
   const DashboardPage({super.key});
@@ -25,10 +27,26 @@ class _DashboardPageState extends State<DashboardPage> {
   static const int _pageSize = 5;
   int _proyectosPage = 0;
   int _proximosPage = 0;
+  bool _isAdmin = false;
+  String? _currentEmail;
 
   @override
   void initState() {
     super.initState();
+    _initPermissions();
+  }
+
+  Future<void> _initPermissions() async {
+    final user = FirebaseAuth.instance.currentUser;
+    _currentEmail = user?.email?.trim().toLowerCase();
+    try {
+      final adm = await api.isCurrentUserAdmin(context);
+      if (!mounted) return;
+      setState(() => _isAdmin = adm);
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _isAdmin = false);
+    }
   }
 
   @override
@@ -40,7 +58,7 @@ class _DashboardPageState extends State<DashboardPage> {
             context, '/principal', (route) => false),
       ),
       body: StreamBuilder<List<Proyecto>>(
-        stream: _repo.stream(),
+        stream: _repo.streamFilteredByEmail(_isAdmin ? null : _currentEmail),
         builder: (context, snap) {
           if (snap.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());

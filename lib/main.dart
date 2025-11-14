@@ -32,7 +32,6 @@ import 'package:proyecto_final/Page_Ui/pagina_login/login.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:proyecto_final/Page_Ui/pagina_login/reset_password/olvidecontrasena.dart';
 import 'package:proyecto_final/Page_Ui/perfil_usuario/perfil_usuario_new.dart';
-//import 'package:proyecto_final/Page_Ui/perfil_usuario/usuario.dart';
 import 'firebase_options.dart';
 import 'package:proyecto_final/Page_Ui/pagina_principal/page_principal.dart';
 import 'package:proyecto_final/Page_Ui/pagina_login/nueva_contrasena.dart';

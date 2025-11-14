@@ -16,6 +16,26 @@ class ProyectoRepository {
         );
   }
 
+  // Filtra por email del integrante si se proporciona; si email es null, devuelve todos.
+  Stream<List<Proyecto>> streamFilteredByEmail(String? email) {
+    return api.streamProyecto().map((raw) {
+      final filtered = (email == null || email.isEmpty)
+          ? raw
+          : raw.where((m) {
+              final det = m['integrantes_detalle'];
+              if (det is! List) return false;
+              for (final e in det) {
+                if (e is Map) {
+                  final em = (e['email'] ?? '').toString().trim().toLowerCase();
+                  if (em == email.toLowerCase()) return true;
+                }
+              }
+              return false;
+            }).toList(growable: false);
+      return filtered.map((e) => Proyecto.fromMap(e)).toList(growable: false);
+    });
+  }
+
   DashboardStats computeStats(List<Proyecto> proyectos) {
     final total = proyectos.length;
     final activos = proyectos.where((p) => p.estado == false).length;
