@@ -5,6 +5,8 @@ import 'package:intl/intl.dart';
 import 'package:proyecto_final/Color/Color.dart';
 // Reemplazado acceso directo a Firestore por servicios centralizados
 import 'package:proyecto_final/services/firebase_services.dart' as api;
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'archivo_dialog.dart';
 
 class Integrante {
   final String nombre;
@@ -37,13 +39,21 @@ class _PageCreateProjectState extends State<PageCreateProject> {
     'newTask': TextEditingController(),
     'startDate': TextEditingController(),
     'deliveryDate': TextEditingController(),
+    'newLink': TextEditingController(),
   };
   DateTime? _startDate, _deliveryDate;
 
   final _integrantes = <Integrante>[];
   final _tareas = <String, bool>{};
+  final _links = <String>[];
   // Users cache for email autocomplete
   List<Map<String, dynamic>> _users = [];
+  bool _editMode = false;
+  String? _docId;
+  int? _idProyecto;
+  bool _prefillDone = false;
+  bool _isAdmin = false; // determinado vía servicio
+  bool _readOnly = false; // true cuando no es admin
 
   bool _memberLocked = true; // siempre bloqueado: sólo selección desde getUser
   TextEditingController?
@@ -63,6 +73,155 @@ class _PageCreateProjectState extends State<PageCreateProject> {
     // Rebuild to reflect readiness when names change
     _controllers['projectName']!.addListener(_onFormFieldChanged);
     _controllers['teamName']!.addListener(_onFormFieldChanged);
+    _initAdmin();
+  }
+
+  Future<void> _initAdmin() async {
+    try {
+      final adm = await api.isCurrentUserAdmin(context);
+      if (!mounted) return;
+      setState(() {
+        _isAdmin = adm;
+        _readOnly = !_isAdmin; // si no es admin: modo solo lectura
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _isAdmin = false;
+        _readOnly = true;
+      });
+    }
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_prefillDone) return;
+    final args = ModalRoute.of(context)?.settings.arguments;
+    if (args is Map) {
+      final docId = args['docId']?.toString();
+      if (docId != null && docId.isNotEmpty) {
+        _editMode = true;
+        _docId = docId;
+        _prefillFromFirestore(docId);
+      }
+    }
+    _prefillDone = true;
+  }
+
+  Future<void> _prefillFromFirestore(String docId) async {
+    try {
+      final raw = await api.streamProyectoDoc(docId).first;
+      if (raw == null) return;
+      // Campos básicos
+      final nombre = (raw['nombre_proyecto'] ?? '').toString();
+      final descripcion = (raw['descripcion'] ?? '').toString();
+      final equipo = (raw['nombre_equipo'] ?? '').toString();
+      final idP = raw['id_proyecto'];
+      int? idParsed;
+      if (idP is int)
+        idParsed = idP;
+      else if (idP is num)
+        idParsed = idP.toInt();
+      else if (idP is String) idParsed = int.tryParse(idP);
+
+      DateTime? fInicio;
+      DateTime? fEntrega;
+      final fc = raw['fecha_creacion'];
+      final fe = raw['fecha_entrega'];
+      if (fc is Timestamp) fInicio = fc.toDate();
+      if (fc is DateTime) fInicio = fc;
+      if (fe is Timestamp) fEntrega = fe.toDate();
+      if (fe is DateTime) fEntrega = fe;
+
+      // Integrantes (lista de mapas con nombre, email, cedula)
+      final integrantes = <Integrante>[];
+      final listInt = raw['integrante'];
+      if (listInt is List) {
+        for (final e in listInt) {
+          if (e is Map) {
+            final nombre = (e['nombre'] ?? '').toString();
+            final correo = (e['email'] ?? '').toString();
+            final cedula = (e['cedula'] ?? '').toString();
+            integrantes.add(Integrante(
+              nombre: nombre,
+              rol: 'Miembro',
+              cedula: cedula,
+              correo: correo,
+            ));
+          }
+        }
+      }
+
+      // Tareas (puede venir como {tarea: true/false} o {tarea: {done:bool}})
+      final tareas = <String, bool>{};
+      final rawT = raw['tareas'];
+      if (rawT is Map) {
+        rawT.forEach((k, v) {
+          final key = k?.toString() ?? '';
+          if (key.isEmpty) return;
+          if (v is Map) {
+            final done = v['done'];
+            tareas[key] = (done is bool)
+                ? done
+                : (done is num)
+                    ? done != 0
+                    : (done is String)
+                        ? (done.toLowerCase() == 'true' || done == '1')
+                        : false;
+          } else if (v is bool) {
+            tareas[key] = v;
+          } else if (v is num) {
+            tareas[key] = v != 0;
+          } else if (v is String) {
+            tareas[key] = (v.toLowerCase() == 'true' || v == '1');
+          }
+        });
+      }
+
+      // Links (lista de strings)
+      final linksPrefill = <String>[];
+      final rawLinks = raw['links'];
+      if (rawLinks is List) {
+        for (final l in rawLinks) {
+          if (l is String) {
+            final trimmed = l.trim();
+            if (trimmed.isNotEmpty) linksPrefill.add(trimmed);
+          }
+        }
+      }
+
+      setState(() {
+        _idProyecto = idParsed;
+        _controllers['projectName']!.text = nombre;
+        _controllers['description']!.text = descripcion;
+        _controllers['teamName']!.text = equipo;
+        _startDate = fInicio;
+        _deliveryDate = fEntrega;
+        if (_startDate != null) {
+          _controllers['startDate']!.text =
+              DateFormat('dd/MM/yyyy').format(_startDate!);
+        }
+        if (_deliveryDate != null) {
+          _controllers['deliveryDate']!.text =
+              DateFormat('dd/MM/yyyy').format(_deliveryDate!);
+        }
+        _integrantes
+          ..clear()
+          ..addAll(integrantes);
+        _tareas
+          ..clear()
+          ..addAll(tareas);
+        _links
+          ..clear()
+          ..addAll(linksPrefill);
+      });
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error cargando proyecto: $e')),
+      );
+    }
   }
 
   Future<void> _loadUsers() async {
@@ -289,6 +448,38 @@ class _PageCreateProjectState extends State<PageCreateProject> {
     });
   }
 
+  void _addLink() {
+    final link = _controllers['newLink']!.text.trim();
+    if (link.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('El enlace no puede estar vacío.')),
+      );
+      return;
+    }
+    // Patrón simplificado para validar URL (empieza con http/https y sin espacios)
+    final urlPattern = RegExp(r'^(https?:\/\/)[^\s]+$');
+    if (!urlPattern.hasMatch(link)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+            content: Text(
+                'Ingrese una URL válida (debe comenzar con http:// o https://)')),
+      );
+      return;
+    }
+    if (_links.contains(link)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('El enlace ya fue agregado.')),
+      );
+      return;
+    }
+    setState(() {
+      _links.add(link);
+      _controllers['newLink']!.clear();
+    });
+  }
+
+  void _removeLink(String link) => setState(() => _links.remove(link));
+
   void _removeTask(String task) => setState(() => _tareas.remove(task));
 
   void _onFormFieldChanged() {
@@ -304,10 +495,15 @@ class _PageCreateProjectState extends State<PageCreateProject> {
         _startDate != null &&
         _deliveryDate != null &&
         _integrantes.isNotEmpty &&
-        _tareas.isNotEmpty;
+        _tareas.isNotEmpty; // links opcional
   }
 
   void _createProject() async {
+    if (_readOnly) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: Text('Sin permisos para crear proyecto (solo lectura).')));
+      return;
+    }
     if (!_formKey.currentState!.validate()) return;
 
     if (_startDate == null || _deliveryDate == null) {
@@ -353,6 +549,7 @@ class _PageCreateProjectState extends State<PageCreateProject> {
         false, // estado inicial: en curso
         _startDate!,
         _deliveryDate!,
+        _links,
       );
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -373,6 +570,78 @@ class _PageCreateProjectState extends State<PageCreateProject> {
     }
   }
 
+  Future<void> _updateProject() async {
+    if (_readOnly) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: Text('Sin permisos para editar (solo lectura).')));
+      return;
+    }
+    if (!_formKey.currentState!.validate()) return;
+    if (_docId == null || _docId!.isEmpty || _idProyecto == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Proyecto inválido para editar.')),
+      );
+      return;
+    }
+    if (_startDate == null || _deliveryDate == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Seleccione fechas de inicio y entrega.')),
+      );
+      return;
+    }
+    if (_integrantes.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Debe agregar al menos un integrante')),
+      );
+      return;
+    }
+    if (_tareas.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Debe agregar al menos una tarea')),
+      );
+      return;
+    }
+
+    try {
+      final integrantesDetalle = _integrantes
+          .map((i) => {
+                'nombre': i.nombre,
+                'email': i.correo,
+                'cedula': i.cedula,
+              })
+          .toList();
+
+      await api.updateProyecto(
+        _idProyecto!,
+        _controllers['projectName']!.text.trim(),
+        _controllers['description']!.text.trim(),
+        integrantesDetalle,
+        _controllers['teamName']!.text.trim(),
+        _tareas,
+        false, // mantener estado gestionado por tareas
+        _startDate!,
+        _deliveryDate!,
+        _docId!,
+        _links,
+      );
+
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+            content: Text('✅ Proyecto actualizado exitosamente.'),
+            backgroundColor: Colors.green),
+      );
+      Navigator.pop(context);
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+            content: Text('❌ Error al actualizar: $e'),
+            backgroundColor: Colors.red),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -382,9 +651,10 @@ class _PageCreateProjectState extends State<PageCreateProject> {
           onPressed: () => Navigator.pop(context),
           tooltip: 'Volver',
         ),
-        title: const Text(
-          'Crear Nuevo Proyecto',
-          style: TextStyle(color: primaryOrange, fontWeight: FontWeight.bold),
+        title: Text(
+          _editMode ? 'Editar Proyecto' : 'Crear Nuevo Proyecto',
+          style: const TextStyle(
+              color: primaryOrange, fontWeight: FontWeight.bold),
         ),
         backgroundColor: Colors.white,
         centerTitle: true,
@@ -429,6 +699,7 @@ class _PageCreateProjectState extends State<PageCreateProject> {
                       _controllers['projectName']!,
                       'Nombre del Proyecto',
                       Icons.lightbulb_outline,
+                      readOnly: _readOnly,
                       customValidator: (v) => validarAlfaNum(v,
                           campo: 'Nombre del Proyecto', maxLength: 50),
                       inputFormatters: alfaNumEsFormatters(maxLength: 50),
@@ -438,6 +709,7 @@ class _PageCreateProjectState extends State<PageCreateProject> {
                       _controllers['teamName']!,
                       'Nombre del Equipo',
                       Icons.group,
+                      readOnly: _readOnly,
                       customValidator: (v) => validarAlfaNum(v,
                           campo: 'Nombre del Equipo', maxLength: 30),
                       inputFormatters: alfaNumEsFormatters(maxLength: 30),
@@ -455,7 +727,9 @@ class _PageCreateProjectState extends State<PageCreateProject> {
                     const SizedBox(height: 25),
                     _buildTareasField(),
                     const SizedBox(height: 25),
-                    _buildCreateProjectButton(),
+                    _buildLinksField(),
+                    const SizedBox(height: 25),
+                    _buildCreateOrUpdateButton(),
                   ],
                 ),
               ),
@@ -504,7 +778,7 @@ class _PageCreateProjectState extends State<PageCreateProject> {
           prefixIcon: const Icon(Icons.calendar_today),
           suffixIcon: const Icon(Icons.arrow_drop_down),
         ),
-        onTap: () => _selectDate(isStart),
+        onTap: _readOnly ? null : () => _selectDate(isStart),
         validator: (value) => (isStart ? _startDate : _deliveryDate) == null
             ? 'Seleccione una fecha'
             : null,
@@ -571,10 +845,11 @@ class _PageCreateProjectState extends State<PageCreateProject> {
           SizedBox(
             width: double.infinity,
             child: ElevatedButton(
-              onPressed:
-                  _findUserByEmail(_controllers['newCorreo']!.text) != null
+              onPressed: _readOnly
+                  ? null
+                  : (_findUserByEmail(_controllers['newCorreo']!.text) != null
                       ? _addIntegrante
-                      : null,
+                      : null),
               style: ElevatedButton.styleFrom(
                 backgroundColor: primaryOrange,
                 foregroundColor: Colors.white,
@@ -595,8 +870,10 @@ class _PageCreateProjectState extends State<PageCreateProject> {
                     (e) => Chip(
                       backgroundColor: Colors.blue.shade100,
                       label: Text('${e.value.nombre} (${e.value.cedula})'),
-                      deleteIcon: const Icon(Icons.close, size: 18),
-                      onDeleted: () => _removeIntegrante(e.key),
+                      deleteIcon:
+                          _readOnly ? null : const Icon(Icons.close, size: 18),
+                      onDeleted:
+                          _readOnly ? null : () => _removeIntegrante(e.key),
                     ),
                   )
                   .toList(),
@@ -631,12 +908,13 @@ class _PageCreateProjectState extends State<PageCreateProject> {
                     ),
                   ),
                   inputFormatters: alfaNumEsFormatters(maxLength: 50),
-                  onFieldSubmitted: (_) => _addTask(),
+                  readOnly: _readOnly,
+                  onFieldSubmitted: _readOnly ? null : (_) => _addTask(),
                 ),
               ),
               const SizedBox(width: 10),
               ElevatedButton(
-                onPressed: _addTask,
+                onPressed: _readOnly ? null : _addTask,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: primaryOrange,
                   foregroundColor: Colors.white,
@@ -667,7 +945,8 @@ class _PageCreateProjectState extends State<PageCreateProject> {
                             ),
                             IconButton(
                               icon: const Icon(Icons.delete, color: Colors.red),
-                              onPressed: () => _removeTask(e.key),
+                              onPressed:
+                                  _readOnly ? null : () => _removeTask(e.key),
                             ),
                           ],
                         ),
@@ -680,23 +959,144 @@ class _PageCreateProjectState extends State<PageCreateProject> {
         ],
       );
 
-  Widget _buildCreateProjectButton() => SizedBox(
+  Widget _buildLinksField() => Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Enlaces / Recursos',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: Colors.black87,
+            ),
+          ),
+          const SizedBox(height: 10),
+          Row(
+            children: [
+              Expanded(
+                child: TextFormField(
+                  controller: _controllers['newLink']!,
+                  decoration: const InputDecoration(
+                    hintText:
+                        'Agregar enlace (ej: https://docs.google.com/...)',
+                    border: OutlineInputBorder(),
+                    contentPadding: EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 18,
+                    ),
+                  ),
+                  keyboardType: TextInputType.url,
+                  readOnly: _readOnly,
+                  onFieldSubmitted: _readOnly ? null : (_) => _addLink(),
+                ),
+              ),
+              const SizedBox(width: 10),
+              ElevatedButton(
+                onPressed: _readOnly ? null : _addLink,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: primaryOrange,
+                  foregroundColor: Colors.white,
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 15, vertical: 19),
+                ),
+                child: const Text('Añadir'),
+              ),
+              const SizedBox(width: 10),
+              OutlinedButton.icon(
+                onPressed: _readOnly
+                    ? null
+                    : () async {
+                        final result = await showDialog<Map<String, String>>(
+                          context: context,
+                          builder: (_) => const ArchivoDialog(),
+                        );
+                        if (result != null) {
+                          final url = result['url']?.trim();
+                          if (url != null &&
+                              url.isNotEmpty &&
+                              !_links.contains(url)) {
+                            setState(() => _links.add(url));
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                  content: Text(
+                                      'Recurso agregado: ${result['nombre'] ?? 'Recurso'}')),
+                            );
+                          }
+                        }
+                      },
+                icon: const Icon(Icons.add_link, color: primaryOrange),
+                label: const Text('Dialog'),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: primaryOrange,
+                  side: const BorderSide(color: primaryOrange),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
+                ),
+              ),
+            ],
+          ),
+          if (_links.isNotEmpty) ...[
+            const SizedBox(height: 10),
+            Column(
+              children: _links
+                  .map(
+                    (link) => Card(
+                      margin: const EdgeInsets.only(bottom: 8.0),
+                      elevation: 1,
+                      child: ListTile(
+                        leading: const Icon(Icons.link, color: primaryOrange),
+                        title: Text(link,
+                            maxLines: 1, overflow: TextOverflow.ellipsis),
+                        trailing: IconButton(
+                          icon: const Icon(Icons.delete, color: Colors.red),
+                          onPressed: _readOnly ? null : () => _removeLink(link),
+                        ),
+                      ),
+                    ),
+                  )
+                  .toList(),
+            ),
+          ],
+        ],
+      );
+
+  Widget _buildCreateOrUpdateButton() => SizedBox(
         width: double.infinity,
-        child: ElevatedButton(
-          style: ElevatedButton.styleFrom(
-            foregroundColor: Colors.white,
-            backgroundColor: primaryOrange,
-            padding: const EdgeInsets.symmetric(vertical: 18),
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-            elevation: 5,
-          ),
-          onPressed: _isFormReady ? _createProject : null,
-          child: const Text(
-            'Crear Proyecto',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-          ),
-        ),
+        child: _readOnly
+            ? Container(
+                padding: const EdgeInsets.symmetric(vertical: 18),
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade300,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Text(
+                  'Modo solo lectura (sin permisos para editar)',
+                  style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black54),
+                  textAlign: TextAlign.center,
+                ),
+              )
+            : ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  foregroundColor: Colors.white,
+                  backgroundColor: primaryOrange,
+                  padding: const EdgeInsets.symmetric(vertical: 18),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8)),
+                  elevation: 5,
+                ),
+                onPressed: _isFormReady
+                    ? (_editMode ? _updateProject : _createProject)
+                    : null,
+                child: Text(
+                  _editMode ? 'Guardar Cambios' : 'Crear Proyecto',
+                  style: const TextStyle(
+                      fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+              ),
       );
 
   // Buscador de integrantes por nombre, cédula o correo
@@ -714,6 +1114,19 @@ class _PageCreateProjectState extends State<PageCreateProject> {
       }).toList(growable: false);
     }
 
+    // Si está en modo lectura, devolver campo bloqueado sin Autocomplete interactivo
+    if (_readOnly) {
+      return TextField(
+        enabled: false,
+        decoration: const InputDecoration(
+          labelText: 'Buscar integrante (solo lectura)',
+          hintText: 'Sin permisos para modificar integrantes',
+          border: OutlineInputBorder(),
+          prefixIcon: Icon(Icons.lock),
+        ),
+      );
+    }
+
     return Autocomplete<Map<String, dynamic>>(
       optionsBuilder: (TextEditingValue tev) {
         return filterUsers(tev.text);
@@ -726,7 +1139,6 @@ class _PageCreateProjectState extends State<PageCreateProject> {
       },
       onSelected: (u) => _applyUserSelection(u),
       fieldViewBuilder: (context, textCtrl, focusNode, onFieldSubmitted) {
-        // Guardar referencia para limpiar desde 'Añadir'
         _memberSearchCtrl = textCtrl;
         _memberSearchFocus = focusNode;
         return TextField(
@@ -739,7 +1151,6 @@ class _PageCreateProjectState extends State<PageCreateProject> {
             prefixIcon: Icon(Icons.search),
           ),
           onTap: () {
-            // Seleccionar todo el texto al presionar el buscador
             textCtrl.selection = TextSelection(
               baseOffset: 0,
               extentOffset: textCtrl.text.length,

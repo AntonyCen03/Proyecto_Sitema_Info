@@ -167,16 +167,16 @@ Future<void> deleteUser(String uid) async {
 /// con las llaves: nombre, email, cedula. Ej:
 /// [ {"nombre":"Ana","email":"ana@x.com","cedula":"123"}, ... ]
 Future<void> addProyecto(
-  int idProyecto,
-  String nombreProyecto,
-  String descripcion,
-  List<Map<String, String>> integrantesDetalle,
-  String nombreEqipo,
-  Map<String, bool> tareas,
-  bool estado,
-  DateTime fechaCreacion,
-  DateTime fechaEntrega,
-) async {
+    int idProyecto,
+    String nombreProyecto,
+    String descripcion,
+    List<Map<String, String>> integrantesDetalle,
+    String nombreEqipo,
+    Map<String, bool> tareas,
+    bool estado,
+    DateTime fechaCreacion,
+    DateTime fechaEntrega,
+    [List<String> links = const []]) async {
   await db.collection('list_proyecto').add({
     'id_proyecto': idProyecto,
     'nombre_proyecto': nombreProyecto,
@@ -189,6 +189,7 @@ Future<void> addProyecto(
     'fecha_creacion': fechaCreacion,
     'fecha_entrega': fechaEntrega,
     'like': 0, // nuevo campo inicializado en 0
+    'links': links,
   });
 }
 
@@ -221,17 +222,17 @@ Future<int> getNextProyectoId() async {
 
 /// Actualiza un proyecto usando la nueva estructura de integrantes detalle
 Future<void> updateProyecto(
-  int idProyecto,
-  String nombreProyecto,
-  String descripcion,
-  List<Map<String, String>> integrantesDetalle,
-  String nombreEqipo,
-  Map<String, bool> tareas,
-  bool estado,
-  DateTime fechaCreacion,
-  DateTime fechaEntrega,
-  String docId,
-) async {
+    int idProyecto,
+    String nombreProyecto,
+    String descripcion,
+    List<Map<String, String>> integrantesDetalle,
+    String nombreEqipo,
+    Map<String, bool> tareas,
+    bool estado,
+    DateTime fechaCreacion,
+    DateTime fechaEntrega,
+    String docId,
+    [List<String> links = const []]) async {
   await db.collection('list_proyecto').doc(docId).update({
     'id_proyecto': idProyecto,
     'nombre_proyecto': nombreProyecto,
@@ -243,6 +244,7 @@ Future<void> updateProyecto(
     'tareas': _wrapTasks(tareas),
     'fecha_creacion': fechaCreacion,
     'fecha_entrega': fechaEntrega,
+    'links': links,
   });
 }
 
@@ -539,6 +541,16 @@ Future<void> incrementarLikeProyecto(String docId) async {
       .update({'like': FieldValue.increment(1)});
 }
 
+/// Agrega un enlace (URL) al arreglo 'links' de un proyecto.
+/// Usa arrayUnion para evitar duplicados exactos.
+Future<void> addLinkProyecto(String docId, String url) async {
+  final trimmed = url.trim();
+  if (trimmed.isEmpty) return;
+  await db.collection('list_proyecto').doc(docId).update({
+    'links': FieldValue.arrayUnion([trimmed])
+  });
+}
+
 /// Verifica si el usuario autenticado es administrador (isadmin == true)
 /// Busca al usuario en la colección `user` utilizando la lista de `getUser`
 /// y compara por email. Si no hay usuario autenticado o no se encuentra,
@@ -617,4 +629,34 @@ Future<void> checkAndUpdateProyectoEstado(String docId) async {
   if (data['estado'] != nuevoEstado) {
     await snap.reference.update({'estado': nuevoEstado});
   }
+}
+
+/// Marca todas las tareas de un proyecto como hechas (true) o no hechas (false).
+/// Si done=true: establece done=true y fecha_termino=serverTimestamp (para cada tarea).
+/// Si done=false: establece done=false y limpia nombre, cedula y fecha_termino.
+/// Luego sincroniza el campo 'estado' del proyecto.
+Future<void> setTodasLasTareas(String docId, bool done) async {
+  final snap = await db.collection('list_proyecto').doc(docId).get();
+  if (!snap.exists) return;
+  final data = snap.data() ?? <String, dynamic>{};
+  final tareas = data['tareas'];
+  if (tareas is! Map || tareas.isEmpty) return;
+
+  final Map<String, Object?> updates = {};
+  tareas.forEach((key, value) {
+    final k = key?.toString();
+    if (k == null || k.isEmpty) return;
+    updates['tareas.$k.done'] = done;
+    if (done) {
+      // Mantener nombre/cedula existentes si ya estaban; no sobrescribir con null.
+      // Sólo actualizamos fecha_termino para reflejar la marca masiva.
+      updates['tareas.$k.fecha_termino'] = FieldValue.serverTimestamp();
+    } else {
+      updates['tareas.$k.nombre'] = null;
+      updates['tareas.$k.cedula'] = null;
+      updates['tareas.$k.fecha_termino'] = null;
+    }
+  });
+  await db.collection('list_proyecto').doc(docId).update(updates);
+  await checkAndUpdateProyectoEstado(docId);
 }

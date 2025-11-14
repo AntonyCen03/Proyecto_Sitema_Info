@@ -6,6 +6,7 @@ import 'package:number_pagination/number_pagination.dart';
 import 'package:proyecto_final/Page_Ui/widgets/metro_app_bar.dart';
 import 'package:proyecto_final/services/firebase_services.dart';
 import 'dart:async';
+import 'package:firebase_auth/firebase_auth.dart';
 
 //Esta clase se encaraa de crear la lista de proyectos en la interfaz de usuario.
 class ListaProyectos extends StatefulWidget {
@@ -27,29 +28,51 @@ class ListaProyectosUi extends State<ListaProyectos> {
   List<Widget> listaproyectos = [];
   String filtro = "like";
   Widget listadeproyectos = Container();
-  String usuarioActual = "Ana García";
+  String usuarioEmailLower = "";
 
   @override
   void initState() {
+    super.initState();
     administrador = false;
-    // Suscribirse al stream de proyectos de Firestore y mapear al formato de UI
+    _setupAdminAndStream();
+  }
+
+  Future<void> _setupAdminAndStream() async {
+    // Obtener si el usuario es admin y su email en minúsculas
+    final isAdmin = await isCurrentUserAdmin(context);
+    final emailLower =
+        FirebaseAuth.instance.currentUser?.email?.trim().toLowerCase() ?? '';
+    setState(() {
+      administrador = isAdmin;
+      usuarioEmailLower = emailLower;
+    });
+
+    // Suscribirse al stream y filtrar por email si no es admin
     _proyectosSub = streamProyecto().listen((lista) {
-      final mapeados = _mapearProyectosUI(lista);
+      final filtrados = administrador
+          ? lista
+          : lista.where((p) {
+              final integrantes = (p['integrantes_detalle'] ?? []) as List;
+              for (final i in integrantes) {
+                if (i is Map) {
+                  final mail =
+                      (i['email'] ?? '').toString().trim().toLowerCase();
+                  if (mail.isNotEmpty && mail == usuarioEmailLower) return true;
+                }
+              }
+              return false;
+            }).toList();
+
+      final mapeados = _mapearProyectosUI(filtrados);
       setState(() {
         proyectos = mapeados;
         ids.clear();
         arrreglarlista();
-        // Reaplicar filtro actual sobre la nueva data
         reorganizarlista();
         arreglarlistaproyectos();
         listadeproyectos = proyectoslist();
       });
     });
-    // Inicializar lista vacía
-    arrreglarlista();
-    arreglarlistaproyectos();
-    listadeproyectos = proyectoslist();
-    super.initState();
   }
 
   @override
@@ -113,10 +136,11 @@ class ListaProyectosUi extends State<ListaProyectos> {
                         ],
                       ),
                       const SizedBox(height: 12),
-                      Align(
-                        alignment: Alignment.centerLeft,
-                        child: _crearProyectoButton(),
-                      ),
+                      if (administrador)
+                        Align(
+                          alignment: Alignment.centerLeft,
+                          child: _crearProyectoButton(),
+                        ),
                     ],
                   )
                 : Row(
@@ -136,7 +160,7 @@ class ListaProyectosUi extends State<ListaProyectos> {
                           ),
                         ],
                       ),
-                      _crearProyectoButton(),
+                      if (administrador) _crearProyectoButton(),
                     ],
                   ),
 
@@ -165,16 +189,6 @@ class ListaProyectosUi extends State<ListaProyectos> {
                           ),
                         ],
                       ),
-                      const SizedBox(height: 8),
-                      if (administrador)
-                        Align(
-                          alignment: Alignment.centerRight,
-                          child: ElevatedButton.icon(
-                            onPressed: () {},
-                            icon: const Icon(Icons.add),
-                            label: const Text("Nuevo Proyecto"),
-                          ),
-                        ),
                     ],
                   )
                 : Row(
@@ -191,14 +205,6 @@ class ListaProyectosUi extends State<ListaProyectos> {
                                 height: searchHeight, child: _searchField()),
                           ),
                         ],
-                      ),
-                      Visibility(
-                        visible: administrador,
-                        child: ElevatedButton.icon(
-                          onPressed: () {},
-                          icon: const Icon(Icons.add),
-                          label: const Text("Nuevo Proyecto"),
-                        ),
                       ),
                     ],
                   ),
@@ -286,6 +292,11 @@ class ListaProyectosUi extends State<ListaProyectos> {
       final participantes =
           (p['integrante'] as List?)?.map((e) => e.toString()).toList() ??
               <String>[];
+      final participantesEmails = ((p['integrantes_detalle'] ?? []) as List)
+          .whereType<Map>()
+          .map((m) => (m['email'] ?? '').toString().trim().toLowerCase())
+          .where((s) => s.isNotEmpty)
+          .toList();
       final percent =
           calcPercent((p['tareas'] as Map?)?.cast<String, dynamic>());
       salida.add({
@@ -296,6 +307,7 @@ class ListaProyectosUi extends State<ListaProyectos> {
         'fecha_inicio': fmt(p['fecha_creacion'] as DateTime?),
         'fecha_entrega': fmt(p['fecha_entrega'] as DateTime?),
         'participantes': participantes,
+        'participantes_emails': participantesEmails,
         // Extras por si se requieren luego
         'docId': p['docId'],
         'id_proyecto': p['id_proyecto'],
@@ -397,8 +409,23 @@ class ListaProyectosUi extends State<ListaProyectos> {
         ProyectosDeLaLista(
           proyectos: proyectos[ids[i]],
           onTap: () {
-            //Aqui antony debes de dar para que el usuario de click y se muestre la ventana con los datos del proyecto
+            final docId = proyectos[ids[i]]['docId']?.toString();
+            if (docId != null && docId.isNotEmpty) {
+              Navigator.pushNamed(
+                context,
+                '/crear_proyecto',
+                arguments: {
+                  'docId': docId,
+                },
+              );
+            }
           },
+          isAdmin: administrador,
+          canAddLink: !administrador &&
+              ((proyectos[ids[i]]['participantes_emails'] as List?)
+                      ?.cast<String>()
+                      .contains(usuarioEmailLower) ??
+                  false),
         ),
       );
     }
@@ -473,7 +500,10 @@ class ListaProyectosUi extends State<ListaProyectos> {
     } else if (filtro == 'misproyectos') {
       ids.clear();
       for (int i = 0; i < proyectos.length; i++) {
-        if (proyectos[i]['participantes'].contains(usuarioActual)) {
+        final emails =
+            (proyectos[i]['participantes_emails'] as List?)?.cast<String>() ??
+                const <String>[];
+        if (emails.contains(usuarioEmailLower)) {
           ids.add(proyectos[i]['id']);
         }
       }
