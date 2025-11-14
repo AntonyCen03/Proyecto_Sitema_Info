@@ -61,111 +61,193 @@ class ListaProyectosUi extends State<ListaProyectos> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        backgroundColor: colorFondo,
-        extendBodyBehindAppBar: false,
-        appBar: _buildAppBar(context),
-        body: Padding(
-          padding: EdgeInsetsGeometry.all(35),
-          child: cuerpo(),
-        ));
+      backgroundColor: colorFondo,
+      extendBodyBehindAppBar: false,
+      appBar: _buildAppBar(context),
+      body: Padding(
+        padding: const EdgeInsets.all(24),
+        child: cuerpo(),
+      ),
+    );
   }
 
   Widget cuerpo() {
-    //Este metodo crea el cuerpo de la UI de la lista de proyectos
-    return Container(
-      padding: const EdgeInsets.all(24.0),
-      decoration: BoxDecoration(
-        color: Color.fromRGBO(255, 255, 255, 1),
-        borderRadius: BorderRadius.circular(16.0),
+    // Este metodo crea el cuerpo de la UI de la lista de proyectos (responsive)
+    return LayoutBuilder(builder: (context, constraints) {
+      final double maxW = constraints.maxWidth;
+      final bool isWide = maxW >= 1200;
+      final bool isMedium = maxW >= 800 && maxW < 1200;
+      final bool isNarrow = maxW < 800;
+
+      final double titleSize = isWide ? 48 : (isMedium ? 36 : 28);
+      final double searchHeight = 40;
+      final double searchMaxWidth =
+          isWide ? 360 : (isMedium ? 280 : double.infinity);
+
+      return Container(
+        padding: const EdgeInsets.all(24.0),
+        decoration: BoxDecoration(
+          color: const Color.fromRGBO(255, 255, 255, 1),
+          borderRadius: BorderRadius.circular(16.0),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // Título + Botón Crear Proyecto
+            isNarrow
+                ? Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          const SizedBox(width: 16),
+                          Text(
+                            "Proyectos",
+                            style: TextStyle(
+                              color: primaryOrange,
+                              fontSize: titleSize,
+                              fontWeight: FontWeight.w900,
+                              height: 1.1,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child: _crearProyectoButton(),
+                      ),
+                    ],
+                  )
+                : Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Row(
+                        children: [
+                          const SizedBox(width: 16),
+                          Text(
+                            "Proyectos",
+                            style: TextStyle(
+                              color: primaryOrange,
+                              fontSize: titleSize,
+                              fontWeight: FontWeight.w900,
+                              height: 1.1,
+                            ),
+                          ),
+                        ],
+                      ),
+                      _crearProyectoButton(),
+                    ],
+                  ),
+
+            const SizedBox(height: 10.0),
+            const Divider(),
+            const SizedBox(height: 10.0),
+
+            // Filtros + Buscador + (opcional) botón admin
+            isNarrow
+                ? Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Row(
+                        children: [
+                          filtros(),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: ConstrainedBox(
+                              constraints:
+                                  BoxConstraints(maxWidth: searchMaxWidth),
+                              child: SizedBox(
+                                height: searchHeight,
+                                child: _searchField(),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      if (administrador)
+                        Align(
+                          alignment: Alignment.centerRight,
+                          child: ElevatedButton.icon(
+                            onPressed: () {},
+                            icon: const Icon(Icons.add),
+                            label: const Text("Nuevo Proyecto"),
+                          ),
+                        ),
+                    ],
+                  )
+                : Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Row(
+                        children: [
+                          filtros(),
+                          const SizedBox(width: 10),
+                          ConstrainedBox(
+                            constraints:
+                                BoxConstraints(maxWidth: searchMaxWidth),
+                            child: SizedBox(
+                                height: searchHeight, child: _searchField()),
+                          ),
+                        ],
+                      ),
+                      Visibility(
+                        visible: administrador,
+                        child: ElevatedButton.icon(
+                          onPressed: () {},
+                          icon: const Icon(Icons.add),
+                          label: const Text("Nuevo Proyecto"),
+                        ),
+                      ),
+                    ],
+                  ),
+
+            const SizedBox(height: 8.0),
+            // Lista de proyectos
+            Expanded(child: listadeproyectos),
+            const SizedBox(height: 12.0),
+            // Paginación
+            cambiosdepagina(),
+          ],
+        ),
+      );
+    });
+  }
+
+  // Campo de búsqueda reutilizable
+  Widget _searchField() {
+    return TextField(
+      decoration: InputDecoration(
+        hintText:
+            const Text('Buscar proyecto', style: TextStyle(fontSize: 12)).data,
+        prefixIcon: const Icon(Icons.search),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(50.0),
+        ),
+        isDense: true,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       ),
-      child: Column(
-        children: [
-          Align(
-            alignment: AlignmentGeometry.topLeft,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Row(
-                  children: [
-                    SizedBox(width: 26),
-                    Text(
-                      "Proyectos",
-                      textAlign: TextAlign.left,
-                      style: TextStyle(
-                        color: primaryOrange,
-                        fontSize: 48,
-                        fontWeight: FontWeight.w900,
-                        height: 1.1,
-                      ),
-                    ),
-                  ],
-                ),
-                ElevatedButton.icon(
-                  onPressed: () {
-                    Navigator.pushNamed(context, '/crear_proyecto');
-                  },
-                  icon: Icon(Icons.add, color: primaryOrange),
-                  label: Text("Crear Proyecto", style: TextStyle(color: primaryOrange)),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.white,
-                    side: BorderSide(color: primaryOrange, width: 2),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8.0),
-                    ),
-                    padding:
-                        EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
-                    textStyle:
-                        TextStyle(fontSize: 16.0, fontWeight: FontWeight.bold),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          SizedBox(height: 10.0),
-          Divider(),
-          SizedBox(height: 10.0),
-          Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-            Row(
-              children: [
-                filtros(),
-                SizedBox(
-                  width: 10,
-                ),
-                SizedBox(
-                  width: 300,
-                  height: 37,
-                  child: TextField(
-                    decoration: InputDecoration(
-                      hintText: Text('Buscar proyecto',
-                              style: TextStyle(fontSize: 11))
-                          .data,
-                      prefixIcon: Icon(Icons.search),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(50.0),
-                      ),
-                    ),
-                    onChanged: (value) {
-                      buscador(value);
-                    },
-                  ),
-                ),
-              ],
-            ),
-            Visibility(
-              visible: administrador,
-              child: ElevatedButton.icon(
-                onPressed: () {
-                  // Aqui hacer para unir lo de crear nuevo proyecto
-                },
-                icon: Icon(Icons.add),
-                label: Text("Nuevo Proyecto"),
-              ),
-            )
-          ]),
-          SizedBox(height: 5.0),
-          listadeproyectos,
-          cambiosdepagina(),
-        ],
+      onChanged: (value) => buscador(value),
+    );
+  }
+
+  // Botón de crear proyecto reutilizable
+  Widget _crearProyectoButton() {
+    return ElevatedButton.icon(
+      onPressed: () {
+        Navigator.pushNamed(context, '/crear_proyecto');
+      },
+      icon: Icon(Icons.add, color: primaryOrange),
+      label: Text("Crear Proyecto", style: TextStyle(color: primaryOrange)),
+      style: ElevatedButton.styleFrom(
+        backgroundColor: Colors.white,
+        side: BorderSide(color: primaryOrange, width: 2),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(8.0),
+        ),
+        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+        textStyle: const TextStyle(fontSize: 16.0, fontWeight: FontWeight.bold),
       ),
     );
   }
@@ -237,10 +319,9 @@ class ListaProyectosUi extends State<ListaProyectos> {
     final int inicio = numero;
     final int fin = min(numero + 5, listaproyectos.length);
     return ListView(
-        shrinkWrap: true,
-        primary: false,
-        padding: const EdgeInsets.all(16),
-        children: listaproyectos.sublist(inicio, fin));
+      padding: const EdgeInsets.all(16),
+      children: listaproyectos.sublist(inicio, fin),
+    );
   }
 
   Widget cambiosdepagina() {

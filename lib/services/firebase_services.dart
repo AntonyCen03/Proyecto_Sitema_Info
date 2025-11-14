@@ -1,8 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_storage/firebase_storage.dart';
-import 'dart:io';
 
 FirebaseFirestore db = FirebaseFirestore.instance;
 
@@ -72,6 +70,7 @@ Map<String, Map<String, dynamic>> _wrapTasks(
       'done': _toBool(v),
       'nombre': nombres != null ? nombres[k] : null,
       'cedula': cedulas != null ? cedulas[k] : null,
+      'fecha_termino': null,
     };
   });
   return out;
@@ -523,6 +522,15 @@ Stream<List<Map<String, dynamic>>> streamProyecto() {
   });
 }
 
+/// Stream del documento de un proyecto específico por `docId` (datos crudos)
+Stream<Map<String, dynamic>?> streamProyectoDoc(String docId) {
+  return db
+      .collection('list_proyecto')
+      .doc(docId)
+      .snapshots()
+      .map((doc) => doc.data());
+}
+
 /// Incrementa en 1 el campo "like" de un proyecto por docId
 Future<void> incrementarLikeProyecto(String docId) async {
   await db
@@ -562,26 +570,51 @@ Future<bool> isCurrentUserAdmin(BuildContext context) async {
   }
 }
 
-/// Sube una imagen de perfil a Firebase Storage y actualiza la URL en
-/// el documento del usuario en la colección `user`.
-///
-/// - [file]: archivo local (dart:io File) de la imagen.
-/// - [uid]: id del documento de usuario en Firestore (normalmente uid).
-///
-/// Retorna la URL pública de la imagen si la operación fue exitosa,
-/// o lanza una excepción en caso de error.
-Future<String> uploadProfileImage(File file, String uid) async {
-  try {
-    final storage = FirebaseStorage.instance;
-    final ext = file.path.split('.').last;
-    final ref = storage.ref().child('user_photos').child('$uid.$ext');
-    final uploadTask = ref.putFile(file);
-    final snapshot = await uploadTask.whenComplete(() {});
-    final url = await snapshot.ref.getDownloadURL();
-    // Actualizar documento del usuario en Firestore
-    await db.collection('user').doc(uid).update({'photo_url': url});
-    return url;
-  } catch (e) {
-    rethrow;
+/// Actualiza el estado de una tarea de un proyecto y guarda/limpia datos del responsable
+/// - tareaKey: llave exacta de la tarea en el mapa `tareas`
+/// - done: nuevo estado
+/// - nombre/cedula: datos de la persona que marca la tarea (se guardan solo si done=true)
+Future<void> setTareaEstado(
+  String docId,
+  String tareaKey,
+  bool done, {
+  String? nombre,
+  String? cedula,
+}) async {
+  final Map<String, Object?> updates = {
+    'tareas.$tareaKey.done': done,
+    'tareas.$tareaKey.nombre': done ? (nombre ?? '') : null,
+    'tareas.$tareaKey.cedula': done ? (cedula ?? '') : null,
+    'tareas.$tareaKey.fecha_termino':
+        done ? FieldValue.serverTimestamp() : null,
+  };
+  await db.collection('list_proyecto').doc(docId).update(updates);
+  await checkAndUpdateProyectoEstado(docId);
+}
+
+/// Mantiene el campo 'estado' del proyecto en sincronía con sus tareas.
+/// - Si TODAS las tareas están done=true (y hay al menos una), pone estado=true.
+/// - Si ALGUNA tarea está en false, pone estado=false.
+Future<void> checkAndUpdateProyectoEstado(String docId) async {
+  final snap = await db.collection('list_proyecto').doc(docId).get();
+  if (!snap.exists) return;
+  final data = snap.data() ?? <String, dynamic>{};
+  final tareas = data['tareas'];
+  if (tareas is! Map || tareas.isEmpty)
+    return; // si no hay tareas, no tocar estado
+
+  bool allDone = true;
+  tareas.forEach((key, value) {
+    bool done = false;
+    if (value is Map) {
+      done = _toBool(value['done']);
+    } else if (value is bool) {
+      done = value;
+    }
+    if (!done) allDone = false;
+  });
+  final bool nuevoEstado = allDone;
+  if (data['estado'] != nuevoEstado) {
+    await snap.reference.update({'estado': nuevoEstado});
   }
 }

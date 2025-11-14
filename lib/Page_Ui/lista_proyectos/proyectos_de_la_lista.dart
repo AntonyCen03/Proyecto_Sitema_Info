@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:proyecto_final/Page_Ui/lista_proyectos/Grafico_pizza.dart';
-import 'package:proyecto_final/services/firebase_services.dart';
+import 'package:proyecto_final/Page_Ui/lista_proyectos/TareasDialog.dart';
+import 'package:proyecto_final/services/firebase_services.dart' as fs;
 
 //Esta clase se encarga de crear los InkWell que se usaran para la lista de proyectos en la interfaz de usuario.
 class ProyectosDeLaLista extends StatefulWidget {
@@ -75,7 +76,7 @@ class PLista extends State<ProyectosDeLaLista> {
                                 final docId =
                                     widget.proyectos['docId']?.toString();
                                 if (docId != null && docId.isNotEmpty) {
-                                  await incrementarLikeProyecto(docId);
+                                  await fs.incrementarLikeProyecto(docId);
                                 }
                               },
                             ),
@@ -94,6 +95,26 @@ class PLista extends State<ProyectosDeLaLista> {
                                 };
                                 Navigator.pushNamed(context, '/foro_page',
                                     arguments: args);
+                              },
+                            ),
+                            SizedBox(width: 8),
+                            IconButton(
+                              tooltip: 'Tareas',
+                              icon: Icon(Icons.assignment_turned_in_outlined,
+                                  color: Colors.green),
+                              onPressed: () {
+                                final docId =
+                                    widget.proyectos['docId']?.toString();
+                                if (docId != null && docId.isNotEmpty) {
+                                  showDialog(
+                                    context: context,
+                                    builder: (_) => TareasDialog(
+                                      docId: docId,
+                                      tituloProyecto:
+                                          widget.proyectos['title'] ?? '',
+                                    ),
+                                  );
+                                }
                               },
                             ),
                           ],

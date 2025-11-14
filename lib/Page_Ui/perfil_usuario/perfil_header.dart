@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'profile_image_picker.dart';
+//import 'profile_image_picker.dart';
 
 class PerfilHeader extends StatelessWidget {
   final String nombre;
@@ -35,8 +35,8 @@ class PerfilHeader extends StatelessWidget {
         SizedBox(
           width: 76,
           height: 76,
-          child: ProfileImagePicker(
-              photoUrl: photoUrl, radius: 36, onUploaded: onUploaded),
+          /*child: ProfileImagePicker(
+              photoUrl: photoUrl, radius: 36, onUploaded: onUploaded),*/
         ),
         const SizedBox(width: 14),
         Column(
