@@ -16,6 +16,11 @@ class _ForoPageState extends State<ForoPage> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
+  // Integrantes del proyecto para facilitar menciones
+  final List<Map<String, String>> _integrantes = [];
+  bool _cargandoIntegrantes = false;
+  int? _idProyectoCargado;
+
   void enviarMensaje(int? idProyecto) async {
     if (_mensajeController.text.trim().isEmpty) return;
 
@@ -26,6 +31,7 @@ class _ForoPageState extends State<ForoPage> {
         'usuario': user.email,
         'timestamp': FieldValue.serverTimestamp(),
         'id_proyecto': idProyecto, // guardar id del proyecto para filtrar
+        'notificar': true,
       });
       _mensajeController.clear();
     }
@@ -80,6 +86,121 @@ class _ForoPageState extends State<ForoPage> {
           ],
         ),
       ),
+    );
+  }
+
+  Future<void> _cargarIntegrantesProyecto(int idProyecto) async {
+    if (_cargandoIntegrantes) return;
+    setState(() {
+      _cargandoIntegrantes = true;
+    });
+    try {
+      final q = await _firestore
+          .collection('list_proyecto')
+          .where('id_proyecto', isEqualTo: idProyecto)
+          .limit(1)
+          .get();
+      _integrantes.clear();
+      if (q.docs.isNotEmpty) {
+        final data = q.docs.first.data();
+        final raw = data['integrante'];
+        if (raw is List) {
+          for (final e in raw) {
+            if (e is Map) {
+              final nombre = (e['nombre'] ?? e['name'] ?? '').toString();
+              final email = (e['email'] ?? '').toString();
+              if (email.isNotEmpty || nombre.isNotEmpty) {
+                _integrantes.add({
+                  'nombre': nombre,
+                  'email': email,
+                });
+              }
+            }
+          }
+        }
+      }
+    } catch (_) {
+      // silencioso; opcionalmente mostrar snackbar
+    } finally {
+      if (mounted) {
+        setState(() {
+          _cargandoIntegrantes = false;
+        });
+      }
+    }
+  }
+
+  void _insertMention(String email) {
+    final text = _mensajeController.text;
+    final sel = _mensajeController.selection;
+    final insert = '@$email ';
+    int base = sel.baseOffset;
+    int extent = sel.extentOffset;
+    if (base < 0 || extent < 0) {
+      // sin selección previa, agregar al final
+      _mensajeController.text = text + insert;
+      _mensajeController.selection = TextSelection.fromPosition(
+        TextPosition(offset: _mensajeController.text.length),
+      );
+      return;
+    }
+    final start = base < extent ? base : extent;
+    final end = base < extent ? extent : base;
+    final newText = text.replaceRange(start, end, insert);
+    _mensajeController.text = newText;
+    final caret = start + insert.length;
+    _mensajeController.selection = TextSelection.fromPosition(
+      TextPosition(offset: caret),
+    );
+  }
+
+  Future<void> _abrirSelectorMencion(int? idProyecto) async {
+    if (idProyecto == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Selecciona un proyecto para mencionar')),
+      );
+      return;
+    }
+    if (_idProyectoCargado != idProyecto) {
+      _idProyectoCargado = idProyecto;
+      await _cargarIntegrantesProyecto(idProyecto);
+    }
+    if (!mounted) return;
+    if (_cargandoIntegrantes) return;
+
+    showModalBottomSheet(
+      context: context,
+      builder: (ctx) {
+        if (_integrantes.isEmpty) {
+          return const Padding(
+            padding: EdgeInsets.all(16.0),
+            child: Text('No hay integrantes para mencionar.'),
+          );
+        }
+        return SafeArea(
+          child: ListView.separated(
+            itemCount: _integrantes.length,
+            separatorBuilder: (_, __) => const Divider(height: 1),
+            itemBuilder: (_, i) {
+              final it = _integrantes[i];
+              final nombre = it['nombre'] ?? '';
+              final email = it['email'] ?? '';
+              return ListTile(
+                leading: const Icon(Icons.alternate_email),
+                title: Text(nombre.isNotEmpty ? nombre : email),
+                subtitle:
+                    nombre.isNotEmpty && email.isNotEmpty ? Text(email) : null,
+                onTap: () {
+                  Navigator.pop(context);
+                  if (email.isNotEmpty) {
+                    _insertMention(email);
+                  }
+                },
+              );
+            },
+          ),
+        );
+      },
     );
   }
 
@@ -228,6 +349,11 @@ class _ForoPageState extends State<ForoPage> {
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
             child: Row(
               children: [
+                IconButton(
+                  tooltip: 'Mencionar integrante',
+                  icon: const Icon(Icons.alternate_email, color: Colors.orange),
+                  onPressed: () => _abrirSelectorMencion(idProyecto),
+                ),
                 Expanded(
                   child: TextField(
                     controller: _mensajeController,

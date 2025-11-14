@@ -32,11 +32,35 @@ class _NotificationsMenuState extends State<NotificationsMenu> {
     super.dispose();
   }
 
+  void _dismissNotification(Map<String, dynamic> n) {
+    final key = '${n['docId']}_${n['tipo']}';
+    setState(() {
+      _notificaciones.removeWhere((x) => '${x['docId']}_${x['tipo']}' == key);
+      // No borrar de _mostradas para evitar que reaparezcan en la próxima carga
+    });
+  }
+
+  Future<void> _persistNotificationRead(Map<String, dynamic> n) async {
+    try {
+      final tipo = (n['tipo'] ?? '').toString();
+      final docId = (n['docId'] ?? '').toString();
+      if (tipo == 'foro' && docId.isNotEmpty) {
+        await setForoNotificar(docId, false);
+      } else if (docId.isNotEmpty &&
+          (tipo == '24h' || tipo == '1h' || tipo == 'vencido')) {
+        await setProyectoNotificacion(docId, tipo, false);
+      }
+    } catch (_) {
+      // Ignorar errores de persistencia para no bloquear la UX
+    }
+  }
+
   Future<void> _cargarNotificaciones() async {
     try {
       final nuevas = await generarNotificacionesEntrega(context);
+      final menciones = await getForoMentions(context);
       bool huboCambio = false;
-      for (final n in nuevas) {
+      for (final n in [...nuevas, ...menciones]) {
         final key = '${n['docId']}_${n['tipo']}';
         if (!_mostradas.contains(key)) {
           _mostradas.add(key);
@@ -113,19 +137,50 @@ class _NotificationsMenuState extends State<NotificationsMenu> {
         } else {
           for (final n in _notificaciones) {
             final entrega = (n['dateEntrega'] as DateTime?);
-            final subt = entrega != null
-                ? 'Entrega: ' + DateFormat('dd/MM/yyyy HH:mm').format(entrega)
-                : '';
+            String subt = '';
+            if (n['tipo'] == 'foro') {
+              subt = entrega != null
+                  ? 'Foro: ' + DateFormat('dd/MM/yyyy HH:mm').format(entrega)
+                  : 'Foro';
+            } else if (entrega != null) {
+              subt =
+                  'Entrega: ' + DateFormat('dd/MM/yyyy HH:mm').format(entrega);
+            }
             items.add(PopupMenuItem<String>(
               value: (n['docId']?.toString() ?? '') + '_' + (n['tipo'] ?? ''),
               child: ListTile(
                 leading: Icon(
-                  n['tipo'] == '1h' ? Icons.access_time : Icons.event,
-                  color: n['tipo'] == '1h' ? primaryRed : primaryOrange,
+                  n['tipo'] == 'foro'
+                      ? Icons.forum
+                      : (n['tipo'] == '1h' ? Icons.access_time : Icons.event),
+                  color: n['tipo'] == 'foro'
+                      ? primaryBlue
+                      : (n['tipo'] == '1h' ? primaryRed : primaryOrange),
                 ),
                 title: Text(n['mensaje'] ?? ''),
                 subtitle: Text(subt, style: const TextStyle(fontSize: 12)),
                 contentPadding: EdgeInsets.zero,
+                onTap: () async {
+                  final persist = _persistNotificationRead(n);
+                  _dismissNotification(n);
+                  Navigator.pop(context);
+                  await persist; // intentar persistir antes de navegar
+                  // Navegar al foro si es una notificación de foro y hay id_proyecto
+                  if (n['tipo'] == 'foro' && n['id_proyecto'] != null) {
+                    final args = {
+                      'id_proyecto': n['id_proyecto'],
+                      'title': (n['proyecto'] ?? n['nombre_proyecto'] ?? '')
+                          .toString(),
+                    };
+                    if (mounted) {
+                      Navigator.pushNamed(
+                        this.context,
+                        '/foro_page',
+                        arguments: args,
+                      );
+                    }
+                  }
+                },
               ),
             ));
           }
@@ -143,9 +198,13 @@ class _NotificationsMenuState extends State<NotificationsMenu> {
         }
         return items;
       },
-      onSelected: (value) {
+      onSelected: (value) async {
         if (value == 'clear') {
+          // Persistir todas en segundo plano y limpiar UI
+          final items = List<Map<String, dynamic>>.from(_notificaciones);
           _limpiarNotificaciones();
+          // Ejecutar persistencias sin bloquear
+          unawaited(Future.wait(items.map(_persistNotificationRead)));
         }
       },
     );

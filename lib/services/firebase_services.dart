@@ -343,7 +343,8 @@ Future<List<Map<String, dynamic>>> generarNotificacionesEntrega(
     final minutos = diff.inMinutes;
 
     // Notificación a 1 día (entre 24h y <25h para evitar repetir; simple ventana)
-    if (horas == 24) {
+    final flag24h = (p['notif_24h'] ?? true) != false;
+    if (flag24h && horas == 24) {
       notifs.add({
         'tipo': '24h',
         'mensaje': 'Falta 1 día para entregar: ${p['nombre_proyecto']}',
@@ -356,7 +357,8 @@ Future<List<Map<String, dynamic>>> generarNotificacionesEntrega(
     }
 
     // Notificación a 1 hora (exacta)
-    if (horas == 1 && minutos >= 60 && minutos < 120) {
+    final flag1h = (p['notif_1h'] ?? true) != false;
+    if (flag1h && horas == 1 && minutos >= 60 && minutos < 120) {
       notifs.add({
         'tipo': '1h',
         'mensaje': 'Falta 1 hora para entregar: ${p['nombre_proyecto']}',
@@ -369,7 +371,8 @@ Future<List<Map<String, dynamic>>> generarNotificacionesEntrega(
     }
 
     // Notificación vencido (entrega pasada y estado false)
-    if (entrega.isBefore(now)) {
+    final flagVencido = (p['notif_vencido'] ?? true) != false;
+    if (flagVencido && entrega.isBefore(now)) {
       notifs.add({
         'tipo': 'vencido',
         'mensaje': 'Proyecto vencido: ${p['nombre_proyecto']}',
@@ -385,6 +388,83 @@ Future<List<Map<String, dynamic>>> generarNotificacionesEntrega(
 }
 
 // Funciones de FCM removidas a pedido del usuario
+
+/// Retorna una lista de mensajes del foro donde el texto contiene
+/// el email del usuario autenticado. Si [idProyecto] se pasa, filtra
+/// por ese proyecto. Limita lectura a [limit] documentos más recientes.
+Future<List<Map<String, dynamic>>> getForoMentions(
+  BuildContext context, {
+  int? idProyecto,
+  int limit = 50,
+}) async {
+  try {
+    final current = FirebaseAuth.instance.currentUser;
+    final email = current?.email?.trim().toLowerCase();
+    if (email == null || email.isEmpty) return [];
+
+    Query query = db.collection('foro_mensajes');
+    if (idProyecto != null) {
+      query = query.where('id_proyecto', isEqualTo: idProyecto);
+    }
+    // Intentar ordenar por timestamp si existe
+    try {
+      query = query.orderBy('timestamp', descending: true);
+    } catch (_) {
+      // si no hay índice, continuamos sin orderBy
+    }
+    query = query.limit(limit);
+
+    final snap = await query.get();
+    final out = <Map<String, dynamic>>[];
+    for (final doc in snap.docs) {
+      final data = doc.data() as Map<String, dynamic>? ?? {};
+      final texto = (data['texto'] ?? '').toString();
+      final usuario = (data['usuario'] ?? '').toString();
+      final ts = data['timestamp'];
+      DateTime? fecha;
+      if (ts is Timestamp) fecha = ts.toDate();
+      // Solo notificar si 'notificar' no es false (true o no existe)
+      final shouldNotify = data['notificar'] != false;
+      if (shouldNotify && texto.toLowerCase().contains(email)) {
+        out.add({
+          'tipo': 'foro',
+          'mensaje': 'Te mencionaron en el foro',
+          'texto': texto,
+          'usuario': usuario,
+          'docId': doc.id,
+          'id_proyecto': data['id_proyecto'],
+          'dateEntrega': fecha, // reutilizamos campo para mostrar fecha
+        });
+      }
+    }
+    return out;
+  } catch (e) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Error leyendo menciones del foro: $e')),
+    );
+    return [];
+  }
+}
+
+/// Marca un mensaje de foro para dejar de notificar (o reactivar) por docId
+Future<void> setForoNotificar(String docId, bool value) async {
+  await db.collection('foro_mensajes').doc(docId).update({'notificar': value});
+}
+
+/// Devuelve true/false si existen mensajes en el foro que contengan
+/// el email del usuario autenticado (opcionalmente filtrado por proyecto).
+Future<bool> foroHasUserMention(
+  BuildContext context, {
+  int? idProyecto,
+  int limit = 200,
+}) async {
+  final mentions = await getForoMentions(
+    context,
+    idProyecto: idProyecto,
+    limit: limit,
+  );
+  return mentions.isNotEmpty;
+}
 
 /// Convierte la lista dinámica de integrantes en una lista de mapas estandarizada
 List<Map<String, String>> _toIntegrantesDetalle(dynamic raw) {
@@ -460,6 +540,9 @@ Future<List<Map<String, dynamic>>> getProyecto(BuildContext context) async {
         'fecha_entrega': fechaEntrega,
         'docId': docId,
         'like': like,
+        'notif_24h': (data['notif_24h'] ?? true) != false,
+        'notif_1h': (data['notif_1h'] ?? true) != false,
+        'notif_vencido': (data['notif_vencido'] ?? true) != false,
       };
       proyectos.add(proyecto);
     }
@@ -549,6 +632,26 @@ Future<void> addLinkProyecto(String docId, String url) async {
   await db.collection('list_proyecto').doc(docId).update({
     'links': FieldValue.arrayUnion([trimmed])
   });
+}
+
+/// Marca en el proyecto la notificación correspondiente como leída (false)
+/// tipos soportados: '24h', '1h', 'vencido'
+Future<void> setProyectoNotificacion(
+    String docId, String tipo, bool value) async {
+  String? field;
+  switch (tipo) {
+    case '24h':
+      field = 'notif_24h';
+      break;
+    case '1h':
+      field = 'notif_1h';
+      break;
+    case 'vencido':
+      field = 'notif_vencido';
+      break;
+  }
+  if (field == null) return;
+  await db.collection('list_proyecto').doc(docId).update({field: value});
 }
 
 /// Verifica si el usuario autenticado es administrador (isadmin == true)
