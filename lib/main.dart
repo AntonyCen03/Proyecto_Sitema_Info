@@ -29,7 +29,6 @@ import 'package:flutter/material.dart';
 import 'package:proyecto_final/Page_Ui/lista_proyectos/lista_proyectos_ui.dart';
 import 'package:proyecto_final/Page_Ui/pagina_login/login.dart';
 import 'package:proyecto_final/Page_Ui/pagina_login/pagina_crear_cuenta/registrar_usuario.dart';
-
 import 'package:firebase_core/firebase_core.dart';
 import 'package:proyecto_final/Page_Ui/pagina_login/reset_password/olvidecontrasena.dart';
 import 'package:proyecto_final/Page_Ui/perfil_usuario/perfil_usuario_new.dart';
