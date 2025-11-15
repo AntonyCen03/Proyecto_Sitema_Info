@@ -105,6 +105,81 @@ List<TextInputFormatter> soloNumerosFormatters({int? maxLength}) {
   return list;
 }
 
+/// Formateadores para permitir números decimales (.,) con 1 separador y opcional límite de longitud y decimales.
+List<TextInputFormatter> soloNumerosDoubleFormatters({
+  int? maxLength,      // longitud total máxima (incluye punto/coma)
+  int? maxDecimals,    // cantidad máxima de decimales
+}) {
+  final list = <TextInputFormatter>[
+    _DoubleInputFormatter(maxDecimals: maxDecimals),
+  ];
+  if (maxLength != null && maxLength > 0) {
+    list.add(LengthLimitingTextInputFormatter(maxLength));
+  }
+  return list;
+}
+
+/// Formatter personalizado para permitir solo dígitos y un único punto/coma.
+/// Normaliza la coma a punto. Controla decimales máximos.
+class _DoubleInputFormatter extends TextInputFormatter {
+  final int? maxDecimals;
+  _DoubleInputFormatter({this.maxDecimals});
+
+  @override
+  TextEditingValue formatEditUpdate(TextEditingValue oldValue, TextEditingValue newValue) {
+    String text = newValue.text.replaceAll(',', '.');
+
+    // Quitar caracteres no permitidos
+    text = text.replaceAll(RegExp(r'[^0-9.]'), '');
+
+    // Mantener solo un punto
+    final firstDotIndex = text.indexOf('.');
+    if (firstDotIndex != -1) {
+      // Eliminar puntos adicionales
+      final withoutFirst = text.substring(0, firstDotIndex + 1) +
+          text.substring(firstDotIndex + 1).replaceAll('.', '');
+      text = withoutFirst;
+    }
+
+    // Limitar decimales
+    if (maxDecimals != null && maxDecimals! >= 0) {
+      final parts = text.split('.');
+      if (parts.length == 2 && parts[1].length > maxDecimals!) {
+        text = parts[0] + '.' + parts[1].substring(0, maxDecimals);
+      }
+    }
+
+    // Prefijo 0 si empieza con punto
+    if (text.startsWith('.')) {
+      text = '0$text';
+    }
+
+    return TextEditingValue(
+      text: text,
+      selection: TextSelection.collapsed(offset: text.length),
+    );
+  }
+}
+
+/// Valida número double (acepta coma o punto). Opcional decimales máximos.
+String? validarDouble(
+  String? value, {
+  String campo = 'Este campo',
+  int? maxDecimals,
+}) {
+  final raw = (value ?? '').trim().replaceAll('\u0000', '').replaceAll(',', '.');
+  if (raw.isEmpty) return '$campo es obligatorio';
+  if (!RegExp(r'^[0-9]+(\.[0-9]+)?$').hasMatch(raw)) return 'Formato inválido';
+  if (maxDecimals != null && maxDecimals >= 0) {
+    final parts = raw.split('.');
+    if (parts.length == 2 && parts[1].length > maxDecimals) {
+      return 'Máximo $maxDecimals decimales';
+    }
+  }
+  return null;
+}
+
+
 /// Valida que el valor no esté vacío, sea numérico y (opcionalmente) respete una longitud máxima.
 String? validarSoloNumeros(
   String? value, {

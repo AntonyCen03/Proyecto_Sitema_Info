@@ -32,6 +32,7 @@ import 'package:proyecto_final/Page_Ui/pagina_login/pagina_crear_cuenta/registra
 import 'package:firebase_core/firebase_core.dart';
 import 'package:proyecto_final/Page_Ui/pagina_login/reset_password/olvidecontrasena.dart';
 import 'package:proyecto_final/Page_Ui/perfil_usuario/perfil_usuario_new.dart';
+import 'package:proyecto_final/Page_Ui/recursos/recursos_page.dart';
 import 'firebase_options.dart';
 import 'package:proyecto_final/Page_Ui/pagina_principal/page_principal.dart';
 import 'package:proyecto_final/Page_Ui/pagina_login/nueva_contrasena.dart';
@@ -87,6 +88,7 @@ class MyApp extends StatelessWidget {
         '/foro_page': (context) => const ForoPage(),
         '/proyectos_lista': (context) => const ListaProyectos(),
         '/finanzas_proyecto': (context) => const FinanzasProyectoPage(),
+        '/recursos': (context) => const RecursosPage(),
       },
     );
   }
