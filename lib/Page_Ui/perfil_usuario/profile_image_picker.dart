@@ -1,213 +1,168 @@
-/*import 'dart:io';
+import 'dart:io';
 
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_storage/firebase_storage.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:proyecto_final/services/auth_service.dart';
-import 'package:proyecto_final/services/firebase_services.dart'; // Asegúrate de que aquí esté tu función 'uploadProfileImage'
+import 'package:proyecto_final/Color/Color.dart';
+import 'package:proyecto_final/services/firebase_services.dart' as api;
 
 class ProfileImagePicker extends StatefulWidget {
   final String? photoUrl;
   final double radius;
   final ValueChanged<String>? onUploaded;
-  const ProfileImagePicker(
-      {super.key, this.photoUrl, this.radius = 40.0, this.onUploaded});
+
+  const ProfileImagePicker({
+    Key? key,
+    this.photoUrl,
+    this.radius = 36,
+    this.onUploaded,
+  }) : super(key: key);
 
   @override
   State<ProfileImagePicker> createState() => _ProfileImagePickerState();
 }
 
 class _ProfileImagePickerState extends State<ProfileImagePicker> {
-  String? _photoUrl;
-  bool _isUploading = false;
+  bool _uploading = false;
 
-  @override
-  void initState() {
-    super.initState();
-    _photoUrl = widget.photoUrl;
-  }
-
-  // Esto soluciona el problema si la 'photoUrl' del widget padre
-  // se carga después de que este widget se inicializa.
-  @override
-  void didUpdateWidget(ProfileImagePicker oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (widget.photoUrl != oldWidget.photoUrl && widget.photoUrl != _photoUrl) {
-      setState(() {
-        _photoUrl = widget.photoUrl;
-      });
+  Future<String> _uploadDirectToStorage(XFile picked, String contentType) async {
+    final user = FirebaseAuth.instance.currentUser!;
+    final storage = FirebaseStorage.instance;
+    final name = picked.name.toLowerCase();
+    String ext = 'jpg';
+    if (name.endsWith('.png')) ext = 'png';
+    if (name.endsWith('.webp')) ext = 'webp';
+    if (name.endsWith('.gif')) ext = 'gif';
+    final ts = DateTime.now().millisecondsSinceEpoch;
+    final path = 'user_photos/${user.uid}/$ts.$ext';
+    final ref = storage.ref().child(path);
+    if (kIsWeb) {
+      final bytes = await picked.readAsBytes();
+      await ref
+          .putData(bytes, SettableMetadata(contentType: contentType))
+          .timeout(const Duration(seconds: 30));
+    } else {
+      final file = File(picked.path);
+      await ref
+          .putFile(file, SettableMetadata(contentType: contentType))
+          .timeout(const Duration(seconds: 60));
     }
+    final url = await ref.getDownloadURL().timeout(const Duration(seconds: 15));
+    return url;
   }
 
-  // --- COMIENZA CÓDIGO DE DEPURACIÓN ---
+  Future<void> _pickAndUpload() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
 
-  Future<void> _pickAndUpload(ImageSource source) async {
     final picker = ImagePicker();
-
-    print("--- 2. Abriendo el selector de imagen (Fuente: $source) ---");
-
-    final XFile? picked = await picker.pickImage(
-      source: source,
-      maxWidth: 1200,
-      maxHeight: 1200,
-      imageQuality: 85,
-    );
-
-    if (picked == null) {
-      print(
-          "--- 3. ERROR SILENCIOSO: El usuario canceló o picked es null. ---");
-      return;
-    }
-
-    print("--- 4. Imagen seleccionada: ${picked.path} ---");
-
-    final file = File(picked.path);
-    final bytes = await file.length();
-    const maxBytes = 2 * 1024 * 1024; // 2 MB
-
-    if (bytes > maxBytes) {
-      print(
-          "--- 5. ERROR SILENCIOSO: La imagen es muy grande ($bytes bytes). Límite: $maxBytes bytes. ---");
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-            content: Text('La imagen supera 2 MB. Elija otra más ligera.')),
-      );
-      return;
-    }
-
-    print("--- 6. Imagen válida. Tamaño: $bytes bytes. Subiendo... ---");
-    setState(() => _isUploading = true);
-
+    XFile? picked;
     try {
-      final currentUser = AuthService().currentUser;
-      if (currentUser == null) {
-        print("--- 7. ERROR EN TRY: No hay usuario autenticado. ---");
-        throw Exception('No hay un usuario autenticado');
+      picked = await picker.pickImage(
+          source: ImageSource.gallery, maxWidth: 1024, imageQuality: 85);
+    } catch (_) {
+      picked = null;
+    }
+    if (picked == null) return;
+
+    setState(() => _uploading = true);
+    try {
+        // Leer bytes y determinar contentType
+        // Prepara bytes si necesitas validar tamaño en el futuro
+        // final bytes = kIsWeb
+        //   ? await picked.readAsBytes()
+        //   : await File(picked.path).readAsBytes();
+      // Detectar contentType por extensión simple
+      final name = picked.name.toLowerCase();
+      String contentType = 'image/jpeg';
+      if (name.endsWith('.png')) contentType = 'image/png';
+      if (name.endsWith('.webp')) contentType = 'image/webp';
+      if (name.endsWith('.gif')) contentType = 'image/gif';
+
+        // Subir directo a Firebase Storage
+        final url = await _uploadDirectToStorage(picked, contentType);
+
+      // Actualizar el documento correcto en 'user' buscando por email
+      String? docId;
+      try {
+        final users = await api.getUser(context);
+        final emailLower = (user.email ?? '').trim().toLowerCase();
+        final match = users.cast<Map<String, dynamic>>().firstWhere(
+              (u) =>
+                  (u['email'] ?? '').toString().trim().toLowerCase() ==
+                  emailLower,
+              orElse: () => {},
+            );
+        docId = (match['uid'] ?? '').toString();
+      } catch (_) {
+        docId = null;
       }
 
-      final uid = currentUser.uid;
-      print("--- 8. Usuario: $uid. Llamando a uploadProfileImage... ---");
+      if (docId != null && docId.isNotEmpty) {
+        await api.setUserPhotoUrl(docId, url);
+      } else {
+        // Fallback: intentar con uid de FirebaseAuth (si coincide con docId en colección user)
+        await api.setUserPhotoUrl(user.uid, url);
+      }
 
-      // Aquí se llama a tu función de servicio, que ya sube Y actualiza Firestore
-      final url = await uploadProfileImage(file, uid);
-
-      print("--- 9. ¡ÉXITO! URL obtenida: $url ---");
-
-      if (!mounted) return;
-      setState(() {
-        _photoUrl = url;
-        _isUploading = false;
-      });
-
-      // Notifica al widget padre (opcional, pero buena práctica)
-      if (url.isNotEmpty) widget.onUploaded?.call(url);
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-            content: Text('Foto de perfil actualizada exitosamente.')),
-      );
-    } catch (e, stackTrace) {
-      if (!mounted) return;
-      setState(() => _isUploading = false);
-
-      print('----------- ERROR CATASTRÓFICO AL SUBIR -----------');
-      print('ERROR: $e');
-      print('STACKTRACE: $stackTrace');
-      print('---------------------------------------------');
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error subiendo la imagen: $e')),
-      );
+      if (widget.onUploaded != null) widget.onUploaded!(url);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Foto actualizada')),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error subiendo imagen: $e')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _uploading = false);
     }
   }
-
-  void _showPickerOptions() {
-    print("--- 1. Mostrando opciones (Galería/Cámara) ---");
-    showModalBottomSheet(
-      context: context,
-      builder: (ctx) => SafeArea(
-        child: Wrap(
-          children: [
-            ListTile(
-              leading: const Icon(Icons.photo_library),
-              title: const Text('Seleccionar de la galería'),
-              onTap: () {
-                Navigator.of(ctx).pop();
-                _pickAndUpload(ImageSource.gallery);
-              },
-            ),
-            // He añadido la opción de cámara como sugerencia
-            ListTile(
-              leading: const Icon(Icons.camera_alt),
-              title: const Text('Tomar una foto'),
-              onTap: () {
-                Navigator.of(ctx).pop();
-                _pickAndUpload(ImageSource.camera);
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.close),
-              title: const Text('Cancelar'),
-              onTap: () => Navigator.of(ctx).pop(),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  // --- FIN CÓDIGO DE DEPURACIÓN ---
 
   @override
   Widget build(BuildContext context) {
     final radius = widget.radius;
-    final avatar = _photoUrl != null && _photoUrl!.isNotEmpty
-        ? CircleAvatar(
-            radius: radius,
-            backgroundImage: NetworkImage(_photoUrl!),
-            onBackgroundImageError: (e, s) {
-              // Añadido para depurar errores de carga de imagen de red
-              print("Error cargando NetworkImage: $e");
-            },
-          )
-        : CircleAvatar(
-            radius: radius,
-            backgroundImage: const AssetImage('assets/images/usuariopng.webp'),
-          );
 
-    return Column(
+    return Stack(
+      alignment: Alignment.bottomRight,
       children: [
-        Stack(
-          children: [
-            avatar,
-            Positioned(
-              bottom: 0,
-              right: 0,
-              child: GestureDetector(
-                onTap: _isUploading ? null : _showPickerOptions,
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).primaryColor,
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  padding: const EdgeInsets.all(6),
-                  child: _isUploading
-                      ? SizedBox(
-                          width: radius * 0.4,
-                          height: radius * 0.4,
-                          child: const CircularProgressIndicator(
-                            strokeWidth: 2,
-                            valueColor: AlwaysStoppedAnimation(Colors.white),
-                          ),
-                        )
-                      : Icon(Icons.camera_alt,
-                          color: Colors.white, size: radius * 0.45),
-                ),
-              ),
-            ),
-          ],
+        InkWell(
+          customBorder: const CircleBorder(),
+          onTap: _uploading ? null : _pickAndUpload,
+          child: CircleAvatar(
+            radius: radius,
+            backgroundColor: grisClaro,
+            backgroundImage:
+                (widget.photoUrl != null && widget.photoUrl!.isNotEmpty)
+                    ? NetworkImage(widget.photoUrl!)
+                    : null,
+            child: (widget.photoUrl == null || widget.photoUrl!.isEmpty)
+                ? Icon(Icons.person, size: radius, color: Colors.grey[600])
+                : null,
+          ),
         ),
+        Positioned(
+          right: 2,
+          bottom: 2,
+          child: CircleAvatar(
+            radius: 14,
+            backgroundColor: primaryOrange,
+            child: _uploading
+                ? const SizedBox(
+                    width: 14,
+                    height: 14,
+                    child: CircularProgressIndicator(
+                        strokeWidth: 2, color: Colors.white),
+                  )
+                : const Icon(Icons.camera_alt, size: 16, color: Colors.white),
+          ),
+        )
       ],
     );
   }
-}*/
+}

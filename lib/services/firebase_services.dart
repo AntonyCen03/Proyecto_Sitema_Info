@@ -95,6 +95,7 @@ Future<List<Map<String, dynamic>>> getUser(BuildContext context) async {
               ? (data['date_login'] as Timestamp).toDate()
               : null;
       final uid = doc.id;
+      final photoUrl = (data['photo_url'] ?? '').toString();
 
       final person = {
         'name': name,
@@ -105,6 +106,7 @@ Future<List<Map<String, dynamic>>> getUser(BuildContext context) async {
         'id_carnet': idCarnet,
         'cedula': cedula,
         'date_login': dateLogin,
+        'photo_url': photoUrl,
       };
       users.add(person);
     }
@@ -161,6 +163,11 @@ Future<void> updateUserLoginDate(
 
 Future<void> deleteUser(String uid) async {
   await db.collection('user').doc(uid).delete();
+}
+
+/// Establece/actualiza la URL de la foto de perfil del usuario.
+Future<void> setUserPhotoUrl(String uid, String photoUrl) async {
+  await db.collection('user').doc(uid).update({'photo_url': photoUrl});
 }
 
 /// Agrega un proyecto donde "integrante" ahora es una lista de mapas

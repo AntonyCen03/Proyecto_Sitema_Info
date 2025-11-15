@@ -98,6 +98,7 @@ class _PerfilUsuarioNewState extends State<PerfilUsuarioNew> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: colorFondo,
       appBar: AppBar(
         title: const Text('Perfil Usuario'),
         centerTitle: true,
@@ -130,7 +131,14 @@ class _PerfilUsuarioNewState extends State<PerfilUsuarioNew> {
                     decoration: BoxDecoration(
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: const Color(0xFF000037)),
+                      border: Border.all(color: Colors.grey.shade200),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black12.withOpacity(0.03),
+                          blurRadius: 6,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
                     ),
                     padding: const EdgeInsets.all(20),
                     child: Column(
@@ -143,7 +151,9 @@ class _PerfilUsuarioNewState extends State<PerfilUsuarioNew> {
                           photoUrl: photoUrl,
                           onSettings: () {},
                           onUploaded: (url) async {
-                            // Recargar el usuario desde Firestore para mantener consistencia
+                            // Refrescar de inmediato la imagen sin esperar a Firestore
+                            setState(() => photoUrl = url);
+                            // Opcional: recargar para asegurar consistencia con Firestore
                             await _loadUser();
                           },
                         ),
@@ -152,7 +162,7 @@ class _PerfilUsuarioNewState extends State<PerfilUsuarioNew> {
                           width: double.infinity,
                           padding: const EdgeInsets.all(12),
                           decoration: BoxDecoration(
-                            color: const Color.fromRGBO(208, 215, 255, 1),
+                            color: grisClaro,
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: Column(

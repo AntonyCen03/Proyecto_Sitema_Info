@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-//import 'profile_image_picker.dart';
+import 'package:proyecto_final/Color/Color.dart';
+import 'profile_image_picker.dart';
 
 class PerfilHeader extends StatelessWidget {
   final String nombre;
@@ -25,7 +26,7 @@ class PerfilHeader extends StatelessWidget {
       color: Colors.grey[900],
     );
     final roleStyle = const TextStyle(
-      color: Color(0xFF06B6D4),
+      color: primaryBlue,
       fontSize: 13,
       fontWeight: FontWeight.w600,
     );
@@ -35,8 +36,11 @@ class PerfilHeader extends StatelessWidget {
         SizedBox(
           width: 76,
           height: 76,
-          /*child: ProfileImagePicker(
-              photoUrl: photoUrl, radius: 36, onUploaded: onUploaded),*/
+          child: ProfileImagePicker(
+            photoUrl: photoUrl,
+            radius: 36,
+            onUploaded: onUploaded,
+          ),
         ),
         const SizedBox(width: 14),
         Column(
@@ -53,7 +57,7 @@ class PerfilHeader extends StatelessWidget {
             icon: const Icon(
               Icons.settings,
               size: 26,
-              color: Color(0xFF06B6D4),
+              color: primaryBlue,
             ),
             onPressed: onSettings,
             tooltip: 'Ajustes',
