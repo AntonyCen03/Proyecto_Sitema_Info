@@ -18,19 +18,30 @@ class _PageLoginState extends State<PageLogin> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(
+        leading: IconButton(
+        icon: const Icon(
+          Icons.arrow_back,
+          color: Color.fromARGB(255, 254, 143, 33),
+        ),
+        onPressed: () => Navigator.pushNamed(context, '/principal'),
+        tooltip: 'Volver',
+        
+      ),
+        title: const Text(
           "MetroBox",
           style: TextStyle(
-            color: const Color.fromARGB(255, 254, 143, 33),
+            color: Color.fromARGB(255, 254, 143, 33),
             fontWeight: FontWeight.bold,
           ),
         ),
+        actions: [
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Image.asset('assets/images/Logo.png', height: 36, width: 36),
+          ),
+        ],
         backgroundColor: Color.fromARGB(255, 255, 255, 255),
         centerTitle: true,
-        leading: Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Image.asset('assets/images/Logo.png', height: 200, width: 200),
-        ),
       ),
       body: FutureBuilder(
         future: getUser(context),
