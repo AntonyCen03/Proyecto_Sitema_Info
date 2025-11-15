@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:proyecto_final/Page_Ui/widgets/metro_app_bar.dart';
 import 'package:proyecto_final/services/auth_service.dart';
 import 'package:proyecto_final/services/firebase_services.dart';
 import 'package:flutter/services.dart';
@@ -25,11 +26,6 @@ class _PerfilUsuarioNewState extends State<PerfilUsuarioNew> {
   String uid = '';
   bool _isLoading = true;
 
-  List<Map<String, dynamic>> proyectos = [
-    {'title': 'Proyecto A', 'percent': 0.85},
-    {'title': 'Proyecto B', 'percent': 0.6},
-    {'title': 'Proyecto C', 'percent': 0.4},
-  ];
 
   @override
   void initState() {
@@ -99,8 +95,8 @@ class _PerfilUsuarioNewState extends State<PerfilUsuarioNew> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: colorFondo,
-      appBar: AppBar(
-        title: const Text('Perfil Usuario'),
+      appBar: MetroAppBar(
+        title: 'Perfil Usuario',
         centerTitle: true,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: primaryOrange),

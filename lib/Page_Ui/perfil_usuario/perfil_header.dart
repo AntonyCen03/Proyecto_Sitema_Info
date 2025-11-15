@@ -26,7 +26,7 @@ class PerfilHeader extends StatelessWidget {
       color: Colors.grey[900],
     );
     final roleStyle = const TextStyle(
-      color: primaryBlue,
+      color: primaryOrange,
       fontSize: 13,
       fontWeight: FontWeight.w600,
     );
@@ -57,7 +57,7 @@ class PerfilHeader extends StatelessWidget {
             icon: const Icon(
               Icons.settings,
               size: 26,
-              color: primaryBlue,
+              color: primaryOrange,
             ),
             onPressed: onSettings,
             tooltip: 'Ajustes',
