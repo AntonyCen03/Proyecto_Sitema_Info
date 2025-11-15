@@ -4,6 +4,7 @@ import 'accountMenu.dart';
 import 'SideDrawer.dart';
 import 'package:proyecto_final/Color/Color.dart';
 import 'MenuNotificacion.dart';
+import 'package:proyecto_final/Page_Ui/lista_proyectos/top_likes_dialog.dart';
 
 /// Página principal reestructurada con AppBar, Drawer y fondo de imagen
 class PaginaPrincipal extends StatefulWidget {
@@ -152,12 +153,29 @@ class _HeroSection extends StatelessWidget {
                     ),
                   ],
                 ),
-                child: const Text(
-                  'Los mejores proyectos',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
+                child: ElevatedButton(
+                  onPressed: () {
+                    showDialog(
+                      context: context,
+                      barrierDismissible: true,
+                      builder: (_) => const TopLikesDialog(),
+                    );
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.transparent,
+                    shadowColor: Colors.transparent,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 30,
+                      vertical: 15,
+                    ),
+                  ),
+                  child: const Text(
+                    'Los mejores proyectos',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
               ),

@@ -546,6 +546,17 @@ Future<List<Map<String, dynamic>>> getProyecto(BuildContext context) async {
       final String presupuestoMotivo =
           (data['presupuesto_motivo'] ?? '').toString();
 
+      // liked_by normalizado (una sola vez)
+      final likedRaw = data['liked_by'];
+      final likedBy = <String>[];
+      if (likedRaw is List) {
+        for (final e in likedRaw) {
+          if (e == null) continue;
+          final s = e.toString().trim().toLowerCase();
+          if (s.isNotEmpty) likedBy.add(s);
+        }
+      }
+
       final proyecto = {
         'id_proyecto': idProyecto,
         'nombre_proyecto': nombreProyecto,
@@ -566,6 +577,7 @@ Future<List<Map<String, dynamic>>> getProyecto(BuildContext context) async {
         'presupuesto_solicitado': presupuestoSolicitado,
         'presupuesto_aprobado': presupuestoAprobado,
         'presupuesto_motivo': presupuestoMotivo,
+        'liked_by': likedBy,
       };
       proyectos.add(proyecto);
     }
@@ -623,6 +635,17 @@ Stream<List<Map<String, dynamic>>> streamProyecto() {
       final String presupuestoMotivo =
           (data['presupuesto_motivo'] ?? '').toString();
 
+      // liked_by para streamProyecto
+      final likedRaw = data['liked_by'];
+      final likedBy = <String>[];
+      if (likedRaw is List) {
+        for (final e in likedRaw) {
+          if (e == null) continue;
+          final s = e.toString().trim().toLowerCase();
+          if (s.isNotEmpty) likedBy.add(s);
+        }
+      }
+
       final proyecto = {
         'id_proyecto': idProyecto,
         'nombre_proyecto': nombreProyecto,
@@ -639,6 +662,7 @@ Stream<List<Map<String, dynamic>>> streamProyecto() {
         'presupuesto_solicitado': presupuestoSolicitado,
         'presupuesto_aprobado': presupuestoAprobado,
         'presupuesto_motivo': presupuestoMotivo,
+        'liked_by': likedBy,
       };
       proyectos.add(proyecto);
     }
@@ -661,6 +685,47 @@ Future<void> incrementarLikeProyecto(String docId) async {
       .collection('list_proyecto')
       .doc(docId)
       .update({'like': FieldValue.increment(1)});
+}
+
+/// Da like solo una vez por usuario (identificado por su email). Si ya existe en liked_by no hace nada.
+Future<bool> likeProyectoUnaVez(String docId) async {
+  final user = FirebaseAuth.instance.currentUser;
+  final email = user?.email?.trim().toLowerCase();
+  if (email == null || email.isEmpty) return false;
+  return await db.runTransaction((tx) async {
+    final ref = db.collection('list_proyecto').doc(docId);
+    final snap = await tx.get(ref);
+    if (!snap.exists) return false;
+    final data = snap.data() ?? {};
+    final raw = data['liked_by'];
+    final current = <String>[];
+    if (raw is List) {
+      for (final e in raw) {
+        if (e == null) continue;
+        final s = e.toString().trim().toLowerCase();
+        if (s.isNotEmpty) current.add(s);
+      }
+    }
+    if (current.contains(email)) {
+      return false; // ya dio like
+    }
+    current.add(email);
+    final likeRaw = data['like'];
+    int like = 0;
+    if (likeRaw is int) {
+      like = likeRaw;
+    } else if (likeRaw is num) {
+      like = likeRaw.toInt();
+    } else if (likeRaw is String) {
+      like = int.tryParse(likeRaw) ?? 0;
+    }
+    like += 1;
+    tx.update(ref, {
+      'like': like,
+      'liked_by': current,
+    });
+    return true;
+  });
 }
 
 /// Agrega un enlace (URL) al arreglo 'links' de un proyecto.
