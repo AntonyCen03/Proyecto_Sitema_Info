@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'accountMenu.dart';
-import 'sideDrawer.dart';
+// Corrected case-sensitive import for Linux CI
+import 'SideDrawer.dart';
 import 'package:proyecto_final/Color/Color.dart';
 import 'MenuNotificacion.dart';
 
