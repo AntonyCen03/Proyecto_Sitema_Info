@@ -20,7 +20,27 @@ class SideDrawer extends StatelessWidget {
             child: Column(
               children: [
                 UserAccountsDrawerHeader(
-                  accountName: Text(user?.displayName ?? 'Usuario'),
+                  accountName: FutureBuilder<List<Map<String, dynamic>>>(
+                    future: api.getUser(context),
+                    builder: (context, snap) {
+                      String nameShown = 'Usuario';
+                      final email = user?.email?.trim().toLowerCase();
+                      if (snap.hasData && email != null && email.isNotEmpty) {
+                        for (final u in snap.data!) {
+                          final uEmail = (u['email'] ?? '')
+                              .toString()
+                              .trim()
+                              .toLowerCase();
+                          if (uEmail == email) {
+                            final n = (u['name'] ?? '').toString().trim();
+                            if (n.isNotEmpty) nameShown = n;
+                            break;
+                          }
+                        }
+                      }
+                      return Text(nameShown);
+                    },
+                  ),
                   accountEmail: Text(user?.email ?? ''),
                   currentAccountPicture: CircleAvatar(
                     backgroundColor: lightOrange,

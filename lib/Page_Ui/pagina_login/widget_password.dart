@@ -52,7 +52,7 @@ class PasswordFieldState extends State<PasswordField> {
                     return 'la contraseña no puede estar vacía';
                   }
                   if (value.trim().length < 6) {
-                    return 'la contraseña debe tener al menos 6 caracteres';
+                    return 'la contraseña debe tener al menos 8 caracteres';
                   }
                   return null;
                 },

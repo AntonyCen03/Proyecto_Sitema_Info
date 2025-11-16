@@ -362,6 +362,7 @@ class ProjectStatusPie extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final total = activos + completados;
     final dataMap = <String, double>{
       'Activos': activos.toDouble(),
       'Completados': completados.toDouble(),
@@ -386,22 +387,51 @@ class ProjectStatusPie extends StatelessWidget {
             const SizedBox(height: 12),
             SizedBox(
               height: 180,
-              child: PieChart(
-                dataMap:
-                    dataMap.map((k, v) => MapEntry(k, v == 0 ? 0.0001 : v)),
-                animationDuration: const Duration(milliseconds: 600),
-                chartType: ChartType.disc,
-                chartValuesOptions: const ChartValuesOptions(
-                  showChartValuesInPercentage: true,
-                  showChartValueBackground: false,
-                ),
-                legendOptions: const LegendOptions(
-                  showLegends: true,
-                  legendPosition: LegendPosition.right,
-                ),
-                colorList: colorList,
-                chartRadius: 150,
-              ),
+              child: total == 0
+                  ? Center(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Container(
+                            width: 120,
+                            height: 120,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: Colors.grey.shade200,
+                            ),
+                            child: Center(
+                              child: Text(
+                                '0%',
+                                style: TextStyle(
+                                  fontSize: 28,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.black54,
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text('Sin proyectos',
+                              style: TextStyle(color: Colors.black45)),
+                        ],
+                      ),
+                    )
+                  : PieChart(
+                      dataMap: dataMap
+                          .map((k, v) => MapEntry(k, v == 0 ? 0.0001 : v)),
+                      animationDuration: const Duration(milliseconds: 600),
+                      chartType: ChartType.disc,
+                      chartValuesOptions: const ChartValuesOptions(
+                        showChartValuesInPercentage: true,
+                        showChartValueBackground: false,
+                      ),
+                      legendOptions: const LegendOptions(
+                        showLegends: true,
+                        legendPosition: LegendPosition.right,
+                      ),
+                      colorList: colorList,
+                      chartRadius: 150,
+                    ),
             ),
           ],
         ),
@@ -631,14 +661,30 @@ class VelocityCard extends StatelessWidget {
               future: api.getTareasCompletadasPorDiaUltimos(context, dias: 7),
               builder: (context, snap) {
                 final data = snap.data ?? const {};
+                // número de días del periodo (fallback a 7)
+                final days = 7;
                 final total = data.values.fold<int>(0, (acc, v) => acc + v);
+                final average = days > 0 ? total / days : 0.0;
+                // Objetivo por día (configurable): 10 tareas/día -> objetivo semanal = days * 10
+                const targetPerDay = 10;
+                final progress =
+                    (total / (days * targetPerDay)).clamp(0.0, 1.0);
                 return Row(
                   children: [
                     Expanded(
-                      child: LinearProgressIndicator(
-                        value: (total / 50).clamp(0.0, 1.0),
-                        backgroundColor: primaryBlue.withOpacity(0.1),
-                        color: primaryBlue,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          LinearProgressIndicator(
+                            value: progress,
+                            backgroundColor: primaryBlue.withOpacity(0.1),
+                            color: primaryBlue,
+                          ),
+                          const SizedBox(height: 6),
+                          Text('Promedio: ${average.toStringAsFixed(1)} /día',
+                              style: const TextStyle(
+                                  fontSize: 12, color: Colors.black54)),
+                        ],
                       ),
                     ),
                     const SizedBox(width: 12),
