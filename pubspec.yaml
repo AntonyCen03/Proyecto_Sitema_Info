@@ -40,6 +40,9 @@ dev_dependencies:
 
   flutter_lints: ^6.0.0
 
+# Launcher icons (dev)
+  flutter_launcher_icons: ^0.14.4
+
 # The following section is specific to Flutter packages.
 flutter:
   uses-material-design: true
@@ -79,3 +82,11 @@ flutter:
     - assets/images/user.jpg
     - assets/images/Logo.png
     - assets/images/usuariopng.webp
+
+# Configuration for flutter_launcher_icons
+flutter_icons:
+  android: true
+  ios: true
+  web:
+    generate: true
+  image_path: "assets/images/Logo.png"
