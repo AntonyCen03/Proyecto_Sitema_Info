@@ -1,15 +1,9 @@
 import 'package:flutter/material.dart';
-// Asumo que tienes estos archivos y que primaryOrange/lightOrange están definidos
 import 'accountMenu.dart';
 import 'sideDrawer.dart';
-//import 'package:proyecto_final/Color/Color.dart';
+import 'package:proyecto_final/Color/Color.dart';
 import 'MenuNotificacion.dart';
 
-// Definiciones de color dummy para que el archivo compile
-const Color primaryOrange = Colors.orange;
-const Color lightOrange = Colors.orangeAccent;
-
-/// Página principal reestructurada con AppBar, Drawer y fondo de imagen
 class PaginaPrincipal extends StatefulWidget {
   const PaginaPrincipal({super.key});
 
@@ -22,23 +16,23 @@ class _PaginaPrincipalState extends State<PaginaPrincipal> {
   Widget build(BuildContext context) {
     return Scaffold(
       extendBodyBehindAppBar: false,
-      appBar: _buildAppBar(context), // NO SE TOCA
-      drawer: const SideDrawer(), // NO SE TOCA
-
+      appBar: _buildAppBar(context),
+      drawer: const SideDrawer(),
       body: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // SECCIÓN 1: Hero principal (No se toca)
             _Background(
               child: SafeArea(
                 bottom: false,
                 child: _OriginalHeroSection(),
               ),
             ),
-
-            // SECCIÓN 2: La sección modificada con el nuevo diseño
             _GestionaProyectosSection(),
+            _FeaturesSection(),
+            _TestimonialsSection(),
+            _CtaSection(),
+            _FooterSection(),
           ],
         ),
       ),
@@ -46,7 +40,6 @@ class _PaginaPrincipalState extends State<PaginaPrincipal> {
   }
 
   PreferredSizeWidget _buildAppBar(BuildContext context) {
-    // NO SE TOCA
     return AppBar(
       backgroundColor: Colors.transparent,
       elevation: 0,
@@ -61,7 +54,6 @@ class _PaginaPrincipalState extends State<PaginaPrincipal> {
   }
 }
 
-// Fondo con imagen (NO SE TOCA)
 class _Background extends StatelessWidget {
   const _Background({required this.child});
   final Widget child;
@@ -70,11 +62,14 @@ class _Background extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       constraints: const BoxConstraints(minHeight: 500),
-      decoration: const BoxDecoration(
-        image: DecorationImage(
-          image: AssetImage('assets/images/CAMPUS-2023_30.jpg'),
-          fit: BoxFit.cover,
-          colorFilter: ColorFilter.mode(Colors.black54, BlendMode.darken),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            colorFondoOscuro,
+            colorFondoMasOscuro,
+          ],
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
         ),
       ),
       child: child,
@@ -82,9 +77,6 @@ class _Background extends StatelessWidget {
   }
 }
 
-// --- SECCIÓN 1 (SIN CAMBIOS) ---
-
-/// SECCIÓN 1: Esta es tu sección original (NO SE TOCA)
 class _OriginalHeroSection extends StatelessWidget {
   const _OriginalHeroSection();
 
@@ -97,48 +89,37 @@ class _OriginalHeroSection extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 24),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.center,
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: <Widget>[
-                Expanded(
-                  flex: 8,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: <Widget>[
-                      ShaderMask(
-                        shaderCallback: (Rect bounds) => LinearGradient(
-                          colors: [
-                            primaryOrange,
-                            lightOrange
-                          ], // Asumo que existen
-                          begin: Alignment.centerLeft,
-                          end: Alignment.centerRight,
-                        ).createShader(bounds),
-                        child: Text(
-                          'La organización es la\nbase del sistema del\néxito',
-                          textAlign: TextAlign.left,
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 48,
-                            fontWeight: FontWeight.w900,
-                            height: 1.1,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      const Text(
-                        'Concéntrate en crear y nosotros nos\nencargamos de organizar',
-                        textAlign: TextAlign.left,
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w500,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ],
+                ShaderMask(
+                  shaderCallback: (Rect bounds) => LinearGradient(
+                    colors: [primaryOrange, lightOrange],
+                    begin: Alignment.centerLeft,
+                    end: Alignment.centerRight,
+                  ).createShader(bounds),
+                  child: Text(
+                    'La organización es la\nbase del sistema del\néxito',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: colorTextoOscuro,
+                      fontSize: 48,
+                      fontWeight: FontWeight.w900,
+                      height: 1.1,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  'Concéntrate en crear y nosotros nos\nencargamos de organizar',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w500,
+                    color: colorTextoOscuro,
                   ),
                 ),
               ],
@@ -150,10 +131,6 @@ class _OriginalHeroSection extends StatelessWidget {
   }
 }
 
-// --- SECCIÓN 2 (REDISEÑADA Y AHORA ANIMADA) ---
-
-/// SECCIÓN 2: Esta es la nueva sección con el diseño "Apple".
-/// Ahora es un StatefulWidget para soportar animaciones.
 class _GestionaProyectosSection extends StatefulWidget {
   const _GestionaProyectosSection({super.key});
 
@@ -164,7 +141,6 @@ class _GestionaProyectosSection extends StatefulWidget {
 
 class _GestionaProyectosSectionState extends State<_GestionaProyectosSection>
     with TickerProviderStateMixin {
-  // Controladores para las animaciones
   late final AnimationController _mockupController;
   late final Animation<double> _mockupFadeAnimation;
   late final Animation<Offset> _mockupSlideAnimation;
@@ -177,7 +153,6 @@ class _GestionaProyectosSectionState extends State<_GestionaProyectosSection>
   void initState() {
     super.initState();
 
-    // 1. Animación para los Mockups (dispositivos)
     _mockupController = AnimationController(
       duration: const Duration(milliseconds: 700),
       vsync: this,
@@ -187,11 +162,10 @@ class _GestionaProyectosSectionState extends State<_GestionaProyectosSection>
       curve: Curves.easeOut,
     );
     _mockupSlideAnimation = Tween<Offset>(
-      begin: const Offset(0, 0.2), // Empieza 20% abajo
+      begin: const Offset(0, 0.2),
       end: Offset.zero,
     ).animate(_mockupFadeAnimation);
 
-    // 2. Animación para el Texto
     _textController = AnimationController(
       duration: const Duration(milliseconds: 700),
       vsync: this,
@@ -201,13 +175,11 @@ class _GestionaProyectosSectionState extends State<_GestionaProyectosSection>
       curve: Curves.easeOut,
     );
     _textSlideAnimation = Tween<Offset>(
-      begin: const Offset(0, 0.2), // Empieza 20% abajo
+      begin: const Offset(0, 0.2),
       end: Offset.zero,
     ).animate(_textFadeAnimation);
 
-    // 3. Iniciar las animaciones (escalonadas)
     _mockupController.forward();
-    // El texto empieza 200ms después que los mockups
     Future.delayed(const Duration(milliseconds: 200), () {
       if (mounted) {
         _textController.forward();
@@ -225,14 +197,11 @@ class _GestionaProyectosSectionState extends State<_GestionaProyectosSection>
   @override
   Widget build(BuildContext context) {
     return Container(
-      // 1. REFINADO: Fondo "blanco roto" (estilo Apple)
-      color: const Color(0xFFF5F5F7),
+      color: grisClaro,
       width: double.infinity,
-      // 2. Padding generoso para dar "aire" (espacio en blanco)
       padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 100),
       child: LayoutBuilder(
         builder: (context, constraints) {
-          // Wrapper de animación reutilizable
           Widget animatedMockups = FadeTransition(
             opacity: _mockupFadeAnimation,
             child: SlideTransition(
@@ -241,7 +210,6 @@ class _GestionaProyectosSectionState extends State<_GestionaProyectosSection>
             ),
           );
 
-          // Wrapper de animación reutilizable
           Widget animatedText(bool isDesktop) => FadeTransition(
                 opacity: _textFadeAnimation,
                 child: SlideTransition(
@@ -250,31 +218,26 @@ class _GestionaProyectosSectionState extends State<_GestionaProyectosSection>
                 ),
               );
 
-          // Si la pantalla es estrecha (móvil)
           if (constraints.maxWidth < 700) {
             return Column(
               mainAxisAlignment: MainAxisAlignment.center,
-              // 3. ALINEACIÓN: Mueve todo al inicio (izquierda) en móvil
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
                 animatedMockups,
-                const SizedBox(height: 60), // Más espacio en móvil
-                animatedText(false), // Texto centrado
+                const SizedBox(height: 60),
+                animatedText(false),
               ],
             );
           }
 
-          // Si la pantalla es ancha (tablet/web)
           return Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: <Widget>[
-              // Damos más espacio a los mockups
               Expanded(
                 flex: 2,
                 child: animatedMockups,
               ),
               const SizedBox(width: 40),
-              // Y el texto se alinea a la izquierda
               Expanded(
                 flex: 1,
                 child: animatedText(true),
@@ -287,7 +250,6 @@ class _GestionaProyectosSectionState extends State<_GestionaProyectosSection>
   }
 }
 
-/// Widget para el texto "Gestiona tus proyectos..." (Estilo Apple)
 class _NewTextView extends StatelessWidget {
   final bool isDesktop;
   const _NewTextView({this.isDesktop = false});
@@ -302,22 +264,21 @@ class _NewTextView extends StatelessWidget {
           'Gestiona tus proyectos donde sea.',
           textAlign: isDesktop ? TextAlign.left : TextAlign.center,
           style: TextStyle(
-            color: const Color(0xFF1D1D1F), // "Near black" de Apple
+            color: colorFondoMasOscuro,
             fontSize: 42,
             fontWeight: FontWeight.w700,
             height: 1.1,
-            letterSpacing: -0.5, // Un toque de "Apple"
+            letterSpacing: -0.5,
           ),
         ),
         const SizedBox(height: 16),
-        // Subtítulo, muy común en el diseño de Apple
         Text(
           'MetroBox te da el poder de organizar tus tareas, '
           'sincronizar tus equipos y alcanzar tus metas, '
           'todo desde la palma de tu mano.',
           textAlign: isDesktop ? TextAlign.left : TextAlign.center,
           style: TextStyle(
-            color: Colors.grey[700], // Un gris suave para el subtítulo
+            color: colorTextoSecundario,
             fontSize: 18,
             fontWeight: FontWeight.w400,
             height: 1.4,
@@ -328,7 +289,6 @@ class _NewTextView extends StatelessWidget {
   }
 }
 
-/// Widget para el Stack de mockups (Corregido y Rediseñado)
 class _DeviceMockups extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -336,13 +296,10 @@ class _DeviceMockups extends StatelessWidget {
       alignment: Alignment.center,
       clipBehavior: Clip.none,
       children: [
-        // CAPA 1: La Laptop (al fondo)
         _LaptopMockup(),
-
-        // CAPA 2: El Teléfono (al frente y movido más a la izquierda)
         Positioned(
-          right: 20, // AHORA: Movido a la izquierda para mejor visibilidad
-          bottom: -80, // Se mantiene la posición vertical
+          right: 20,
+          bottom: -80,
           child: _PhoneMockup(),
         ),
       ],
@@ -350,18 +307,17 @@ class _DeviceMockups extends StatelessWidget {
   }
 }
 
-/// Widget que crea el mockup del Teléfono (Tamaño corregido y logo blanco)
 class _PhoneMockup extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 180, // TAMAÑO: Un poco más ancho
-      height: 360, // TAMAÑO: Un poco más alto
+      width: 180,
+      height: 360,
       decoration: BoxDecoration(
-        color: const Color(0xFF1C1C1E), // "Space Black" de Apple
+        color: colorMarcoMockup,
         borderRadius: BorderRadius.circular(28),
         border: Border.all(
-          color: Colors.grey[850]!,
+          color: colorBordeMockup,
           width: 5,
         ),
         boxShadow: [
@@ -375,13 +331,10 @@ class _PhoneMockup extends StatelessWidget {
       child: ClipRRect(
         borderRadius: BorderRadius.circular(24),
         child: Container(
-          // 1. ARREGLO DE FONDO: Pantalla del teléfono en blanco
           color: Colors.white,
           alignment: Alignment.center,
-          // 1. ARREGLO DE LOGO: Se quita ColorFiltered.
-          // Ahora muestra 'logo.png' en su color original.
           child: Image.asset(
-            'assets/images/logo.png', // Tu logo.png
+            'assets/images/logo.png',
             fit: BoxFit.contain,
             width: 80,
             alignment: Alignment.center,
@@ -392,22 +345,20 @@ class _PhoneMockup extends StatelessWidget {
   }
 }
 
-/// Widget que crea el mockup de la Laptop (Tamaño ampliado y rediseñado)
 class _LaptopMockup extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        // 1. Pantalla
         Container(
-          width: 450, // TAMAÑO: Ampliado
-          height: 280, // TAMAÑO: Ampliado
+          width: 450,
+          height: 280,
           decoration: BoxDecoration(
-            color: const Color(0xFF1C1C1E), // "Space Black"
+            color: colorMarcoMockup,
             borderRadius: BorderRadius.circular(14),
             border: Border.all(
-              color: Colors.grey[850]!,
+              color: colorBordeMockup,
               width: 8,
             ),
             boxShadow: [
@@ -420,30 +371,393 @@ class _LaptopMockup extends StatelessWidget {
           ),
           child: ClipRRect(
             borderRadius: BorderRadius.circular(8),
-            // 2. ARREGLO DE IMAGEN: Se usa DecorationImage para asegurar
-            // que la imagen 'tablet.png' llene la pantalla.
-            child: Container(
-              decoration: BoxDecoration(
-                image: DecorationImage(
-                  // CAMBIO: Usando el nombre de archivo que mencionaste
-                  image: AssetImage(
-                      'assets/images/fondotablet.png'), // Tu fondolaptop.png
-                  fit: BoxFit.cover,
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                Container(
+                  color: colorFondoMasOscuro,
                 ),
-              ),
+                Image.asset(
+                  'assets/images/dash.png',
+                  fit: BoxFit.cover,
+                  width: 450,
+                  height: 280,
+                  errorBuilder: (context, error, stackTrace) {
+                    return Container(
+                      color: Colors.red.withOpacity(0.5),
+                      alignment: Alignment.center,
+                      child: Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Text(
+                          'Error: No se pudo cargar la imagen.\nAsegúrate de que "assets/images/fondolaptop.png" existe y está en pubspec.yaml.\n\nLuego, REINICIA la app (Hot Restart).',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ],
             ),
           ),
         ),
-        // 2. Base del "teclado"
         Container(
-          width: 500, // TAMAÑO: Ampliado para la base
+          width: 500,
           height: 12,
           decoration: BoxDecoration(
-            color: const Color(0xFF2C2C2E), // Gris oscuro de Apple
+            color: colorFondoOscuro,
             borderRadius: BorderRadius.circular(3),
           ),
         ),
       ],
+    );
+  }
+}
+
+class Feature {
+  final IconData icon;
+  final String title;
+  final String description;
+
+  Feature({required this.icon, required this.title, required this.description});
+}
+
+class _FeaturesSection extends StatelessWidget {
+  const _FeaturesSection();
+
+  static final List<Feature> _features = [
+    Feature(
+      icon: Icons.dashboard_outlined,
+      title: 'Tableros Visuales',
+      description:
+          'Organiza todo con tarjetas, listas y tableros estilo Kanban. Mueve tareas de \'Pendiente\' a \'Hecho\' con solo arrastrar.',
+    ),
+    Feature(
+      icon: Icons.group_work_outlined,
+      title: 'Colaboración en Equipo',
+      description:
+          'Asigna tareas, deja comentarios y comparte archivos. Mantén a todo tu equipo sincronizado en un solo lugar, sin esfuerzo.',
+    ),
+    Feature(
+      icon: Icons.bar_chart_outlined,
+      title: 'Reportes de Progreso',
+      description:
+          'Genera reportes instantáneos para ver el rendimiento de tu equipo y asegurarte de que todo avanza según lo planeado.',
+    ),
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      color: Colors.white,
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 100),
+      child: Column(
+        children: [
+          Text(
+            'Control total. Diseño simple.',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: colorFondoMasOscuro,
+              fontSize: 38,
+              fontWeight: FontWeight.w700,
+              height: 1.2,
+              letterSpacing: -0.5,
+            ),
+          ),
+          const SizedBox(height: 60),
+          Wrap(
+            alignment: WrapAlignment.center,
+            spacing: 40,
+            runSpacing: 40,
+            children: _features
+                .map((feature) => _FeatureItem(feature: feature))
+                .toList(),
+          ),
+          const SizedBox(height: 60),
+          OutlinedButton(
+            onPressed: () {
+              /*showDialog(
+                context: context,
+                builder: (context) => const TopLikesDialog(),
+              );*/
+            },
+            style: OutlinedButton.styleFrom(
+              foregroundColor: primaryOrange,
+              side: BorderSide(color: primaryOrange, width: 2),
+              padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 20),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              textStyle: const TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            child: const Text('Ver los mejores proyectos'),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _FeatureItem extends StatelessWidget {
+  final Feature feature;
+  const _FeatureItem({required this.feature});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 300,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(
+            feature.icon,
+            color: primaryOrange,
+            size: 36,
+          ),
+          const SizedBox(height: 20),
+          Text(
+            feature.title,
+            style: TextStyle(
+              color: colorFondoMasOscuro,
+              fontSize: 22,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          const SizedBox(height: 10),
+          Text(
+            feature.description,
+            style: TextStyle(
+              color: colorTextoSecundario,
+              fontSize: 16,
+              fontWeight: FontWeight.w400,
+              height: 1.5,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class Testimonial {
+  final String quote;
+  final String author;
+  final String title;
+
+  Testimonial({required this.quote, required this.author, required this.title});
+}
+
+class _TestimonialsSection extends StatelessWidget {
+  const _TestimonialsSection();
+
+  static final List<Testimonial> _testimonials = [
+    Testimonial(
+      quote:
+          '"MetroBox transformó nuestro flujo de trabajo. Pasamos del caos a la claridad en menos de una semana. No podríamos vivir sin él."',
+      author: 'Ana Pérez',
+      title: 'Estudiante de Ing electrica, Equipo alfa buena onda dinamita',
+    ),
+    Testimonial(
+      quote:
+          '"La mejor parte es la simplicidad. Es lo suficientemente potente para nuestros ingenieros y lo suficientemente simple para nuestro equipo de marketing."',
+      author: 'Carlos González',
+      title: 'Estudiante de Psicologia, Equipo Los 7 Sigmas',
+    ),
+    Testimonial(
+      quote:
+          '"Finalmente, una herramienta que no se siente como trabajo. Nuestros reportes de progreso son ahora automáticos y precisos."',
+      author: 'Sofía Martínez',
+      title: 'Estudiante de ing quimica, Equipo One Direction',
+    ),
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 100),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            colorFondoOscuro,
+            colorFondoMasOscuro,
+          ],
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+        ),
+      ),
+      child: Column(
+        children: [
+          Text(
+            'En quién confían los mejores equipos.',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: colorTextoOscuro,
+              fontSize: 38,
+              fontWeight: FontWeight.w700,
+              height: 1.2,
+              letterSpacing: -0.5,
+            ),
+          ),
+          const SizedBox(height: 60),
+          Wrap(
+            alignment: WrapAlignment.center,
+            spacing: 40,
+            runSpacing: 40,
+            children: _testimonials
+                .map(
+                    (testimonial) => _TestimonialItem(testimonial: testimonial))
+                .toList(),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _TestimonialItem extends StatelessWidget {
+  final Testimonial testimonial;
+  const _TestimonialItem({required this.testimonial});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 300,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(
+            Icons.format_quote,
+            color: primaryOrange,
+            size: 36,
+          ),
+          const SizedBox(height: 20),
+          Text(
+            testimonial.quote,
+            style: TextStyle(
+              color: colorTextoOscuro.withOpacity(0.9),
+              fontSize: 18,
+              fontWeight: FontWeight.w400,
+              height: 1.5,
+              fontStyle: FontStyle.italic,
+            ),
+          ),
+          const SizedBox(height: 20),
+          Text(
+            testimonial.author,
+            style: TextStyle(
+              color: colorTextoOscuro,
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            testimonial.title,
+            style: TextStyle(
+              color: colorTextoOscuro.withOpacity(0.7),
+              fontSize: 14,
+              fontWeight: FontWeight.w400,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _CtaSection extends StatelessWidget {
+  const _CtaSection();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 100),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            colorFondoMasOscuro,
+            colorFondoCtaFinal,
+          ],
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+        ),
+      ),
+      child: Column(
+        children: [
+          Text(
+            'Empieza a organizar tu éxito hoy.',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: colorTextoOscuro,
+              fontSize: 38,
+              fontWeight: FontWeight.w700,
+              height: 1.2,
+              letterSpacing: -0.5,
+            ),
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'Regístrate gratis. No se requiere tarjeta de crédito.',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: colorTextoOscuro.withOpacity(0.7),
+              fontSize: 18,
+              fontWeight: FontWeight.w400,
+            ),
+          ),
+          const SizedBox(height: 40),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: primaryOrange,
+              foregroundColor: colorTextoOscuro,
+              padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 20),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              textStyle: const TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            onPressed: () {
+              Navigator.pushNamed(context, '/login');
+            },
+            child: const Text('Comenzar Ahora'),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _FooterSection extends StatelessWidget {
+  const _FooterSection();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 50),
+      color: colorFondoCtaFinal,
+      child: Text(
+        '© 2024 MetroBox. Todos los derechos reservados.',
+        textAlign: TextAlign.center,
+        style: TextStyle(
+          color: colorTextoOscuro.withOpacity(0.5),
+          fontSize: 14,
+          fontWeight: FontWeight.w400,
+        ),
+      ),
     );
   }
 }
