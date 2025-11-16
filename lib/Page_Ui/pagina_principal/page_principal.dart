@@ -134,7 +134,7 @@ class _OriginalHeroSection extends StatelessWidget {
 }
 
 class _GestionaProyectosSection extends StatefulWidget {
-  const _GestionaProyectosSection({super.key});
+  const _GestionaProyectosSection();
 
   @override
   State<_GestionaProyectosSection> createState() =>
