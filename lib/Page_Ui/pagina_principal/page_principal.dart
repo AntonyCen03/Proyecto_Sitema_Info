@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:proyecto_final/Page_Ui/widgets/metro_app_bar.dart';
 import 'accountMenu.dart';
-// Corrected case-sensitive import for Linux CI
 import 'SideDrawer.dart';
 import 'package:proyecto_final/Color/Color.dart';
 import 'MenuNotificacion.dart';
@@ -42,14 +42,10 @@ class _PaginaPrincipalState extends State<PaginaPrincipal> {
   }
 
   PreferredSizeWidget _buildAppBar(BuildContext context) {
-    return AppBar(
+    return MetroAppBar(
       backgroundColor: Colors.transparent,
       elevation: 0,
-      iconTheme: const IconThemeData(color: primaryOrange),
-      title: const Text(
-        'MetroBox',
-        style: TextStyle(color: primaryOrange, fontWeight: FontWeight.bold),
-      ),
+      title: 'MetroBox',
       centerTitle: true,
       actions: const [NotificationsMenu(), AccountMenu(), SizedBox(width: 8)],
     );
