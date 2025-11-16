@@ -47,8 +47,8 @@ class PLista extends State<ProyectosDeLaLista> {
         });
       },
       child: Container(
-        margin: const EdgeInsets.only(bottom: 10.0),
-        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
+        margin: const EdgeInsets.only(bottom: 8.0),
+        padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 6),
         decoration: BoxDecoration(
           color: _isHovering ? Colors.grey[200] : Colors.transparent,
           borderRadius: BorderRadius.circular(8.0),
@@ -65,7 +65,7 @@ class PLista extends State<ProyectosDeLaLista> {
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       GraficoPizza(proyectos: widget.proyectos),
-                      const SizedBox(width: 12),
+                      const SizedBox(width: 10),
                       Expanded(
                         child: Text(
                           widget.proyectos['title'],
@@ -91,7 +91,7 @@ class PLista extends State<ProyectosDeLaLista> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 GraficoPizza(proyectos: widget.proyectos),
-                const SizedBox(width: 16),
+                const SizedBox(width: 12),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -136,7 +136,7 @@ class PLista extends State<ProyectosDeLaLista> {
         ? const EdgeInsets.symmetric(horizontal: 0)
         : const EdgeInsets.symmetric(horizontal: 4);
     return Wrap(
-      spacing: compact ? 4 : 8,
+      spacing: compact ? 3 : 6,
       runSpacing: 4,
       crossAxisAlignment: WrapCrossAlignment.center,
       children: [
