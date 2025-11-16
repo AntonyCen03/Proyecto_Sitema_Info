@@ -33,6 +33,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:proyecto_final/Page_Ui/pagina_login/reset_password/olvidecontrasena.dart';
 import 'package:proyecto_final/Page_Ui/perfil_usuario/perfil_usuario_new.dart';
 import 'package:proyecto_final/Page_Ui/recursos/recursos_page.dart';
+import 'package:proyecto_final/Page_Ui/widgets/widgets_proteccion.dart';
 import 'firebase_options.dart';
 import 'package:proyecto_final/Page_Ui/pagina_principal/page_principal.dart';
 import 'package:proyecto_final/Page_Ui/pagina_login/nueva_contrasena.dart';
@@ -75,21 +76,28 @@ class MyApp extends StatelessWidget {
       ],
       initialRoute: '/principal',
       routes: {
+        // Rutas públicas (sin autenticación)
+        '/principal': (context) => const PaginaPrincipal(),
         '/login': (context) => const PageLogin(),
         '/registrar': (context) => const PageSignUp(),
         '/reset_password': (context) => const Olvidecontrasena(),
-        '/perfil': (context) => const PerfilUsuarioNew(),
-        '/principal': (context) => const PaginaPrincipal(),
-        '/cambiar_contrasena': (context) => const NuevaContrasenaScreen(),
-        '/dashboard': (context) => const DashboardPage(),
-        '/reportes': (context) => const ReportesPage(),
-        '/calendario': (context) => const CalendarScreen(),
-        '/crear_proyecto': (context) => const PageCreateProject(),
-        '/foro_page': (context) => const ForoPage(),
-        '/proyectos_lista': (context) => const ListaProyectos(),
-        '/finanzas_proyecto': (context) => const FinanzasProyectoPage(),
-        '/recursos': (context) => const RecursosPage(),
+        // Rutas protegidas: envueltas con RequireAuth
+        '/perfil': (context) => const RequireAuth(child: PerfilUsuarioNew()),
+        '/cambiar_contrasena': (context) => const RequireAuth(child: NuevaContrasenaScreen()),
+        '/dashboard': (context) => const RequireAuth(child: DashboardPage()),
+        '/reportes': (context) => const RequireAuth(child: ReportesPage()),
+        '/calendario': (context) => const RequireAuth(child: CalendarScreen()),
+        '/crear_proyecto': (context) =>
+            const RequireAuth(child: PageCreateProject()),
+        '/foro_page': (context) => const RequireAuth(child: ForoPage()),
+        '/proyectos_lista': (context) =>
+            const RequireAuth(child: ListaProyectos()),
+        '/finanzas_proyecto': (context) =>
+            const RequireAuth(child: FinanzasProyectoPage()),
+        '/recursos': (context) => const RequireAuth(child: RecursosPage()),
       },
     );
   }
 }
+
+
