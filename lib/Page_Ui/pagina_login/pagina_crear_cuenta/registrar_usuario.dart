@@ -15,6 +15,7 @@ class _SignUpScreenState extends State<PageSignUp> {
   final _formKey = GlobalKey<FormState>();
   bool _isPasswordVisible = false;
   bool _agreedToPrivacyPolicy = false;
+  bool _awaitingVerification = false;
 
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
@@ -34,12 +35,10 @@ class _SignUpScreenState extends State<PageSignUp> {
 
   void _registrarUsuarior() async {
     if (_formKey.currentState!.validate()) {
-      final email = _emailController.text;
+      final email = _emailController.text.trim().toLowerCase();
       final contrasena = _passwordController.text;
       final carnet = _carnetController.text;
-      final nombre = _nombreController.text;
       final cedula = _cedulaController.text;
-      bool isadmin = false;
 
       final users = await getUser(context);
       Map<String, dynamic>? existingUser;
@@ -59,19 +58,68 @@ class _SignUpScreenState extends State<PageSignUp> {
         ).showSnackBar(const SnackBar(content: Text('El usuario ya existe')));
         return;
       } else {
-        if (isUnimetEmail(email)) {
-          isadmin = true;
+        try {
+          final auth = AuthService();
+          await auth.register(email, contrasena);
+          await auth.sendEmailVerification();
+          setState(() {
+            _awaitingVerification = true;
+          });
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text(
+                  'Te enviamos un correo de verificación. Confírmalo y luego presiona "Ya verifiqué".'),
+            ),
+          );
+          // No creamos el documento de usuario en Firestore hasta que verifique el email.
+        } catch (e) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Error al registrar: ${e.toString()}')),
+          );
+          return;
         }
-      await AuthService().register(email, contrasena);
-      await addUser(nombre, email, isadmin, int.parse(carnet), cedula, DateTime.now(), DateTime.now());
+      }
+    }
+  }
+
+  Future<void> _confirmarVerificacion() async {
+    final email = _emailController.text.trim().toLowerCase();
+    final carnet = _carnetController.text;
+    final nombre = _nombreController.text;
+    final cedula = _cedulaController.text;
+    bool isadmin = isUnimetEmail(email);
+
+    try {
+      final verified = await AuthService().isEmailVerified();
+      if (!verified) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Tu correo aún no está verificado.')),
+        );
+        return;
       }
 
-      Navigator.pushNamed(context, '/login');
-      setState(() {
+      // Crear el documento del usuario una vez verificado
+      await addUser(
+        nombre,
+        email,
+        isadmin,
+        int.parse(carnet),
+        cedula,
+        DateTime.now(),
+        DateTime.now(),
+      );
+
+      if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Usuario registrado con éxito')),
         );
-      });
+        Navigator.pushNamed(context, '/login');
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+            content: Text('No se pudo completar el registro: ${e.toString()}')),
+      );
     }
   }
 
@@ -85,7 +133,8 @@ class _SignUpScreenState extends State<PageSignUp> {
         border: OutlineInputBorder(),
         prefixIcon: Icon(Icons.person),
       ),
-      validator: (value) => validarSoloLetras(value, campo: 'Nombre', maxLength: 100, minLength: 3),
+      validator: (value) => validarSoloLetras(value,
+          campo: 'Nombre', maxLength: 100, minLength: 3),
       inputFormatters: soloLetrasFormatters(maxLength: 100),
     );
   }
@@ -102,7 +151,8 @@ class _SignUpScreenState extends State<PageSignUp> {
         prefixIcon: Icon(Icons.credit_card),
         counterText: '',
       ),
-      validator: (value) => validarSoloNumeros(value, campo: 'Cédula', maxLength: 8, minLength: 6),
+      validator: (value) => validarSoloNumeros(value,
+          campo: 'Cédula', maxLength: 8, minLength: 6),
       inputFormatters: soloNumerosFormatters(maxLength: 8),
     );
   }
@@ -111,6 +161,16 @@ class _SignUpScreenState extends State<PageSignUp> {
     return TextFormField(
       controller: _emailController,
       keyboardType: TextInputType.emailAddress,
+      onChanged: (value) {
+        final lower = value.toLowerCase();
+        if (value != lower) {
+          // Reemplazar el texto por su versión en minúsculas y mover el cursor al final
+          _emailController.value = TextEditingValue(
+            text: lower,
+            selection: TextSelection.collapsed(offset: lower.length),
+          );
+        }
+      },
       decoration: const InputDecoration(
         labelText: 'Correo Electrónico',
         hintText: 'Ingrese su correo',
@@ -167,7 +227,8 @@ class _SignUpScreenState extends State<PageSignUp> {
         border: OutlineInputBorder(),
         prefixIcon: Icon(Icons.badge),
       ),
-      validator: (value) => validarSoloNumeros(value, campo: 'Carnet', maxLength: 11, minLength: 11),
+      validator: (value) => validarSoloNumeros(value,
+          campo: 'Carnet', maxLength: 11, minLength: 11),
       inputFormatters: soloNumerosFormatters(maxLength: 11),
     );
   }
@@ -218,12 +279,31 @@ class _SignUpScreenState extends State<PageSignUp> {
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
           elevation: 5,
         ),
-        onPressed: _agreedToPrivacyPolicy ? _registrarUsuarior : null,
+        onPressed: _agreedToPrivacyPolicy && !_awaitingVerification
+            ? _registrarUsuarior
+            : null,
         child: const Text(
           'Crear Cuenta',
           style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
         ),
       ),
+    );
+  }
+
+  Widget _buildVerifyButton(BuildContext context) {
+    if (!_awaitingVerification) return const SizedBox.shrink();
+    return Column(
+      children: [
+        const SizedBox(height: 12),
+        SizedBox(
+          width: double.infinity,
+          child: OutlinedButton.icon(
+            icon: const Icon(Icons.mark_email_read),
+            label: const Text('Ya verifiqué mi correo'),
+            onPressed: _confirmarVerificacion,
+          ),
+        ),
+      ],
     );
   }
 
@@ -299,6 +379,7 @@ class _SignUpScreenState extends State<PageSignUp> {
                     _buildPrivacyPolicyCheckbox(),
                     const SizedBox(height: 40),
                     _buildSignUpButton(context),
+                    _buildVerifyButton(context),
                   ],
                 ),
               ),

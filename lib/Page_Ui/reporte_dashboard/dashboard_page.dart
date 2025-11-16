@@ -17,13 +17,11 @@ class DashboardPage extends StatefulWidget {
 
 class _DashboardPageState extends State<DashboardPage> {
   final _repo = const ProyectoRepository();
-  // filtros
   final _searchCtrl = TextEditingController();
   DateTimeRange? _range;
   String _estado = 'todos';
   String? _appliedQuery; // query aplicada al presionar botón/enter
   List<Proyecto> _cache = const [];
-  // paginación
   static const int _pageSize = 5;
   int _proyectosPage = 0;
   int _proximosPage = 0;
@@ -69,26 +67,21 @@ class _DashboardPageState extends State<DashboardPage> {
           final proyectos = snap.data ?? [];
           _cache = proyectos;
           final stats = _repo.computeStats(proyectos);
-
           final proximos = [...proyectos]
             ..removeWhere((p) => p.fechaEntrega == null)
             ..sort((a, b) => a.fechaEntrega!.compareTo(b.fechaEntrega!));
-          // Paginación para "Próximos a entregar"
           final pagedProx = paginateList<Proyecto>(
             proximos,
             page: _proximosPage,
             pageSize: _pageSize,
           );
-          // normalizar la página en caso de quedar fuera de rango
           if (_proximosPage != pagedProx.currentPage) {
             _proximosPage = pagedProx.currentPage;
           }
-
           return Padding(
             padding: const EdgeInsets.all(16.0),
             child: ListView(
               children: [
-                // Filtros arriba
                 FilterBar(
                   searchController: _searchCtrl,
                   dateRange: _range,
@@ -100,12 +93,13 @@ class _DashboardPageState extends State<DashboardPage> {
                       lastDate: DateTime(now.year + 5),
                       initialDateRange: _range,
                     );
-                    if (picked != null)
+                    if (picked != null) {
                       setState(() {
                         _range = picked;
                         _proyectosPage = 0;
                         _proximosPage = 0;
                       });
+                    }
                   },
                   onClearDateRange: _range == null
                       ? null
@@ -128,81 +122,61 @@ class _DashboardPageState extends State<DashboardPage> {
                   }),
                 ),
                 const SizedBox(height: 16),
-                GridView.count(
-                  crossAxisCount:
-                      MediaQuery.of(context).size.width > 900 ? 4 : 2,
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  crossAxisSpacing: 12,
-                  mainAxisSpacing: 12,
-                  children: [
-                    SummaryCard(
-                      title: 'Total Proyectos',
-                      value: stats.totalProyectos.toString(),
-                      icon: Icons.all_inbox,
-                      color: primaryBlue,
-                    ),
-                    SummaryCard(
-                      title: 'En curso',
-                      value: stats.proyectosActivos.toString(),
-                      icon: Icons.play_circle,
-                      color: primaryOrange,
-                    ),
-                    SummaryCard(
-                      title: 'Completados',
-                      value: stats.proyectosCompletados.toString(),
-                      icon: Icons.check_circle,
-                      color: primaryGreen,
-                    ),
-                    SummaryCard(
-                      title: 'Tareas pendientes',
-                      value: stats.tareasPendientes.toString(),
-                      icon: Icons.list_alt,
-                      color: primaryRed,
-                    ),
-                  ],
-                ),
+                // KPIs agrupados en dos tarjetas (4 items cada una)
+                LayoutBuilder(builder: (context, constraints) {
+                  final wide = constraints.maxWidth > 900;
+                  if (_isAdmin && wide) {
+                    return Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(child: ProjectStatsCard(stats: stats)),
+                        const SizedBox(width: 12),
+                        const Expanded(child: FinanceTotalsCard()),
+                      ],
+                    );
+                  }
+                  // Column layout (admin shows both stacked, normal solo proyectos)
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      ProjectStatsCard(stats: stats),
+                      if (_isAdmin) ...[
+                        const SizedBox(height: 12),
+                        const FinanceTotalsCard(),
+                      ],
+                    ],
+                  );
+                }),
                 const SizedBox(height: 24),
-                Text('Próximos a entregar',
-                    style: Theme.of(context).textTheme.titleLarge),
-                const SizedBox(height: 12),
-                Card(
-                  color: Colors.white,
-                  child: ListView.separated(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    itemBuilder: (_, i) {
-                      final p = pagedProx.items[i];
-                      final fecha =
-                          p.fechaEntrega?.toString().split(' ').first ?? '';
-                      return ListTile(
-                        leading: CircleAvatar(
-                          backgroundColor: (p.estado
-                              ? statusCompletedColor
-                              : statusActiveColor),
-                          child: Text(
-                            p.idProyecto.toString(),
-                            style: const TextStyle(fontWeight: FontWeight.bold),
-                          ),
-                        ),
-                        title: Text(p.nombreProyecto),
-                        subtitle:
-                            Text('Equipo: ${p.nombreEquipo} • Entrega: $fecha'),
-                        trailing: Icon(
-                          p.estado ? Icons.check : Icons.hourglass_empty,
-                          color: p.estado
-                              ? statusCompletedColor
-                              : statusActiveColor,
-                        ),
-                      );
-                    },
-                    separatorBuilder: (_, __) => const Divider(height: 1),
-                    itemCount: pagedProx.items.length,
-                  ),
-                ),
-                // Controles de página para Próximos
-                const SizedBox(height: 8),
-                PaginationControls(
+                // Resumen visual: Pie de estado y tendencia de tareas
+                LayoutBuilder(builder: (context, constraints) {
+                  final isWide = constraints.maxWidth > 900;
+                  final children = [
+                    Expanded(
+                      child: ProjectStatusPie(
+                        activos: stats.proyectosActivos,
+                        completados: stats.proyectosCompletados,
+                      ),
+                    ),
+                    const SizedBox(width: 16, height: 16),
+                    const Expanded(
+                      child: TasksTrendCard(dias: 30),
+                    ),
+                  ];
+                  return isWide
+                      ? Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: children)
+                      : Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: children);
+                }),
+                const SizedBox(height: 16),
+                const VelocityCard(),
+                const SizedBox(height: 24),
+                UpcomingDueCompactList(
+                  proyectosOrdenadosPorEntrega: pagedProx.items,
+                  maxItems: 5,
                   currentPage: _proximosPage,
                   totalPages: pagedProx.totalPages,
                   onPrev: _proximosPage > 0
@@ -213,104 +187,108 @@ class _DashboardPageState extends State<DashboardPage> {
                       : null,
                 ),
                 const SizedBox(height: 24),
+                const SizedBox(height: 24),
+
                 Text('Proyectos',
                     style: Theme.of(context).textTheme.titleLarge),
                 const SizedBox(height: 12),
-                Builder(builder: (_) {
-                  final filtered = _repo.applyFilter(_cache, _currentFilter());
-                  final paged = paginateList<Proyecto>(
-                    filtered,
-                    page: _proyectosPage,
-                    pageSize: _pageSize,
-                  );
-                  if (_proyectosPage != paged.currentPage) {
-                    // sincroniza por si el filtro cambió el total
-                    WidgetsBinding.instance.addPostFrameCallback((_) {
-                      if (mounted)
-                        setState(() => _proyectosPage = paged.currentPage);
-                    });
-                  }
-                  return ListView.separated(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    itemBuilder: (_, i) {
-                      final p = paged.items[i];
-                      final total = p.tareas.length;
-                      final done = p.tareas.values.where((v) => v).length;
-                      final pct = total == 0 ? 0.0 : done / total;
-                      final fecha =
-                          p.fechaCreacion?.toString().split(' ').first ?? '';
-                      return Card(
-                        color: Colors.white,
-                        child: Padding(
-                          padding: const EdgeInsets.all(12.0),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                children: [
-                                  CircleAvatar(
-                                    backgroundColor: (p.estado
-                                        ? statusCompletedColor
-                                        : statusActiveColor),
-                                    child: Text(
-                                      p.idProyecto.toString(),
-                                      style: const TextStyle(
-                                          fontWeight: FontWeight.bold),
+                Card(
+                  color: Colors.white,
+                  child: Builder(builder: (_) {
+                    final filtered =
+                        _repo.applyFilter(_cache, _currentFilter());
+                    final paged = paginateList<Proyecto>(
+                      filtered,
+                      page: _proyectosPage,
+                      pageSize: _pageSize,
+                    );
+                    if (_proyectosPage != paged.currentPage) {
+                      WidgetsBinding.instance.addPostFrameCallback((_) {
+                        if (mounted)
+                          setState(() => _proyectosPage = paged.currentPage);
+                      });
+                    }
+                    return ListView.separated(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      itemBuilder: (_, i) {
+                        final p = paged.items[i];
+                        final total = p.tareas.length;
+                        final done = p.tareas.values.where((v) => v).length;
+                        final pct = total == 0 ? 0.0 : done / total;
+                        final fecha =
+                            p.fechaCreacion?.toString().split(' ').first ?? '';
+                        return Card(
+                          color: Colors.white,
+                          child: Padding(
+                            padding: const EdgeInsets.all(12.0),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    CircleAvatar(
+                                      backgroundColor: (p.estado
+                                          ? statusCompletedColor
+                                          : statusActiveColor),
+                                      child: Text(
+                                        p.idProyecto.toString(),
+                                        style: const TextStyle(
+                                            fontWeight: FontWeight.bold),
+                                      ),
                                     ),
-                                  ),
-                                  const SizedBox(width: 12),
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(p.nombreProyecto,
-                                            style: Theme.of(context)
-                                                .textTheme
-                                                .titleMedium),
-                                        Text(
-                                            'Equipo: ${p.nombreEquipo} • Creación: $fecha',
-                                            style: Theme.of(context)
-                                                .textTheme
-                                                .bodySmall),
-                                      ],
+                                    const SizedBox(width: 12),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(p.nombreProyecto,
+                                              style: Theme.of(context)
+                                                  .textTheme
+                                                  .titleMedium),
+                                          Text(
+                                              'Equipo: ${p.nombreEquipo} • Creación: $fecha',
+                                              style: Theme.of(context)
+                                                  .textTheme
+                                                  .bodySmall),
+                                        ],
+                                      ),
                                     ),
-                                  ),
-                                  Chip(
+                                    Chip(
                                       label: Text(
                                           p.estado ? 'Completado' : 'En curso'),
                                       backgroundColor: (p.estado
                                           ? statusCompletedColor
-                                          : statusActiveColor))
-                                ],
-                              ),
-                              const SizedBox(height: 8),
-                              LinearProgressIndicator(
-                                value: pct,
-                                backgroundColor: (p.estado
-                                        ? statusCompletedColor
-                                        : statusActiveColor)
-                                    .withOpacity(0.18),
-                                valueColor: AlwaysStoppedAnimation<Color>(
-                                  p.estado
-                                      ? statusCompletedColor
-                                      : statusActiveColor,
+                                          : statusActiveColor),
+                                    ),
+                                  ],
                                 ),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                  'Progreso: $done/$total (${(pct * 100).round()}%)'),
-                            ],
+                                const SizedBox(height: 8),
+                                LinearProgressIndicator(
+                                  value: pct,
+                                  backgroundColor: (p.estado
+                                          ? statusCompletedColor
+                                          : statusActiveColor)
+                                      .withOpacity(0.18),
+                                  valueColor: AlwaysStoppedAnimation<Color>(
+                                      p.estado
+                                          ? statusCompletedColor
+                                          : statusActiveColor),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                    'Progreso: $done/$total (${(pct * 100).round()}%)'),
+                              ],
+                            ),
                           ),
-                        ),
-                      );
-                    },
-                    separatorBuilder: (_, __) => const SizedBox(height: 8),
-                    itemCount: paged.items.length,
-                  );
-                }),
-                // Controles de página para Proyectos
+                        );
+                      },
+                      separatorBuilder: (_, __) => const SizedBox(height: 8),
+                      itemCount: paged.items.length,
+                    );
+                  }),
+                ),
                 const SizedBox(height: 8),
                 Builder(builder: (_) {
                   final filtered = _repo.applyFilter(_cache, _currentFilter());

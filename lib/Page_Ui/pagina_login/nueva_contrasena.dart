@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:proyecto_final/services/auth_service.dart';
 import 'package:proyecto_final/Color/Color.dart';
+import 'package:proyecto_final/Page_Ui/pagina_login/widget_password.dart';
 
 class NuevaContrasenaScreen extends StatefulWidget {
   const NuevaContrasenaScreen({super.key});
@@ -96,33 +97,25 @@ class _NuevaContrasenaScreenState extends State<NuevaContrasenaScreen> {
                         ),
                       ),
                       const SizedBox(height: 20),
-                      TextField(
+                      PasswordField(
                         controller: _viejaContrasena,
-                        obscureText: true,
-                        decoration: const InputDecoration(
-                          filled: true,
-                          fillColor: Colors.white,
-                          labelText: 'Contraseña Anterior',
-                          border: OutlineInputBorder(),
-                        ),
+                        labelText: 'Contraseña Anterior',
+                        showForgotLink: false,
+                        textInputAction: TextInputAction.next,
                       ),
                       const SizedBox(height: 8),
-                      TextField(
+                      PasswordField(
                         controller: _nuevaContrasenaController,
-                        obscureText: true,
-                        decoration: const InputDecoration(
-                          labelText: 'Nueva contraseña',
-                          border: OutlineInputBorder(),
-                        ),
+                        labelText: 'Nueva contraseña',
+                        showForgotLink: false,
+                        textInputAction: TextInputAction.next,
                       ),
                       const SizedBox(height: 12),
-                      TextField(
+                      PasswordField(
                         controller: _confirmarContrasenaController,
-                        obscureText: true,
-                        decoration: const InputDecoration(
-                          labelText: 'Confirmar contraseña',
-                          border: OutlineInputBorder(),
-                        ),
+                        labelText: 'Confirmar contraseña',
+                        showForgotLink: false,
+                        textInputAction: TextInputAction.done,
                       ),
                       const SizedBox(height: 20),
                       Row(

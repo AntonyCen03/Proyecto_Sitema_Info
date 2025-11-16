@@ -70,37 +70,6 @@ class _IniciarSesionState extends State<IniciarSesion> {
               } finally {
                 setState(() => _loading = false);
               }
-              /*try {
-                final users = await getUser();
-                Map<String, dynamic>? matched;
-                for (final u in users) {
-                  final uemail = (u['email'] ?? '').toString().trim();
-                  final upassword = (u['password'] ?? '').toString();
-                  if (uemail == email && upassword == password) {
-                    matched = u;
-                    break;
-                  }
-                }
-
-                if (matched != null) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Inicio de sesión correcto')),
-                  );
-                  // Navigator.of(context).pushReplacementNamed('/home');
-                } else {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Correo o contraseña incorrectos'),
-                    ),
-                  );
-                }
-              } catch (e) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Error al comprobar usuarios: $e')),
-                );
-              } finally {
-                setState(() => _loading = false);
-              }*/
             },
       child: _loading
           ? const SizedBox(

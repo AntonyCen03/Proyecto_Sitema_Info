@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:proyecto_final/Color/Color.dart';
 
 /// Widget reusable para mostrar un campo con opcion de editar (salvo cuando editable=false).
 class EditableItem extends StatefulWidget {
@@ -73,9 +74,8 @@ class _EditableItemState extends State<EditableItem> {
               ElevatedButton(
                 onPressed: () {
                   final txt = controller.text.trim();
-                  final v = widget.validator != null
-                      ? widget.validator!(txt)
-                      : null;
+                  final v =
+                      widget.validator != null ? widget.validator!(txt) : null;
                   if (v != null) {
                     setState(() {
                       errorText = v;
@@ -121,9 +121,9 @@ class _EditableItemState extends State<EditableItem> {
               children: [
                 Text(
                   widget.label,
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontWeight: FontWeight.w600,
-                    color: const Color(0xFF075985),
+                    color: primaryOrange,
                   ),
                 ),
                 const SizedBox(height: 4),
@@ -137,7 +137,7 @@ class _EditableItemState extends State<EditableItem> {
           if (widget.editable)
             IconButton(
               icon: const Icon(Icons.edit),
-              color: const Color(0xFF06B6D4),
+              color: primaryOrange,
               onPressed: _openEditDialog,
             ),
         ],

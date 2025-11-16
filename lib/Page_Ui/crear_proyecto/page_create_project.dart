@@ -6,7 +6,6 @@ import 'package:proyecto_final/Color/Color.dart';
 // Reemplazado acceso directo a Firestore por servicios centralizados
 import 'package:proyecto_final/services/firebase_services.dart' as api;
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'archivo_dialog.dart';
 
 class Integrante {
   final String nombre;
@@ -54,6 +53,11 @@ class _PageCreateProjectState extends State<PageCreateProject> {
   bool _prefillDone = false;
   bool _isAdmin = false; // determinado vía servicio
   bool _readOnly = false; // true cuando no es admin
+
+  // Presupuesto
+  double? _presupuestoSolicitado;
+  bool? _presupuestoAprobado;
+  String? _presupuestoMotivo;
 
   bool _memberLocked = true; // siempre bloqueado: sólo selección desde getUser
   TextEditingController?
@@ -215,6 +219,22 @@ class _PageCreateProjectState extends State<PageCreateProject> {
         _links
           ..clear()
           ..addAll(linksPrefill);
+
+        // Presupuesto
+        final pr = raw['presupuesto_solicitado'];
+        double? p;
+        if (pr is num) p = pr.toDouble();
+        if (pr is String) p = double.tryParse(pr);
+        _presupuestoSolicitado = p;
+        final ap = raw['presupuesto_aprobado'];
+        _presupuestoAprobado = (ap is bool)
+            ? ap
+            : (ap is num)
+                ? ap != 0
+                : (ap is String)
+                    ? (ap.toLowerCase() == 'true' || ap == '1')
+                    : null;
+        _presupuestoMotivo = (raw['presupuesto_motivo'] ?? '').toString();
       });
     } catch (e) {
       if (!mounted) return;
@@ -729,12 +749,117 @@ class _PageCreateProjectState extends State<PageCreateProject> {
                     const SizedBox(height: 25),
                     _buildLinksField(),
                     const SizedBox(height: 25),
+                    if (_isAdmin && _editMode) _buildPresupuestoAdmin(),
+                    const SizedBox(height: 25),
                     _buildCreateOrUpdateButton(),
                   ],
                 ),
               ),
             ),
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPresupuestoAdmin() {
+    final monto = _presupuestoSolicitado;
+    final aprobado = _presupuestoAprobado == true;
+    final estadoText = aprobado ? 'Aprobado' : 'Pendiente';
+    final estadoColor =
+        aprobado ? Colors.green.shade700 : Colors.orange.shade700;
+    return Card(
+      elevation: 1,
+      color: Colors.orange.shade50,
+      child: Padding(
+        padding: const EdgeInsets.all(12.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Presupuesto (solo admin)',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                          'Solicitado: ${monto != null ? monto.toStringAsFixed(2) : '—'}'),
+                      if ((_presupuestoMotivo ?? '').isNotEmpty)
+                        Text('Motivo: ${_presupuestoMotivo!}')
+                    ],
+                  ),
+                ),
+                Chip(
+                  label: Text(estadoText,
+                      style: const TextStyle(color: Colors.white)),
+                  backgroundColor: estadoColor,
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                ElevatedButton.icon(
+                  onPressed: (monto == null || aprobado)
+                      ? null
+                      : () async {
+                          if (_docId == null) return;
+                          try {
+                            await api.setPresupuestoAprobado(_docId!, true);
+                            if (!mounted) return;
+                            setState(() => _presupuestoAprobado = true);
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                  content: Text('Presupuesto aprobado')),
+                            );
+                          } catch (e) {
+                            if (!mounted) return;
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                  content: Text('Error al aprobar: $e'),
+                                  backgroundColor: Colors.red),
+                            );
+                          }
+                        },
+                  icon: const Icon(Icons.check_circle_outline),
+                  label: const Text('Aprobar'),
+                  style:
+                      ElevatedButton.styleFrom(backgroundColor: Colors.green),
+                ),
+                const SizedBox(width: 12),
+                OutlinedButton.icon(
+                  onPressed: aprobado
+                      ? () async {
+                          if (_docId == null) return;
+                          try {
+                            await api.setPresupuestoAprobado(_docId!, false);
+                            if (!mounted) return;
+                            setState(() => _presupuestoAprobado = false);
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                  content: Text('Aprobación revocada')),
+                            );
+                          } catch (e) {
+                            if (!mounted) return;
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                  content: Text('Error: $e'),
+                                  backgroundColor: Colors.red),
+                            );
+                          }
+                        }
+                      : null,
+                  icon: const Icon(Icons.undo),
+                  label: const Text('Revocar'),
+                ),
+              ],
+            ),
+          ],
         ),
       ),
     );
@@ -1000,38 +1125,6 @@ class _PageCreateProjectState extends State<PageCreateProject> {
                       const EdgeInsets.symmetric(horizontal: 15, vertical: 19),
                 ),
                 child: const Text('Añadir'),
-              ),
-              const SizedBox(width: 10),
-              OutlinedButton.icon(
-                onPressed: _readOnly
-                    ? null
-                    : () async {
-                        final result = await showDialog<Map<String, String>>(
-                          context: context,
-                          builder: (_) => const ArchivoDialog(),
-                        );
-                        if (result != null) {
-                          final url = result['url']?.trim();
-                          if (url != null &&
-                              url.isNotEmpty &&
-                              !_links.contains(url)) {
-                            setState(() => _links.add(url));
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                  content: Text(
-                                      'Recurso agregado: ${result['nombre'] ?? 'Recurso'}')),
-                            );
-                          }
-                        }
-                      },
-                icon: const Icon(Icons.add_link, color: primaryOrange),
-                label: const Text('Dialog'),
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: primaryOrange,
-                  side: const BorderSide(color: primaryOrange),
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
-                ),
               ),
             ],
           ),

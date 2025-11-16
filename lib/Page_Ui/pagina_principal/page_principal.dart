@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'accountMenu.dart';
-import 'sideDrawer.dart';
+// Corrected case-sensitive import for Linux CI
+import 'SideDrawer.dart';
 import 'package:proyecto_final/Color/Color.dart';
 import 'MenuNotificacion.dart';
+import 'package:proyecto_final/Page_Ui/lista_proyectos/top_likes_dialog.dart';
 
 class PaginaPrincipal extends StatefulWidget {
   const PaginaPrincipal({super.key});
@@ -481,10 +483,10 @@ class _FeaturesSection extends StatelessWidget {
           const SizedBox(height: 60),
           OutlinedButton(
             onPressed: () {
-              /*showDialog(
+              showDialog(
                 context: context,
                 builder: (context) => const TopLikesDialog(),
-              );*/
+              );
             },
             style: OutlinedButton.styleFrom(
               foregroundColor: primaryOrange,

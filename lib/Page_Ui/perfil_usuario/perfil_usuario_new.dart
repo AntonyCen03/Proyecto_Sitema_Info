@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:proyecto_final/Page_Ui/widgets/metro_app_bar.dart';
 import 'package:proyecto_final/services/auth_service.dart';
 import 'package:proyecto_final/services/firebase_services.dart';
 import 'package:flutter/services.dart';
@@ -25,11 +26,6 @@ class _PerfilUsuarioNewState extends State<PerfilUsuarioNew> {
   String uid = '';
   bool _isLoading = true;
 
-  List<Map<String, dynamic>> proyectos = [
-    {'title': 'Proyecto A', 'percent': 0.85},
-    {'title': 'Proyecto B', 'percent': 0.6},
-    {'title': 'Proyecto C', 'percent': 0.4},
-  ];
 
   @override
   void initState() {
@@ -98,8 +94,9 @@ class _PerfilUsuarioNewState extends State<PerfilUsuarioNew> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Perfil Usuario'),
+      backgroundColor: colorFondo,
+      appBar: MetroAppBar(
+        title: 'Perfil Usuario',
         centerTitle: true,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: primaryOrange),
@@ -130,7 +127,14 @@ class _PerfilUsuarioNewState extends State<PerfilUsuarioNew> {
                     decoration: BoxDecoration(
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: const Color(0xFF000037)),
+                      border: Border.all(color: Colors.grey.shade200),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black12.withOpacity(0.03),
+                          blurRadius: 6,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
                     ),
                     padding: const EdgeInsets.all(20),
                     child: Column(
@@ -143,7 +147,9 @@ class _PerfilUsuarioNewState extends State<PerfilUsuarioNew> {
                           photoUrl: photoUrl,
                           onSettings: () {},
                           onUploaded: (url) async {
-                            // Recargar el usuario desde Firestore para mantener consistencia
+                            // Refrescar de inmediato la imagen sin esperar a Firestore
+                            setState(() => photoUrl = url);
+                            // Opcional: recargar para asegurar consistencia con Firestore
                             await _loadUser();
                           },
                         ),
@@ -152,7 +158,7 @@ class _PerfilUsuarioNewState extends State<PerfilUsuarioNew> {
                           width: double.infinity,
                           padding: const EdgeInsets.all(12),
                           decoration: BoxDecoration(
-                            color: const Color.fromRGBO(208, 215, 255, 1),
+                            color: grisClaro,
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: Column(

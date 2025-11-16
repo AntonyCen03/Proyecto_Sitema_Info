@@ -95,6 +95,7 @@ Future<List<Map<String, dynamic>>> getUser(BuildContext context) async {
               ? (data['date_login'] as Timestamp).toDate()
               : null;
       final uid = doc.id;
+      final photoUrl = (data['photo_url'] ?? '').toString();
 
       final person = {
         'name': name,
@@ -105,6 +106,7 @@ Future<List<Map<String, dynamic>>> getUser(BuildContext context) async {
         'id_carnet': idCarnet,
         'cedula': cedula,
         'date_login': dateLogin,
+        'photo_url': photoUrl,
       };
       users.add(person);
     }
@@ -161,6 +163,11 @@ Future<void> updateUserLoginDate(
 
 Future<void> deleteUser(String uid) async {
   await db.collection('user').doc(uid).delete();
+}
+
+/// Establece/actualiza la URL de la foto de perfil del usuario.
+Future<void> setUserPhotoUrl(String uid, String photoUrl) async {
+  await db.collection('user').doc(uid).update({'photo_url': photoUrl});
 }
 
 /// Agrega un proyecto donde "integrante" ahora es una lista de mapas
@@ -526,6 +533,30 @@ Future<List<Map<String, dynamic>>> getProyecto(BuildContext context) async {
         like = int.tryParse(likeRaw) ?? 0;
       }
 
+      // Presupuesto y finanzas
+      final presupuestoRaw = data['presupuesto_solicitado'];
+      double? presupuestoSolicitado;
+      if (presupuestoRaw is num) {
+        presupuestoSolicitado = presupuestoRaw.toDouble();
+      } else if (presupuestoRaw is String) {
+        presupuestoSolicitado = double.tryParse(presupuestoRaw);
+      }
+      final bool presupuestoAprobado =
+          (data['presupuesto_aprobado'] ?? false) == true;
+      final String presupuestoMotivo =
+          (data['presupuesto_motivo'] ?? '').toString();
+
+      // liked_by normalizado (una sola vez)
+      final likedRaw = data['liked_by'];
+      final likedBy = <String>[];
+      if (likedRaw is List) {
+        for (final e in likedRaw) {
+          if (e == null) continue;
+          final s = e.toString().trim().toLowerCase();
+          if (s.isNotEmpty) likedBy.add(s);
+        }
+      }
+
       final proyecto = {
         'id_proyecto': idProyecto,
         'nombre_proyecto': nombreProyecto,
@@ -543,6 +574,10 @@ Future<List<Map<String, dynamic>>> getProyecto(BuildContext context) async {
         'notif_24h': (data['notif_24h'] ?? true) != false,
         'notif_1h': (data['notif_1h'] ?? true) != false,
         'notif_vencido': (data['notif_vencido'] ?? true) != false,
+        'presupuesto_solicitado': presupuestoSolicitado,
+        'presupuesto_aprobado': presupuestoAprobado,
+        'presupuesto_motivo': presupuestoMotivo,
+        'liked_by': likedBy,
       };
       proyectos.add(proyecto);
     }
@@ -587,6 +622,30 @@ Stream<List<Map<String, dynamic>>> streamProyecto() {
         like = int.tryParse(likeRaw) ?? 0;
       }
 
+      // Presupuesto y finanzas (stream)
+      final presupuestoRaw = data['presupuesto_solicitado'];
+      double? presupuestoSolicitado;
+      if (presupuestoRaw is num) {
+        presupuestoSolicitado = presupuestoRaw.toDouble();
+      } else if (presupuestoRaw is String) {
+        presupuestoSolicitado = double.tryParse(presupuestoRaw);
+      }
+      final bool presupuestoAprobado =
+          (data['presupuesto_aprobado'] ?? false) == true;
+      final String presupuestoMotivo =
+          (data['presupuesto_motivo'] ?? '').toString();
+
+      // liked_by para streamProyecto
+      final likedRaw = data['liked_by'];
+      final likedBy = <String>[];
+      if (likedRaw is List) {
+        for (final e in likedRaw) {
+          if (e == null) continue;
+          final s = e.toString().trim().toLowerCase();
+          if (s.isNotEmpty) likedBy.add(s);
+        }
+      }
+
       final proyecto = {
         'id_proyecto': idProyecto,
         'nombre_proyecto': nombreProyecto,
@@ -600,6 +659,10 @@ Stream<List<Map<String, dynamic>>> streamProyecto() {
         'fecha_entrega': fechaEntrega,
         'docId': docId,
         'like': like,
+        'presupuesto_solicitado': presupuestoSolicitado,
+        'presupuesto_aprobado': presupuestoAprobado,
+        'presupuesto_motivo': presupuestoMotivo,
+        'liked_by': likedBy,
       };
       proyectos.add(proyecto);
     }
@@ -622,6 +685,47 @@ Future<void> incrementarLikeProyecto(String docId) async {
       .collection('list_proyecto')
       .doc(docId)
       .update({'like': FieldValue.increment(1)});
+}
+
+/// Da like solo una vez por usuario (identificado por su email). Si ya existe en liked_by no hace nada.
+Future<bool> likeProyectoUnaVez(String docId) async {
+  final user = FirebaseAuth.instance.currentUser;
+  final email = user?.email?.trim().toLowerCase();
+  if (email == null || email.isEmpty) return false;
+  return await db.runTransaction((tx) async {
+    final ref = db.collection('list_proyecto').doc(docId);
+    final snap = await tx.get(ref);
+    if (!snap.exists) return false;
+    final data = snap.data() ?? {};
+    final raw = data['liked_by'];
+    final current = <String>[];
+    if (raw is List) {
+      for (final e in raw) {
+        if (e == null) continue;
+        final s = e.toString().trim().toLowerCase();
+        if (s.isNotEmpty) current.add(s);
+      }
+    }
+    if (current.contains(email)) {
+      return false; // ya dio like
+    }
+    current.add(email);
+    final likeRaw = data['like'];
+    int like = 0;
+    if (likeRaw is int) {
+      like = likeRaw;
+    } else if (likeRaw is num) {
+      like = likeRaw.toInt();
+    } else if (likeRaw is String) {
+      like = int.tryParse(likeRaw) ?? 0;
+    }
+    like += 1;
+    tx.update(ref, {
+      'like': like,
+      'liked_by': current,
+    });
+    return true;
+  });
 }
 
 /// Agrega un enlace (URL) al arreglo 'links' de un proyecto.
@@ -762,4 +866,345 @@ Future<void> setTodasLasTareas(String docId, bool done) async {
   });
   await db.collection('list_proyecto').doc(docId).update(updates);
   await checkAndUpdateProyectoEstado(docId);
+}
+
+/// Registra una solicitud de presupuesto para un proyecto.
+/// - Guarda `presupuesto_solicitado` (double), `presupuesto_motivo` (string opcional),
+///   `presupuesto_fecha_solicitud` (serverTimestamp) y no toca `presupuesto_aprobado` si ya existe.
+Future<void> solicitarPresupuestoProyecto(
+  String docId,
+  num monto, {
+  String? motivo,
+}) async {
+  final updates = <String, Object?>{
+    'presupuesto_solicitado': monto.toDouble(),
+    'presupuesto_motivo': (motivo ?? '').trim(),
+    'presupuesto_fecha_solicitud': FieldValue.serverTimestamp(),
+  };
+  await db.collection('list_proyecto').doc(docId).update(updates);
+}
+
+/// Registra un gasto en el subcolector `gastos` de un proyecto.
+/// Cada gasto contiene: monto (double), descripcion (string), fecha (timestamp), created_by (string opcional)
+Future<void> registrarGastoProyecto(
+  String docId,
+  double monto,
+  String descripcion, {
+  DateTime? fecha,
+  String? usuarioEmail,
+}) async {
+  // No permitir registrar gasto si el presupuesto no está aprobado
+  final proyectoSnap = await db.collection('list_proyecto').doc(docId).get();
+  final aprobado =
+      (proyectoSnap.data()?['presupuesto_aprobado'] ?? false) == true;
+  if (!aprobado) {
+    throw Exception('El presupuesto aún no está aprobado.');
+  }
+  final data = <String, Object?>{
+    'monto': monto,
+    'descripcion': descripcion.trim(),
+    'fecha': fecha != null
+        ? Timestamp.fromDate(fecha)
+        : FieldValue.serverTimestamp(),
+    'created_by': (usuarioEmail ?? '').trim(),
+  };
+  await db
+      .collection('list_proyecto')
+      .doc(docId)
+      .collection('gastos')
+      .add(data);
+}
+
+/// Calcula el total de gastos del proyecto sumando el subcolector `gastos`.
+Future<double> calcularTotalGastosProyecto(String docId) async {
+  final snap = await db
+      .collection('list_proyecto')
+      .doc(docId)
+      .collection('gastos')
+      .get();
+  double total = 0.0;
+  for (final d in snap.docs) {
+    final data = d.data();
+    final v = data['monto'];
+    if (v is num) {
+      total += v.toDouble();
+    } else if (v is String) {
+      total += double.tryParse(v) ?? 0.0;
+    }
+  }
+  return total;
+}
+
+/// Retorna un resumen financiero del proyecto:
+/// { presupuesto: double?, totalGastos: double, saldo: double?, sobrepasado: bool }
+Future<Map<String, dynamic>> getResumenFinancieroProyecto(String docId) async {
+  final doc = await db.collection('list_proyecto').doc(docId).get();
+  double? presupuesto;
+  bool aprobado = false;
+  if (doc.exists) {
+    final data = doc.data() ?? <String, dynamic>{};
+    final raw = data['presupuesto_solicitado'];
+    if (raw is num) presupuesto = raw.toDouble();
+    if (raw is String) presupuesto = double.tryParse(raw);
+    aprobado = (data['presupuesto_aprobado'] ?? false) == true;
+  }
+  final totalGastos = await calcularTotalGastosProyecto(docId);
+  double? saldo;
+  bool sobrepasado = false;
+  if (presupuesto != null) {
+    saldo = presupuesto - totalGastos;
+    sobrepasado = saldo < 0;
+  }
+  return {
+    'presupuesto': presupuesto,
+    'presupuestoAprobado': aprobado,
+    'totalGastos': totalGastos,
+    'saldo': saldo,
+    'sobrepasado': sobrepasado,
+  };
+}
+
+/// Establece el estado de aprobación del presupuesto del proyecto.
+/// También registra fecha y (opcional) quién aprobó/revocó.
+Future<void> setPresupuestoAprobado(
+  String docId,
+  bool aprobado, {
+  String? aprobadoPor,
+}) async {
+  final updates = <String, Object?>{
+    'presupuesto_aprobado': aprobado,
+    'presupuesto_aprobado_fecha': FieldValue.serverTimestamp(),
+  };
+  if (aprobadoPor != null && aprobadoPor.isNotEmpty) {
+    updates['presupuesto_aprobado_por'] = aprobadoPor;
+  }
+  await db.collection('list_proyecto').doc(docId).update(updates);
+}
+
+/// Totales financieros para el usuario autenticado (suma por proyectos donde participa):
+/// { totalSolicitado, totalAprobado, totalGasto, saldoRestante }
+Future<Map<String, double>> getTotalesFinancierosUsuario(
+    BuildContext context) async {
+  final proyectos = await getProyectosDelUsuarioActual(context);
+  double totalSolicitado = 0.0;
+  double totalAprobado = 0.0;
+  double totalGasto = 0.0;
+  double saldoRestante = 0.0;
+
+  for (final p in proyectos) {
+    final docId = (p['docId'] ?? '').toString();
+    final aprobado = (p['presupuesto_aprobado'] ?? false) == true;
+    final presupRaw = p['presupuesto_solicitado'];
+    double presupuesto = 0.0;
+    if (presupRaw is num) presupuesto = presupRaw.toDouble();
+    if (presupRaw is String) presupuesto = double.tryParse(presupRaw) ?? 0.0;
+
+    if (presupuesto > 0) {
+      totalSolicitado += presupuesto;
+    }
+
+    if (aprobado) {
+      totalAprobado += presupuesto;
+      if (docId.isNotEmpty) {
+        final gastos = await calcularTotalGastosProyecto(docId);
+        totalGasto += gastos;
+        saldoRestante += (presupuesto - gastos);
+      }
+    }
+  }
+
+  return {
+    'totalSolicitado': totalSolicitado,
+    'totalAprobado': totalAprobado,
+    'totalGasto': totalGasto,
+    'saldoRestante': saldoRestante,
+  };
+}
+
+/// Devuelve un conteo por día de tareas completadas en los últimos [dias].
+/// Cuenta sólo proyectos donde participa el usuario autenticado.
+/// La clave del mapa es la fecha normalizada (UTC, sin hora).
+Future<Map<DateTime, int>> getTareasCompletadasPorDiaUltimos(
+  BuildContext context, {
+  int dias = 30,
+}) async {
+  // Rango de fechas
+  final now = DateTime.now();
+  final from = now.subtract(Duration(days: dias - 1));
+  final startUtc = DateTime.utc(from.year, from.month, from.day);
+  final endUtc = DateTime.utc(now.year, now.month, now.day);
+
+  // Inicializa mapa con 0 para cada día del rango
+  final counts = <DateTime, int>{};
+  for (int i = 0; i < dias; i++) {
+    final d = startUtc.add(Duration(days: i));
+    counts[d] = 0;
+  }
+
+  // Proyectos del usuario
+  final proyectos = await getProyectosDelUsuarioActual(context);
+  for (final p in proyectos) {
+    final docId = (p['docId'] ?? '').toString();
+    if (docId.isEmpty) continue;
+    try {
+      final snap = await db.collection('list_proyecto').doc(docId).get();
+      final data = snap.data() ?? <String, dynamic>{};
+      final tareas = data['tareas'];
+      if (tareas is! Map) continue;
+      tareas.forEach((key, value) {
+        if (value is Map) {
+          final done = _toBool(value['done']);
+          if (!done) return;
+          final dt = _toDate(value['fecha_termino']);
+          if (dt == null) return;
+          final norm = DateTime.utc(dt.year, dt.month, dt.day);
+          if (!norm.isBefore(startUtc) && !norm.isAfter(endUtc)) {
+            counts[norm] = (counts[norm] ?? 0) + 1;
+          }
+        }
+      });
+    } catch (_) {
+      // Ignorar errores de lectura individuales
+    }
+  }
+  return counts;
+}
+
+// ==========================
+// Recursos Materiales (colección separada)
+// ==========================
+
+/// Crea un recurso material con cantidad total y disponible inicial igual.
+Future<void> addRecursoMaterial({
+  required String nombre,
+  String descripcion = '',
+  required int cantidadTotal,
+}) async {
+  final now = FieldValue.serverTimestamp();
+  await db.collection('recursos_materiales').add({
+    'nombre': nombre.trim(),
+    'descripcion': descripcion.trim(),
+    'cantidad_total': cantidadTotal,
+    'cantidad_disponible': cantidadTotal,
+    'created_at': now,
+    'updated_at': now,
+  });
+}
+
+Future<void> updateRecursoMaterial(
+  String docId, {
+  String? nombre,
+  String? descripcion,
+  int? cantidadTotal,
+  int? cantidadDisponible,
+}) async {
+  // Si nos pasan cantidadDisponible explícita, aplicamos actualización directa.
+  // Si NO nos pasan cantidadDisponible pero SÍ cantidadTotal, ajustamos disponible
+  // manteniendo constante la cantidad asignada: asignado = total - disponible.
+  final ref = db.collection('recursos_materiales').doc(docId);
+
+  if (cantidadDisponible == null && cantidadTotal != null) {
+    await db.runTransaction((txn) async {
+      final snap = await txn.get(ref);
+      if (!snap.exists) return;
+      final data = snap.data() ?? <String, dynamic>{};
+      int toInt(dynamic v) {
+        if (v is int) return v;
+        if (v is num) return v.toInt();
+        if (v is String) return int.tryParse(v) ?? 0;
+        return 0;
+      }
+
+      final oldTotal = toInt(data['cantidad_total']);
+      final oldDisp = toInt(data['cantidad_disponible']);
+      int asignado = oldTotal - oldDisp;
+      if (asignado < 0) asignado = 0;
+      final int newTotal = cantidadTotal;
+      int newDisp = newTotal - asignado;
+      if (newDisp < 0) newDisp = 0;
+      if (newDisp > newTotal) newDisp = newTotal;
+
+      final updates = <String, Object?>{
+        'updated_at': FieldValue.serverTimestamp(),
+        'cantidad_total': newTotal,
+        'cantidad_disponible': newDisp,
+      };
+      if (nombre != null) updates['nombre'] = nombre.trim();
+      if (descripcion != null) updates['descripcion'] = descripcion.trim();
+      txn.update(ref, updates);
+    });
+  } else {
+    final updates = <String, Object?>{
+      'updated_at': FieldValue.serverTimestamp()
+    };
+    if (nombre != null) updates['nombre'] = nombre.trim();
+    if (descripcion != null) updates['descripcion'] = descripcion.trim();
+    if (cantidadTotal != null) updates['cantidad_total'] = cantidadTotal;
+    if (cantidadDisponible != null) {
+      int cd = cantidadDisponible;
+      if (cantidadTotal != null && cd > cantidadTotal) cd = cantidadTotal;
+      if (cd < 0) cd = 0;
+      updates['cantidad_disponible'] = cd;
+    }
+    await ref.update(updates);
+  }
+}
+
+Stream<List<Map<String, dynamic>>> streamRecursosMateriales() {
+  return db.collection('recursos_materiales').snapshots().map((snap) {
+    return snap.docs.map((d) {
+      final m = d.data();
+      m['docId'] = d.id;
+      return m;
+    }).toList(growable: false);
+  });
+}
+
+/// Asigna un recurso a una tarea de un proyecto, decrementando disponible atómicamente.
+Future<void> asignarRecursoATarea({
+  required String recursoId,
+  required String proyectoDocId,
+  required String tareaKey,
+  required int cantidad,
+  String? asignadoPorEmail,
+}) async {
+  await db.runTransaction((txn) async {
+    final ref = db.collection('recursos_materiales').doc(recursoId);
+    final snap = await txn.get(ref);
+    if (!snap.exists) throw Exception('Recurso no existe');
+    final data = snap.data() ?? <String, dynamic>{};
+    final disp = (data['cantidad_disponible'] is int)
+        ? data['cantidad_disponible'] as int
+        : int.tryParse(data['cantidad_disponible']?.toString() ?? '0') ?? 0;
+    if (cantidad <= 0) throw Exception('Cantidad inválida');
+    if (disp < cantidad) throw Exception('No hay suficiente disponible');
+
+    txn.update(ref, {
+      'cantidad_disponible': disp - cantidad,
+      'updated_at': FieldValue.serverTimestamp(),
+    });
+
+    final asignRef = ref.collection('asignaciones').doc();
+    txn.set(asignRef, {
+      'proyecto_docId': proyectoDocId,
+      'tarea_key': tareaKey,
+      'cantidad': cantidad,
+      'asignado_por': (asignadoPorEmail ?? '').trim(),
+      'fecha': FieldValue.serverTimestamp(),
+    });
+
+    // Opcional: registrar también en el proyecto para consulta invertida
+    final projAssignRef = db
+        .collection('list_proyecto')
+        .doc(proyectoDocId)
+        .collection('asignaciones_recursos')
+        .doc();
+    txn.set(projAssignRef, {
+      'recurso_id': recursoId,
+      'tarea_key': tareaKey,
+      'cantidad': cantidad,
+      'fecha': FieldValue.serverTimestamp(),
+      'asignado_por': (asignadoPorEmail ?? '').trim(),
+    });
+  });
 }

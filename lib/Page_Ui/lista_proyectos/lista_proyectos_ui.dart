@@ -102,7 +102,8 @@ class ListaProyectosUi extends State<ListaProyectos> {
       final bool isMedium = maxW >= 800 && maxW < 1200;
       final bool isNarrow = maxW < 800;
 
-      final double titleSize = isWide ? 48 : (isMedium ? 36 : 28);
+      // Tamaños más compactos para la barra de proyecto
+      final double titleSize = isWide ? 36 : (isMedium ? 28 : 22);
       final double searchHeight = 40;
       final double searchMaxWidth =
           isWide ? 360 : (isMedium ? 280 : double.infinity);
@@ -136,11 +137,19 @@ class ListaProyectosUi extends State<ListaProyectos> {
                         ],
                       ),
                       const SizedBox(height: 12),
-                      if (administrador)
-                        Align(
-                          alignment: Alignment.centerLeft,
-                          child: _crearProyectoButton(),
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            if (administrador) ...[
+                              _crearProyectoButton(),
+                              const SizedBox(width: 8),
+                            ],
+                            _recursosButton(),
+                          ],
                         ),
+                      ),
                     ],
                   )
                 : Row(
@@ -160,7 +169,15 @@ class ListaProyectosUi extends State<ListaProyectos> {
                           ),
                         ],
                       ),
-                      if (administrador) _crearProyectoButton(),
+                      Row(
+                        children: [
+                          if (administrador) ...[
+                            _crearProyectoButton(),
+                            const SizedBox(width: 8),
+                          ],
+                          _recursosButton(),
+                        ],
+                      ),
                     ],
                   ),
 
@@ -244,16 +261,38 @@ class ListaProyectosUi extends State<ListaProyectos> {
       onPressed: () {
         Navigator.pushNamed(context, '/crear_proyecto');
       },
-      icon: Icon(Icons.add, color: primaryOrange),
-      label: Text("Crear Proyecto", style: TextStyle(color: primaryOrange)),
+      icon: Icon(Icons.add, color: primaryOrange, size: 16),
+      label: Text("Crear Proyecto",
+          style: TextStyle(color: primaryOrange, fontSize: 14)),
       style: ElevatedButton.styleFrom(
         backgroundColor: Colors.white,
-        side: BorderSide(color: primaryOrange, width: 2),
+        side: BorderSide(color: primaryOrange, width: 1.5),
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8.0),
+          borderRadius: BorderRadius.circular(6.0),
         ),
-        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
-        textStyle: const TextStyle(fontSize: 16.0, fontWeight: FontWeight.bold),
+        padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
+        textStyle: const TextStyle(fontSize: 14.0, fontWeight: FontWeight.w600),
+      ),
+    );
+  }
+
+  // Botón para abrir la página de recursos materiales
+  Widget _recursosButton() {
+    return ElevatedButton.icon(
+      onPressed: () {
+        Navigator.pushNamed(context, '/recursos');
+      },
+      icon: Icon(Icons.inventory_2_outlined, color: primaryBlue, size: 16),
+      label:
+          Text("Recursos", style: TextStyle(color: primaryBlue, fontSize: 14)),
+      style: ElevatedButton.styleFrom(
+        backgroundColor: Colors.white,
+        side: BorderSide(color: primaryBlue, width: 1.5),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(6.0),
+        ),
+        padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
+        textStyle: const TextStyle(fontSize: 14.0, fontWeight: FontWeight.w600),
       ),
     );
   }
@@ -311,6 +350,9 @@ class ListaProyectosUi extends State<ListaProyectos> {
         // Extras por si se requieren luego
         'docId': p['docId'],
         'id_proyecto': p['id_proyecto'],
+        'presupuesto_solicitado': p['presupuesto_solicitado'],
+        'presupuesto_aprobado': p['presupuesto_aprobado'],
+        'presupuesto_motivo': p['presupuesto_motivo'],
       });
     }
     return salida;
@@ -341,8 +383,8 @@ class ListaProyectosUi extends State<ListaProyectos> {
     return NumberPagination(
       totalPages: (listaproyectos.length / 5).ceil(),
       currentPage: paginaActual,
-      fontSize: 16.0,
-      buttonRadius: 50.0,
+      fontSize: 13.0,
+      buttonRadius: 20.0,
       onPageChanged: (int page) {
         setState(() {
           numero = (page - 1) * 5;
