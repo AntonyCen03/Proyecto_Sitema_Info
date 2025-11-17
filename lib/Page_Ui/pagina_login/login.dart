@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:proyecto_final/Color/Color.dart';
 import 'package:proyecto_final/Page_Ui/pagina_login/widget_password.dart';
+import 'package:proyecto_final/Page_Ui/widgets/metro_app_bar.dart';
 import 'package:proyecto_final/services/firebase_services.dart';
 import 'package:proyecto_final/Page_Ui/pagina_login/widget_iniciar_sesion.dart';
 
@@ -17,23 +19,17 @@ class _PageLoginState extends State<PageLogin> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
+      appBar: MetroAppBar(
         leading: IconButton(
         icon: const Icon(
           Icons.arrow_back,
-          color: Color.fromARGB(255, 254, 143, 33),
+          color: primaryOrange,
         ),
         onPressed: () => Navigator.pushNamed(context, '/principal'),
         tooltip: 'Volver',
         
       ),
-        title: const Text(
-          "MetroBox",
-          style: TextStyle(
-            color: Color.fromARGB(255, 254, 143, 33),
-            fontWeight: FontWeight.bold,
-          ),
-        ),
+        title:"Login",
         actions: [
           Padding(
             padding: const EdgeInsets.all(8.0),
@@ -171,7 +167,7 @@ Widget textoIniciar() {
   return Text(
     'Iniciar Sesión',
     style: TextStyle(
-      color: const Color.fromARGB(255, 0, 0, 0),
+      color: primaryOrange,
       fontSize: 30,
       fontWeight: FontWeight.bold,
     ),
@@ -182,7 +178,7 @@ Widget textBienvenido() {
   return Text(
     'Bienvenido a MetroBox',
     style: TextStyle(
-      color: const Color.fromARGB(255, 0, 0, 0),
+      color:primaryOrange,
       fontSize: 20,
       fontWeight: FontWeight.bold,
     ),

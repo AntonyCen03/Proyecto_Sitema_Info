@@ -1,7 +1,12 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:proyecto_final/Color/Color.dart';
 import 'package:proyecto_final/Page_Ui/validator/validar_alfa_num.dart';
 import 'package:proyecto_final/Page_Ui/validator/validar_email.dart';
+import 'package:proyecto_final/Page_Ui/widgets/metro_app_bar.dart';
 import 'package:proyecto_final/services/firebase_services.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:proyecto_final/services/auth_service.dart';
 
 class PageSignUp extends StatefulWidget {
@@ -16,6 +21,12 @@ class _SignUpScreenState extends State<PageSignUp> {
   bool _isPasswordVisible = false;
   bool _agreedToPrivacyPolicy = false;
   bool _awaitingVerification = false;
+  Timer? _verificationTimer;
+  int _verificationAttempts = 0;
+  static const int _maxVerificationAttempts = 12; // 12 * 5s = 1 minute
+  Timer? _countdownTimer;
+  int _remainingSeconds = 60;
+  bool _isResending = false;
 
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
@@ -64,13 +75,20 @@ class _SignUpScreenState extends State<PageSignUp> {
           await auth.sendEmailVerification();
           setState(() {
             _awaitingVerification = true;
+            _verificationAttempts = 0;
           });
+
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text(
-                  'Te enviamos un correo de verificación. Confírmalo y luego presiona "Ya verifiqué".'),
+                  'Te enviamos un correo de verificación. Confírmalo y luego presiona "Ya verifiqué" o espera que el sistema lo detecte automáticamente.'),
             ),
           );
+
+          _startVerificationPolling(email,
+              nombre: _nombreController.text,
+              carnet: _carnetController.text,
+              cedula: _cedulaController.text);
           // No creamos el documento de usuario en Firestore hasta que verifique el email.
         } catch (e) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -79,6 +97,99 @@ class _SignUpScreenState extends State<PageSignUp> {
           return;
         }
       }
+    }
+  }
+
+  void _startVerificationPolling(String email,
+      {required String nombre,
+      required String carnet,
+      required String cedula}) {
+    _verificationTimer?.cancel();
+    _verificationAttempts = 0;
+    _countdownTimer?.cancel();
+    setState(() {
+      _remainingSeconds = 60;
+    });
+    _countdownTimer = Timer.periodic(const Duration(seconds: 1), (t) {
+      if (_remainingSeconds > 0) {
+        setState(() {
+          _remainingSeconds--;
+        });
+      } else {
+        t.cancel();
+      }
+    });
+    _verificationTimer =
+        Timer.periodic(const Duration(seconds: 5), (timer) async {
+      _verificationAttempts++;
+      try {
+        final verified = await AuthService().isEmailVerified();
+        if (verified) {
+          timer.cancel();
+          _countdownTimer?.cancel();
+          setState(() => _awaitingVerification = false);
+          final isadmin = isUnimetEmail(email);
+          await addUser(
+            nombre,
+            email,
+            isadmin,
+            int.parse(carnet),
+            cedula,
+            DateTime.now(),
+            DateTime.now(),
+          );
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Usuario registrado con éxito')),
+            );
+            Navigator.pushNamed(context, '/login');
+          }
+        } else if (_verificationAttempts >= _maxVerificationAttempts) {
+          timer.cancel();
+          _countdownTimer?.cancel();
+          setState(() => _awaitingVerification = false);
+          try {
+            await AuthService().deleteCurrentUser();
+          } catch (e) {
+            try {
+              await AuthService().signOut();
+            } catch (_) {}
+          }
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+                content: Text(
+                    'No se detectó la verificación. Se eliminó la cuenta temporal.')),
+          );
+        }
+      } catch (e) {
+        timer.cancel();
+        setState(() => _awaitingVerification = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+              content: Text('Error comprobando verificación: ${e.toString()}')),
+        );
+      }
+    });
+  }
+
+  Future<void> _stopVerificationPolling({bool deleteAccount = false}) async {
+    _verificationTimer?.cancel();
+    _verificationTimer = null;
+    _verificationAttempts = 0;
+    _countdownTimer?.cancel();
+    _countdownTimer = null;
+    if (deleteAccount) {
+      try {
+        await AuthService().deleteCurrentUser();
+      } catch (e) {
+        try {
+          await AuthService().signOut();
+        } catch (_) {}
+      }
+    } else {
+      try {
+        await AuthService().signOut();
+      } catch (_) {}
     }
   }
 
@@ -99,6 +210,8 @@ class _SignUpScreenState extends State<PageSignUp> {
       }
 
       // Crear el documento del usuario una vez verificado
+      _stopVerificationPolling();
+
       await addUser(
         nombre,
         email,
@@ -294,6 +407,14 @@ class _SignUpScreenState extends State<PageSignUp> {
     if (!_awaitingVerification) return const SizedBox.shrink();
     return Column(
       children: [
+        if (_remainingSeconds > 0)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 8.0),
+            child: Text(
+              'Tiempo restante: ${_formatDuration(_remainingSeconds)}',
+              style: const TextStyle(fontSize: 14, color: Colors.black87),
+            ),
+          ),
         const SizedBox(height: 12),
         SizedBox(
           width: double.infinity,
@@ -303,84 +424,200 @@ class _SignUpScreenState extends State<PageSignUp> {
             onPressed: _confirmarVerificacion,
           ),
         ),
+        const SizedBox(height: 8),
+        Row(
+          children: [
+            Expanded(
+              child: OutlinedButton.icon(
+                icon: _isResending
+                    ? const SizedBox(
+                        width: 18,
+                        height: 18,
+                        child: CircularProgressIndicator(strokeWidth: 2))
+                    : const Icon(Icons.send),
+                label: const Text('Reenviar correo'),
+                onPressed: _isResending
+                    ? null
+                    : () async {
+                        setState(() {
+                          _isResending = true;
+                        });
+                        final email =
+                            _emailController.text.trim().toLowerCase();
+                        final password = _passwordController.text;
+                        try {
+                          await AuthService().resendEmailVerification(
+                              email: email, password: password);
+                          if (mounted)
+                            ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                    content: Text('Correo reenviado')));
+                        } on FirebaseAuthException catch (e) {
+                          if (mounted)
+                            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                                content: Text(
+                                    'No se pudo reenviar: ${e.message ?? e.code}')));
+                        } catch (e) {
+                          if (mounted)
+                            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                                content: Text(
+                                    'Error al reenviar: ${e.toString()}')));
+                        } finally {
+                          if (mounted)
+                            setState(() {
+                              _isResending = false;
+                            });
+                        }
+                      },
+              ),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: OutlinedButton.icon(
+                icon: const Icon(Icons.cancel),
+                label: const Text('Cancelar'),
+                onPressed: () async {
+                  await _stopVerificationPolling(deleteAccount: true);
+                  setState(() {
+                    _awaitingVerification = false;
+                  });
+                },
+              ),
+            ),
+          ],
+        ),
       ],
     );
   }
 
+  String _formatDuration(int seconds) {
+    final minutes = (seconds ~/ 60).toString().padLeft(2, '0');
+    final secs = (seconds % 60).toString().padLeft(2, '0');
+    return '$minutes:$secs';
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(
-            Icons.arrow_back,
-            color: Color.fromARGB(255, 254, 143, 33),
-          ),
-          onPressed: () => Navigator.pushNamed(context, '/login'),
-          tooltip: 'Volver',
-        ),
-        title: const Text(
-          'Registro de Usuario',
-          style: TextStyle(
-            color: Color.fromARGB(255, 254, 143, 33),
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        backgroundColor: Colors.white,
-        centerTitle: true,
-        iconTheme: const IconThemeData(
-          color: Color.fromARGB(255, 254, 143, 33),
-        ),
-      ),
-      backgroundColor: Colors.grey[50],
-      body: Center(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24.0),
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 400.0),
-            child: Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(30.0),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(15.0),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.grey.withOpacity(0.3),
-                    spreadRadius: 3,
-                    blurRadius: 10,
-                    offset: const Offset(0, 5),
-                  ),
-                ],
-              ),
-              child: Form(
-                key: _formKey,
-                child: Column(
-                  children: <Widget>[
-                    const Text(
-                      'Crear Cuenta',
-                      style: TextStyle(
-                        fontSize: 30,
-                        fontWeight: FontWeight.bold,
-                        color: Color.fromARGB(255, 254, 143, 33),
+    return WillPopScope(
+      onWillPop: () async {
+        if (_awaitingVerification) {
+          final shouldExit = await showDialog<bool>(
+            context: context,
+            builder: (ctx) => AlertDialog(
+              title: const Text('Cancelar registro'),
+              content: const Text(
+                  'Estás en proceso de verificación. Volver cancelará el registro y eliminará la cuenta temporal. ¿Deseas continuar?'),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(ctx).pop(false),
+                  child: const Text('No'),
+                ),
+                TextButton(
+                  onPressed: () => Navigator.of(ctx).pop(true),
+                  child: const Text('Sí, cancelar'),
+                ),
+              ],
+            ),
+          );
+          if (shouldExit == true) {
+            await _stopVerificationPolling(deleteAccount: true);
+            return true; // allow pop
+          }
+          return false; // prevent pop
+        }
+        return true;
+      },
+      child: Scaffold(
+        appBar: MetroAppBar(
+          leading: IconButton(
+            icon: const Icon(
+              Icons.arrow_back,
+              color: primaryOrange,
+            ),
+            onPressed: () async {
+              if (_awaitingVerification) {
+                final shouldExit = await showDialog<bool>(
+                  context: context,
+                  builder: (ctx) => AlertDialog(
+                    title: const Text('Cancelar registro'),
+                    content: const Text(
+                        'Estás en proceso de verificación. Volver cancelará el registro y eliminará la cuenta temporal. ¿Deseas continuar?'),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.of(ctx).pop(false),
+                        child: const Text('No'),
                       ),
+                      TextButton(
+                        onPressed: () => Navigator.of(ctx).pop(true),
+                        child: const Text('Sí, cancelar'),
+                      ),
+                    ],
+                  ),
+                );
+                if (shouldExit == true) {
+                  await _stopVerificationPolling(deleteAccount: true);
+                  if (mounted) Navigator.pushNamed(context, '/login');
+                }
+              } else {
+                Navigator.pushNamed(context, '/login');
+              }
+            },
+            tooltip: 'Volver',
+          ),
+          title: 'Registro de Usuario',
+          backgroundColor: Colors.white,
+          centerTitle: true,
+        ),
+        backgroundColor: Colors.grey[50],
+        body: Center(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(24.0),
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 400.0),
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(30.0),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(15.0),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.grey.withOpacity(0.3),
+                      spreadRadius: 3,
+                      blurRadius: 10,
+                      offset: const Offset(0, 5),
                     ),
-                    const SizedBox(height: 40),
-                    _buildNameField(),
-                    const SizedBox(height: 25),
-                    _buildCedulaField(),
-                    const SizedBox(height: 25),
-                    _buildEmailField(),
-                    const SizedBox(height: 25),
-                    _buildPasswordField(),
-                    const SizedBox(height: 25),
-                    _buildCarnetField(),
-                    const SizedBox(height: 25),
-                    _buildPrivacyPolicyCheckbox(),
-                    const SizedBox(height: 40),
-                    _buildSignUpButton(context),
-                    _buildVerifyButton(context),
                   ],
+                ),
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    children: <Widget>[
+                      const Text(
+                        'Crear Cuenta',
+                        style: TextStyle(
+                          fontSize: 30,
+                          fontWeight: FontWeight.bold,
+                          color: Color.fromARGB(255, 254, 143, 33),
+                        ),
+                      ),
+                      const SizedBox(height: 40),
+                      _buildNameField(),
+                      const SizedBox(height: 25),
+                      _buildCedulaField(),
+                      const SizedBox(height: 25),
+                      _buildEmailField(),
+                      const SizedBox(height: 25),
+                      _buildPasswordField(),
+                      const SizedBox(height: 25),
+                      _buildCarnetField(),
+                      const SizedBox(height: 25),
+                      _buildPrivacyPolicyCheckbox(),
+                      const SizedBox(height: 40),
+                      _buildSignUpButton(context),
+                      _buildVerifyButton(context),
+                    ],
+                  ),
                 ),
               ),
             ),

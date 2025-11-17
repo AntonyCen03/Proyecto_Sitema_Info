@@ -132,7 +132,7 @@ class AuthService {
         code: 'no-current-user',
         message: 'No hay un usuario autenticado actualmente.',
       );
-    } 
+    }
     try {
       // Reautenticar con las credenciales de correo/contraseña.
       final credential = EmailAuthProvider.credential(
@@ -195,6 +195,51 @@ class AuthService {
         code: 'unknown-error',
         message: e.toString(),
       );
+    }
+  }
+
+  /// Elimina (borra) el usuario actualmente autenticado en Firebase Auth.
+  ///
+  /// Lanza [FirebaseAuthException] con código `no-current-user` si no hay
+  /// una sesión activa. Tenga en cuenta que Firebase puede solicitar una
+  /// reautenticación si la sesión no es reciente; ese error llegará como
+  /// una [FirebaseAuthException] desde la llamada a `delete()`.
+  Future<void> deleteCurrentUser() async {
+    final user = _auth.currentUser;
+    if (user == null) {
+      throw FirebaseAuthException(
+        code: 'no-current-user',
+        message: 'No hay un usuario autenticado actualmente.',
+      );
+    }
+    try {
+      await user.delete();
+    } on FirebaseAuthException {
+      rethrow;
+    }
+  }
+
+  /// Reenvía el correo de verificación al usuario actual.
+  ///
+  /// Si no existe una sesión activa, y se proporcionan `email` y `password`,
+  /// intentará iniciar sesión con esas credenciales y luego reenviar el correo.
+  /// Lanza [FirebaseAuthException] para que la UI lo muestre si algo falla.
+  Future<void> resendEmailVerification(
+      {String? email, String? password}) async {
+    try {
+      await sendEmailVerification();
+      return;
+    } on FirebaseAuthException catch (e) {
+      // Si no hay usuario actual, intentar autenticar con email/password si los dieron
+      if ((e.code == 'no-current-user' || e.code == 'user-not-found') &&
+          email != null &&
+          password != null) {
+        // Intentar iniciar sesión y reenviar
+        await signIn(email, password);
+        await sendEmailVerification();
+        return;
+      }
+      rethrow;
     }
   }
 }
