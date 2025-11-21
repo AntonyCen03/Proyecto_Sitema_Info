@@ -255,6 +255,7 @@ class _NewTextView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Column(
       crossAxisAlignment:
           isDesktop ? CrossAxisAlignment.start : CrossAxisAlignment.center,
@@ -263,7 +264,7 @@ class _NewTextView extends StatelessWidget {
           'Gestiona tus proyectos donde sea.',
           textAlign: isDesktop ? TextAlign.left : TextAlign.center,
           style: TextStyle(
-            color: colorFondoMasOscuro,
+            color: isDark ? Colors.white : colorFondoMasOscuro,
             fontSize: 42,
             fontWeight: FontWeight.w700,
             height: 1.1,
@@ -277,7 +278,7 @@ class _NewTextView extends StatelessWidget {
           'todo desde la palma de tu mano.',
           textAlign: isDesktop ? TextAlign.left : TextAlign.center,
           style: TextStyle(
-            color: colorTextoSecundario,
+            color: isDark ? Colors.white70 : colorTextoSecundario,
             fontSize: 18,
             fontWeight: FontWeight.w400,
             height: 1.4,

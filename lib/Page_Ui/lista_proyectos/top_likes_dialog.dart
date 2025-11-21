@@ -34,20 +34,23 @@ class TopLikesDialog extends StatelessWidget {
           children: [
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-              decoration: const BoxDecoration(
+              decoration: BoxDecoration(
                 borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-                color: Colors.white,
+                color: Theme.of(context).cardColor,
               ),
               child: Row(
                 children: [
                   const Icon(Icons.star, color: primaryOrange),
                   const SizedBox(width: 12),
-                  const Expanded(
+                  Expanded(
                     child: Text(
                       'Top 10 Proyectos (Likes)',
                       style: TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
+                        color: Theme.of(context).brightness == Brightness.dark
+                            ? Colors.white
+                            : Colors.black,
                       ),
                     ),
                   ),
@@ -142,7 +145,11 @@ class TopLikesDialog extends StatelessWidget {
                                     child: LinearProgressIndicator(
                                       value: percent / 100.0,
                                       minHeight: 6,
-                                      backgroundColor: Colors.grey.shade200,
+                                      backgroundColor:
+                                          Theme.of(context).brightness ==
+                                                  Brightness.dark
+                                              ? Colors.grey.shade700
+                                              : Colors.grey.shade200,
                                       valueColor: AlwaysStoppedAnimation(
                                         percent >= 80
                                             ? Colors.green
@@ -155,8 +162,12 @@ class TopLikesDialog extends StatelessWidget {
                                   const SizedBox(height: 4),
                                   Text(
                                     'Avance: ${percent.toStringAsFixed(0)}%',
-                                    style: const TextStyle(
-                                        fontSize: 12, color: Colors.black54),
+                                    style: TextStyle(
+                                        fontSize: 12,
+                                        color: Theme.of(context).brightness ==
+                                                Brightness.dark
+                                            ? Colors.white70
+                                            : Colors.black54),
                                   ),
                                 ],
                               ),

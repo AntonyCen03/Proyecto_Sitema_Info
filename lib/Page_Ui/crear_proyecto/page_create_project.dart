@@ -742,17 +742,20 @@ class _PageCreateProjectState extends State<PageCreateProject> {
     final estadoText = aprobado ? 'Aprobado' : 'Pendiente';
     final estadoColor =
         aprobado ? Colors.green.shade700 : Colors.orange.shade700;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Card(
       elevation: 1,
-      color: Colors.orange.shade50,
+      color: isDark ? Colors.orange.withOpacity(0.1) : Colors.orange.shade50,
       child: Padding(
         padding: const EdgeInsets.all(12.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
+            Text(
               'Presupuesto (solo admin)',
-              style: TextStyle(fontWeight: FontWeight.bold),
+              style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: isDark ? Colors.white : Colors.black),
             ),
             const SizedBox(height: 8),
             Row(
@@ -762,9 +765,16 @@ class _PageCreateProjectState extends State<PageCreateProject> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                          'Solicitado: ${monto != null ? monto.toStringAsFixed(2) : '—'}'),
+                        'Solicitado: ${monto != null ? monto.toStringAsFixed(2) : '—'}',
+                        style: TextStyle(
+                            color: isDark ? Colors.white70 : Colors.black87),
+                      ),
                       if ((_presupuestoMotivo ?? '').isNotEmpty)
-                        Text('Motivo: ${_presupuestoMotivo!}')
+                        Text(
+                          'Motivo: ${_presupuestoMotivo!}',
+                          style: TextStyle(
+                              color: isDark ? Colors.white70 : Colors.black87),
+                        )
                     ],
                   ),
                 ),
@@ -874,12 +884,14 @@ class _PageCreateProjectState extends State<PageCreateProject> {
   Widget _buildIntegrantesField() => Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
+          Text(
             'Integrantes del Proyecto',
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.bold,
-              color: Colors.black87,
+              color: Theme.of(context).brightness == Brightness.dark
+                  ? Colors.white
+                  : Colors.black87,
             ),
           ),
           const SizedBox(height: 10),
@@ -950,20 +962,29 @@ class _PageCreateProjectState extends State<PageCreateProject> {
             Wrap(
               spacing: 8.0,
               runSpacing: 4.0,
-              children: _integrantes
-                  .asMap()
-                  .entries
-                  .map(
-                    (e) => Chip(
-                      backgroundColor: Colors.blue.shade100,
-                      label: Text('${e.value.nombre} (${e.value.cedula})'),
-                      deleteIcon:
-                          _readOnly ? null : const Icon(Icons.close, size: 18),
-                      onDeleted:
-                          _readOnly ? null : () => _removeIntegrante(e.key),
+              children: _integrantes.asMap().entries.map(
+                (e) {
+                  final isDark =
+                      Theme.of(context).brightness == Brightness.dark;
+                  return Chip(
+                    backgroundColor: isDark
+                        ? Colors.blue.shade900.withOpacity(0.5)
+                        : Colors.blue.shade100,
+                    label: Text(
+                      '${e.value.nombre} (${e.value.cedula})',
+                      style: TextStyle(
+                          color: isDark ? Colors.white : Colors.black87),
                     ),
-                  )
-                  .toList(),
+                    deleteIcon: _readOnly
+                        ? null
+                        : Icon(Icons.close,
+                            size: 18,
+                            color: isDark ? Colors.white70 : Colors.black54),
+                    onDeleted:
+                        _readOnly ? null : () => _removeIntegrante(e.key),
+                  );
+                },
+              ).toList(),
             ),
           ],
         ],
@@ -972,12 +993,14 @@ class _PageCreateProjectState extends State<PageCreateProject> {
   Widget _buildTareasField() => Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
+          Text(
             'Tareas del Proyecto',
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.bold,
-              color: Colors.black87,
+              color: Theme.of(context).brightness == Brightness.dark
+                  ? Colors.white
+                  : Colors.black87,
             ),
           ),
           const SizedBox(height: 10),
@@ -1049,12 +1072,14 @@ class _PageCreateProjectState extends State<PageCreateProject> {
   Widget _buildLinksField() => Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
+          Text(
             'Enlaces / Recursos',
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.bold,
-              color: Colors.black87,
+              color: Theme.of(context).brightness == Brightness.dark
+                  ? Colors.white
+                  : Colors.black87,
             ),
           ),
           const SizedBox(height: 10),
