@@ -100,11 +100,12 @@ class _RecursosPageState extends State<RecursosPage> {
                           icon: const Icon(Icons.assignment_turned_in_outlined),
                           onPressed: () => _showAssignDialog(r),
                         ),
-                        IconButton(
-                          tooltip: 'Historial de uso',
-                          icon: const Icon(Icons.history),
-                          onPressed: () => showHistoryDialog(context, r),
-                        ),
+                        if (_isAdmin)
+                          IconButton(
+                            tooltip: 'Historial de uso',
+                            icon: const Icon(Icons.history),
+                            onPressed: () => showHistoryDialog(context, r),
+                          ),
                         if (_isAdmin)
                           IconButton(
                             tooltip: 'Editar',
