@@ -3,6 +3,7 @@ import 'package:proyecto_final/Page_Ui/lista_proyectos/Grafico_pizza.dart';
 import 'package:proyecto_final/Page_Ui/lista_proyectos/TareasDialog.dart';
 import 'package:proyecto_final/services/firebase_services.dart' as fs;
 import 'package:proyecto_final/Page_Ui/crear_proyecto/archivo_dialog.dart';
+import 'package:proyecto_final/Page_Ui/widgets/custom_message_dialog.dart';
 
 //Esta clase se encarga de crear los InkWell que se usaran para la lista de proyectos en la interfaz de usuario.
 class ProyectosDeLaLista extends StatefulWidget {
@@ -227,20 +228,11 @@ class PLista extends State<ProyectosDeLaLista> {
                 if (url != null && url.isNotEmpty) {
                   try {
                     await fs.addLinkProyecto(docId, url);
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(
-                          'Enlace agregado: ${result['nombre'] ?? 'Recurso'}',
-                        ),
-                      ),
-                    );
+                    showMessageDialog(context,
+                        'Enlace agregado: ${result['nombre'] ?? 'Recurso'}');
                   } catch (e) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text('Error al guardar enlace: $e'),
-                        backgroundColor: Colors.red,
-                      ),
-                    );
+                    showMessageDialog(context, 'Error al guardar enlace: $e',
+                        isError: true);
                   }
                 }
               }
@@ -283,36 +275,16 @@ class PLista extends State<ProyectosDeLaLista> {
               if (action == 'complete') {
                 try {
                   await fs.setTodasLasTareas(docId, true);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Todas las tareas completadas'),
-                      backgroundColor: Colors.green,
-                    ),
-                  );
+                  showMessageDialog(context, 'Todas las tareas completadas');
                 } catch (e) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('Error: $e'),
-                      backgroundColor: Colors.red,
-                    ),
-                  );
+                  showMessageDialog(context, 'Error: $e', isError: true);
                 }
               } else if (action == 'reset') {
                 try {
                   await fs.setTodasLasTareas(docId, false);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Todas las tareas reiniciadas'),
-                      backgroundColor: Colors.orange,
-                    ),
-                  );
+                  showMessageDialog(context, 'Todas las tareas reiniciadas');
                 } catch (e) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('Error: $e'),
-                      backgroundColor: Colors.red,
-                    ),
-                  );
+                  showMessageDialog(context, 'Error: $e', isError: true);
                 }
               }
             },
@@ -350,19 +322,9 @@ class PLista extends State<ProyectosDeLaLista> {
               if (confirm == true) {
                 try {
                   await fs.deleteProyecto(docId);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Proyecto borrado correctamente'),
-                      backgroundColor: Colors.green,
-                    ),
-                  );
+                  showMessageDialog(context, 'Proyecto borrado correctamente');
                 } catch (e) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('Error al borrar: $e'),
-                      backgroundColor: Colors.red,
-                    ),
-                  );
+                  showMessageDialog(context, '$e', isError: true);
                 }
               }
             },

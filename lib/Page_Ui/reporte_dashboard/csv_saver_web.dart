@@ -3,6 +3,7 @@
 import 'dart:html' as html;
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:proyecto_final/Page_Ui/widgets/custom_message_dialog.dart';
 
 Future<String?> saveCsv(
     BuildContext context, String fileName, String content) async {
@@ -16,9 +17,7 @@ Future<String?> saveCsv(
   html.Url.revokeObjectUrl(url);
   // Optional UI hint
   if (context.mounted) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Descarga iniciada: $name')),
-    );
+    showMessageDialog(context, 'Descarga iniciada: $name');
   }
   return null;
 }

@@ -256,7 +256,35 @@ Future<void> updateProyecto(
 }
 
 Future<void> deleteProyecto(String docId) async {
-  await db.collection('list_proyecto').doc(docId).delete();
+  final docRef = db.collection('list_proyecto').doc(docId);
+  final snap = await docRef.get();
+  if (!snap.exists) return;
+
+  final data = snap.data() ?? {};
+
+  // Verificar si el proyecto está completado
+  if (_toBool(data['estado'])) {
+    throw Exception('No se puede eliminar un proyecto completado.');
+  }
+
+  // Verificar si tiene tareas terminadas (avances)
+  final tareas = data['tareas'];
+  if (tareas is Map) {
+    for (final val in tareas.values) {
+      bool done = false;
+      if (val is Map) {
+        done = _toBool(val['done']);
+      } else {
+        done = _toBool(val);
+      }
+      if (done) {
+        throw Exception(
+            'No se puede eliminar un proyecto con tareas terminadas.');
+      }
+    }
+  }
+
+  await docRef.delete();
 }
 
 /// Devuelve los proyectos donde el email (en minúsculas) aparece en `integrantes_detalle`

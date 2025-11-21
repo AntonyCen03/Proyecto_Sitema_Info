@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:proyecto_final/services/auth_service.dart';
+import 'package:proyecto_final/Page_Ui/widgets/custom_message_dialog.dart';
 
 const Color colorPrimario = Color(0xFF6200EE);
 const Color colorFondo = Color(0xFFF5F5F5);
@@ -26,9 +27,8 @@ class _OlvidecontrasenaState extends State<Olvidecontrasena> {
     final email = _emailController.text.trim();
     
     if (email.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Por favor, ingresa tu correo electrónico')),
-      );
+      showMessageDialog(context, 'Por favor, ingresa tu correo electrónico',
+          isError: true);
       return;
     } else {
       AuthService().sendPasswordReset(email); // Lógica para enviar el enlace de recuperación

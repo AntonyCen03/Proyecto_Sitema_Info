@@ -4,6 +4,7 @@ import 'package:proyecto_final/Page_Ui/widgets/metro_app_bar.dart';
 import 'package:proyecto_final/services/firebase_services.dart' as api;
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:proyecto_final/Page_Ui/validator/validar_alfa_num.dart';
+import 'package:proyecto_final/Page_Ui/widgets/custom_message_dialog.dart';
 
 class RecursosPage extends StatefulWidget {
   const RecursosPage({super.key});
@@ -374,8 +375,7 @@ class _RecursosPageState extends State<RecursosPage> {
                       asignadoPorEmail: _email,
                     );
                     if (mounted) Navigator.pop(context);
-                    ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Recurso asignado')));
+                    showMessageDialog(context, 'Recurso asignado');
                   } catch (e) {
                     setState(() {
                       String msg = e.toString();

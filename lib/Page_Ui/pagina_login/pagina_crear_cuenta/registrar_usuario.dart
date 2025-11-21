@@ -8,6 +8,7 @@ import 'package:proyecto_final/Page_Ui/widgets/metro_app_bar.dart';
 import 'package:proyecto_final/services/firebase_services.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:proyecto_final/services/auth_service.dart';
+import 'package:proyecto_final/Page_Ui/widgets/custom_message_dialog.dart';
 
 class PageSignUp extends StatefulWidget {
   const PageSignUp({super.key});
@@ -64,9 +65,7 @@ class _SignUpScreenState extends State<PageSignUp> {
       }
 
       if (existingUser != null) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('El usuario ya existe')));
+        showMessageDialog(context, 'El usuario ya existe', isError: true);
         return;
       } else {
         try {
@@ -91,9 +90,8 @@ class _SignUpScreenState extends State<PageSignUp> {
               cedula: _cedulaController.text);
           // No creamos el documento de usuario en Firestore hasta que verifique el email.
         } catch (e) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Error al registrar: ${e.toString()}')),
-          );
+          showMessageDialog(context, 'Error al registrar: ${e.toString()}',
+              isError: true);
           return;
         }
       }
@@ -203,9 +201,8 @@ class _SignUpScreenState extends State<PageSignUp> {
     try {
       final verified = await AuthService().isEmailVerified();
       if (!verified) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Tu correo aún no está verificado.')),
-        );
+        showMessageDialog(context, 'Tu correo aún no está verificado.',
+            isError: true);
         return;
       }
 

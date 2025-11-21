@@ -6,6 +6,7 @@ import 'package:proyecto_final/Color/Color.dart';
 // Reemplazado acceso directo a Firestore por servicios centralizados
 import 'package:proyecto_final/services/firebase_services.dart' as api;
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:proyecto_final/Page_Ui/widgets/custom_message_dialog.dart';
 
 class Integrante {
   final String nombre;
@@ -238,9 +239,7 @@ class _PageCreateProjectState extends State<PageCreateProject> {
       });
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error cargando proyecto: $e')),
-      );
+      showMessageDialog(context, 'Error cargando proyecto: $e', isError: true);
     }
   }
 
@@ -375,11 +374,9 @@ class _PageCreateProjectState extends State<PageCreateProject> {
     final selected = _findUserByEmail(correo);
 
     if (selected == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Seleccione un integrante válido desde el buscador'),
-        ),
-      );
+      showMessageDialog(context,
+          'Seleccione un integrante válido desde el buscador',
+          isError: true);
       return;
     }
 
@@ -393,13 +390,9 @@ class _PageCreateProjectState extends State<PageCreateProject> {
         correo.isEmpty ? 'Correo inválido.' : _validateEmail(correo);
 
     if (nameError != null || cedulaError != null || correoError != null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'Por favor, complete y corrija todos los campos del integrante.',
-          ),
-        ),
-      );
+      showMessageDialog(context,
+          'Por favor, complete y corrija todos los campos del integrante.',
+          isError: true);
 
       return;
     }
@@ -412,11 +405,9 @@ class _PageCreateProjectState extends State<PageCreateProject> {
         i.correo.toLowerCase() == correoLower ||
         (cedula.isNotEmpty && i.cedula == cedula));
     if (exists) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('El integrante ya fue agregado a este proyecto.'),
-        ),
-      );
+      showMessageDialog(
+          context, 'El integrante ya fue agregado a este proyecto.',
+          isError: true);
       return;
     }
 
@@ -454,12 +445,9 @@ class _PageCreateProjectState extends State<PageCreateProject> {
     // Evitar caracteres prohibidos por Firestore en keys (defensa adicional)
     final invalid = RegExp(r'[.#$/\[\]/]');
     if (invalid.hasMatch(task)) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('El nombre de la tarea no puede contener . # \$ [ ] /'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      showMessageDialog(
+          context, 'El nombre de la tarea no puede contener . # \$ [ ] /',
+          isError: true);
       return;
     }
     setState(() {
@@ -471,25 +459,20 @@ class _PageCreateProjectState extends State<PageCreateProject> {
   void _addLink() {
     final link = _controllers['newLink']!.text.trim();
     if (link.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('El enlace no puede estar vacío.')),
-      );
+      showMessageDialog(context, 'El enlace no puede estar vacío.',
+          isError: true);
       return;
     }
     // Patrón simplificado para validar URL (empieza con http/https y sin espacios)
     final urlPattern = RegExp(r'^(https?:\/\/)[^\s]+$');
     if (!urlPattern.hasMatch(link)) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-            content: Text(
-                'Ingrese una URL válida (debe comenzar con http:// o https://)')),
-      );
+      showMessageDialog(context,
+          'Ingrese una URL válida (debe comenzar con http:// o https://)',
+          isError: true);
       return;
     }
     if (_links.contains(link)) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('El enlace ya fue agregado.')),
-      );
+      showMessageDialog(context, 'El enlace ya fue agregado.', isError: true);
       return;
     }
     setState(() {
@@ -527,23 +510,19 @@ class _PageCreateProjectState extends State<PageCreateProject> {
     if (!_formKey.currentState!.validate()) return;
 
     if (_startDate == null || _deliveryDate == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Por favor, seleccione las fechas de inicio y entrega'),
-        ),
-      );
+      showMessageDialog(
+          context, 'Por favor, seleccione las fechas de inicio y entrega',
+          isError: true);
       return;
     }
     if (_integrantes.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Debe agregar al menos un integrante')),
-      );
+      showMessageDialog(context, 'Debe agregar al menos un integrante',
+          isError: true);
       return;
     }
     if (_tareas.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Debe agregar al menos una tarea')),
-      );
+      showMessageDialog(context, 'Debe agregar al menos una tarea',
+          isError: true);
       return;
     }
     try {
@@ -578,7 +557,7 @@ class _PageCreateProjectState extends State<PageCreateProject> {
           backgroundColor: Colors.green,
         ),
       );
-      if (mounted) Navigator.pushNamed(context, '/principal');
+      if (mounted) Navigator.pushNamed(context, '/proyectos_lista');
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -604,21 +583,18 @@ class _PageCreateProjectState extends State<PageCreateProject> {
       return;
     }
     if (_startDate == null || _deliveryDate == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Seleccione fechas de inicio y entrega.')),
-      );
+      showMessageDialog(context, 'Seleccione fechas de inicio y entrega.',
+          isError: true);
       return;
     }
     if (_integrantes.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Debe agregar al menos un integrante')),
-      );
+      showMessageDialog(context, 'Debe agregar al menos un integrante',
+          isError: true);
       return;
     }
     if (_tareas.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Debe agregar al menos una tarea')),
-      );
+      showMessageDialog(context, 'Debe agregar al menos una tarea',
+          isError: true);
       return;
     }
 
@@ -651,7 +627,7 @@ class _PageCreateProjectState extends State<PageCreateProject> {
             content: Text('✅ Proyecto actualizado exitosamente.'),
             backgroundColor: Colors.green),
       );
-      Navigator.pop(context);
+      Navigator.pushNamed(context, '/proyectos_lista');
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -668,7 +644,7 @@ class _PageCreateProjectState extends State<PageCreateProject> {
       appBar: AppBar(
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: primaryOrange),
-          onPressed: () => Navigator.pop(context),
+          onPressed: () => Navigator.pushNamed(context, '/proyectos_lista'),
           tooltip: 'Volver',
         ),
         title: Text(
@@ -813,17 +789,11 @@ class _PageCreateProjectState extends State<PageCreateProject> {
                             await api.setPresupuestoAprobado(_docId!, true);
                             if (!mounted) return;
                             setState(() => _presupuestoAprobado = true);
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                  content: Text('Presupuesto aprobado')),
-                            );
+                            showMessageDialog(context, 'Presupuesto aprobado');
                           } catch (e) {
                             if (!mounted) return;
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                  content: Text('Error al aprobar: $e'),
-                                  backgroundColor: Colors.red),
-                            );
+                            showMessageDialog(context, 'Error al aprobar: $e',
+                                isError: true);
                           }
                         },
                   icon: const Icon(Icons.check_circle_outline),
@@ -840,17 +810,11 @@ class _PageCreateProjectState extends State<PageCreateProject> {
                             await api.setPresupuestoAprobado(_docId!, false);
                             if (!mounted) return;
                             setState(() => _presupuestoAprobado = false);
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                  content: Text('Aprobación revocada')),
-                            );
+                            showMessageDialog(context, 'Aprobación revocada');
                           } catch (e) {
                             if (!mounted) return;
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                  content: Text('Error: $e'),
-                                  backgroundColor: Colors.red),
-                            );
+                            showMessageDialog(context, 'Error: $e',
+                                isError: true);
                           }
                         }
                       : null,

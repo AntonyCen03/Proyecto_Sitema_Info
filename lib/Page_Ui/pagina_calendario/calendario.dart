@@ -125,14 +125,6 @@ class _CalendarScreenState extends State<CalendarScreen> {
         onBackPressed: () => Navigator.pushNamedAndRemoveUntil(
             context, '/principal', (route) => false),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.search),
-            onPressed: () {},
-          ),
-          IconButton(
-            icon: const Icon(Icons.settings_outlined),
-            onPressed: () {},
-          ),
         ],
       ),
       body: Column(
@@ -206,11 +198,6 @@ class _CalendarScreenState extends State<CalendarScreen> {
             ),
           ),
         ],
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {},
-        backgroundColor: primaryOrange,
-        child: const Icon(Icons.add, color: Colors.white),
       ),
     );
   }
