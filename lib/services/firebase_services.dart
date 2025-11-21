@@ -1299,3 +1299,23 @@ Future<void> asignarRecursoATarea({
     });
   });
 }
+
+/// Obtiene un usuario por su email. Retorna null si no se encuentra.
+Future<Map<String, dynamic>?> getUserByEmail(String email) async {
+  try {
+    final q = await db
+        .collection('user')
+        .where('email', isEqualTo: email)
+        .limit(1)
+        .get();
+    if (q.docs.isNotEmpty) {
+      final doc = q.docs.first;
+      final data = doc.data();
+      data['uid'] = doc.id;
+      return data;
+    }
+  } catch (e) {
+    debugPrint('Error getting user by email: $e');
+  }
+  return null;
+}

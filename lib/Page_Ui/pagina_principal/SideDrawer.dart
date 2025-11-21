@@ -19,25 +19,20 @@ class SideDrawer extends StatelessWidget {
           child: SafeArea(
             child: Column(
               children: [
-                FutureBuilder<List<Map<String, dynamic>>>(
-                  future: api.getUser(context),
+                FutureBuilder<Map<String, dynamic>?>(
+                  future: (user?.email != null && user!.email!.isNotEmpty)
+                      ? api.getUserByEmail(user.email!)
+                      : null,
                   builder: (context, snap) {
                     String nameShown = 'Usuario';
                     String? photoUrl;
-                    final email = user?.email?.trim().toLowerCase();
 
-                    if (snap.hasData && email != null && email.isNotEmpty) {
-                      for (final u in snap.data!) {
-                        final uEmail =
-                            (u['email'] ?? '').toString().trim().toLowerCase();
-                        if (uEmail == email) {
-                          final n = (u['name'] ?? '').toString().trim();
-                          if (n.isNotEmpty) nameShown = n;
-                          final p = (u['photo_url'] ?? '').toString().trim();
-                          if (p.isNotEmpty) photoUrl = p;
-                          break;
-                        }
-                      }
+                    if (snap.hasData && snap.data != null) {
+                      final u = snap.data!;
+                      final n = (u['name'] ?? '').toString().trim();
+                      if (n.isNotEmpty) nameShown = n;
+                      final p = (u['photo_url'] ?? '').toString().trim();
+                      if (p.isNotEmpty) photoUrl = p;
                     }
 
                     return UserAccountsDrawerHeader(

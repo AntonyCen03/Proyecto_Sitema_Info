@@ -28,23 +28,16 @@ class AccountMenu extends StatelessWidget {
           builder: (context, snap) {
             final bool isAdmin = snap.data == true;
             return PopupMenuButton<String>(
-              icon: FutureBuilder<List<Map<String, dynamic>>>(
-                future: isLoggedIn ? api.getUser(context) : null,
+              icon: FutureBuilder<Map<String, dynamic>?>(
+                future: (isLoggedIn && user.email != null)
+                    ? api.getUserByEmail(user.email!)
+                    : null,
                 builder: (context, userSnap) {
                   String? photoUrl;
-                  if (isLoggedIn && userSnap.hasData) {
-                    final email = user.email?.trim().toLowerCase();
-                    if (email != null) {
-                      for (final u in userSnap.data!) {
-                        final uEmail =
-                            (u['email'] ?? '').toString().trim().toLowerCase();
-                        if (uEmail == email) {
-                          final p = (u['photo_url'] ?? '').toString().trim();
-                          if (p.isNotEmpty) photoUrl = p;
-                          break;
-                        }
-                      }
-                    }
+                  if (userSnap.hasData && userSnap.data != null) {
+                    final u = userSnap.data!;
+                    final p = (u['photo_url'] ?? '').toString().trim();
+                    if (p.isNotEmpty) photoUrl = p;
                   }
 
                   if (photoUrl != null) {

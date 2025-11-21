@@ -27,7 +27,7 @@ class ProfileImagePicker extends StatefulWidget {
 class _ProfileImagePickerState extends State<ProfileImagePicker> {
   bool _uploading = false;
 
-  Future<String> _uploadToImgBB(XFile picked) async {
+  Future<String> _uploadToImgBB(Uint8List bytes, String filename) async {
     // ---------------------------------------------------------
     // 1. Ve a https://api.imgbb.com/
     // 2. Crea una cuenta o inicia sesión.
@@ -42,17 +42,11 @@ class _ProfileImagePickerState extends State<ProfileImagePicker> {
 
     request.fields['key'] = apiKey;
 
-    if (kIsWeb) {
-      final bytes = await picked.readAsBytes();
-      request.files.add(http.MultipartFile.fromBytes(
-        'image', // ImgBB espera el campo 'image'
-        bytes,
-        filename: picked.name,
-      ));
-    } else {
-      request.files
-          .add(await http.MultipartFile.fromPath('image', picked.path));
-    }
+    request.files.add(http.MultipartFile.fromBytes(
+      'image',
+      bytes,
+      filename: filename,
+    ));
 
     final response = await request.send();
     if (response.statusCode == 200) {
@@ -77,16 +71,36 @@ class _ProfileImagePickerState extends State<ProfileImagePicker> {
     XFile? picked;
     try {
       picked = await picker.pickImage(
-          source: ImageSource.gallery, maxWidth: 1024, imageQuality: 85);
+          source: ImageSource.gallery,
+          maxWidth: 1024,
+          imageQuality: 85); // Ajustes para tamaño y calidad
     } catch (_) {
       picked = null;
     }
     if (picked == null) return;
 
+    // Leer los bytes reales para validar el tamaño exacto antes de subir
+    final bytes = await picked.readAsBytes();
+    final int sizeInBytes = bytes.lengthInBytes;
+    final double sizeInMb = sizeInBytes / (1024 * 1024);
+
+    if (sizeInMb > 1.5) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+                'La imagen es muy pesada (${sizeInMb.toStringAsFixed(2)} MB). Máximo 1.5 MB.'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+      return;
+    }
+
     setState(() => _uploading = true);
     try {
       // Subir a ImgBB (Gratis)
-      final url = await _uploadToImgBB(picked);
+      final url = await _uploadToImgBB(bytes, picked.name);
 
       // Actualizar el documento correcto en 'user' buscando por email
       String? docId;
