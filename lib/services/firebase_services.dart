@@ -1176,8 +1176,18 @@ Future<void> asignarRecursoATarea({
     final disp = (data['cantidad_disponible'] is int)
         ? data['cantidad_disponible'] as int
         : int.tryParse(data['cantidad_disponible']?.toString() ?? '0') ?? 0;
-    if (cantidad <= 0) throw Exception('Cantidad inválida');
-    if (disp < cantidad) throw Exception('No hay suficiente disponible');
+    if (cantidad <= 0) {
+      throw FirebaseException(
+          plugin: 'metrobox',
+          code: 'invalcid-amount',
+          message: 'Cantidad inválida');
+    }
+    if (disp < cantidad) {
+      throw FirebaseException(
+          plugin: 'metrobox',
+          code: 'insufficient-funds',
+          message: 'No hay suficiente disponible');
+    }
 
     txn.update(ref, {
       'cantidad_disponible': disp - cantidad,

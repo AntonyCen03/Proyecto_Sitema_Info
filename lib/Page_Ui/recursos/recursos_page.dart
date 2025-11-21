@@ -261,6 +261,7 @@ class _RecursosPageState extends State<RecursosPage> {
     await showDialog(
       context: context,
       builder: (context) {
+        String? errorMessage;
         return StatefulBuilder(builder: (context, setState) {
           return AlertDialog(
             title: const Text('Asignar recurso a tarea'),
@@ -271,6 +272,15 @@ class _RecursosPageState extends State<RecursosPage> {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
+                    if (errorMessage != null)
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 10),
+                        child: Text(
+                          errorMessage!,
+                          style: const TextStyle(
+                              color: Colors.red, fontWeight: FontWeight.bold),
+                        ),
+                      ),
                     DropdownButtonFormField<String>(
                       value: proyectoDocId,
                       decoration: const InputDecoration(labelText: 'Proyecto'),
@@ -319,11 +329,17 @@ class _RecursosPageState extends State<RecursosPage> {
                           labelText: 'Cantidad a asignar'),
                       keyboardType: TextInputType.number,
                       inputFormatters: soloNumerosFormatters(maxLength: 9),
-                      validator: (v) =>
-                          validarSoloNumeros(v, campo: 'Cantidad a asignar'),
+                      validator: (v) {
+                        final err =
+                            validarSoloNumeros(v, campo: 'Cantidad a asignar');
+                        if (err != null) return err;
+                        final n = int.tryParse(v ?? '');
+                        if (n == null || n <= 0) return 'Debe ser mayor a 0';
+                        return null;
+                      },
                       onChanged: (v) {
                         final n = int.tryParse(v.trim());
-                        cantidad = (n == null || n <= 0) ? 1 : n;
+                        cantidad = n ?? 0;
                       },
                     ),
                   ],
@@ -340,9 +356,14 @@ class _RecursosPageState extends State<RecursosPage> {
                 icon: const Icon(Icons.send),
                 label: const Text('Asignar'),
                 onPressed: () async {
+                  setState(() => errorMessage = null);
                   if (!assignFormKey.currentState!.validate()) return;
                   if (proyectoDocId == null ||
-                      (tareaKey == null || tareaKey!.isEmpty)) return;
+                      (tareaKey == null || tareaKey!.isEmpty)) {
+                    setState(
+                        () => errorMessage = 'Seleccione proyecto y tarea');
+                    return;
+                  }
                   final recursoId = (resource['docId'] ?? '').toString();
                   try {
                     await api.asignarRecursoATarea(
@@ -356,8 +377,20 @@ class _RecursosPageState extends State<RecursosPage> {
                     ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(content: Text('Recurso asignado')));
                   } catch (e) {
-                    ScaffoldMessenger.of(context)
-                        .showSnackBar(SnackBar(content: Text('Error: $e')));
+                    setState(() {
+                      String msg = e.toString();
+                      if (e is FirebaseException && e.message != null) {
+                        msg = e.message!;
+                      } else {
+                        msg = msg.replaceAll('Exception: ', '');
+                        // Manejo específico para el error de "converted Future" en Web
+                        if (msg.contains(
+                            'Dart exception thrown from converted Future')) {
+                          msg = 'No hay suficiente disponible.';
+                        }
+                      }
+                      errorMessage = msg;
+                    });
                   }
                 },
               ),
