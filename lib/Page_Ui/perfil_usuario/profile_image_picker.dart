@@ -1,9 +1,9 @@
-import 'dart:io';
+import 'dart:convert';
 
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 import 'package:proyecto_final/Color/Color.dart';
 import 'package:proyecto_final/services/firebase_services.dart' as api;
@@ -27,30 +27,46 @@ class ProfileImagePicker extends StatefulWidget {
 class _ProfileImagePickerState extends State<ProfileImagePicker> {
   bool _uploading = false;
 
-  Future<String> _uploadDirectToStorage(XFile picked, String contentType) async {
-    final user = FirebaseAuth.instance.currentUser!;
-    final storage = FirebaseStorage.instance;
-    final name = picked.name.toLowerCase();
-    String ext = 'jpg';
-    if (name.endsWith('.png')) ext = 'png';
-    if (name.endsWith('.webp')) ext = 'webp';
-    if (name.endsWith('.gif')) ext = 'gif';
-    final ts = DateTime.now().millisecondsSinceEpoch;
-    final path = 'user_photos/${user.uid}/$ts.$ext';
-    final ref = storage.ref().child(path);
+  Future<String> _uploadToImgBB(XFile picked) async {
+    // ---------------------------------------------------------
+    // 1. Ve a https://api.imgbb.com/
+    // 2. Crea una cuenta o inicia sesión.
+    // 3. Obtén tu "API Key" (botón "Get API Key" o "Crear clave").
+    // 4. Pégala aquí abajo:
+    // ---------------------------------------------------------
+    const apiKey =
+        '12bfd2a3556a84a5bdce706c3d1376ec'; // Reemplaza con tu API Key
+
+    final uri = Uri.parse('https://api.imgbb.com/1/upload');
+    final request = http.MultipartRequest('POST', uri);
+
+    request.fields['key'] = apiKey;
+
     if (kIsWeb) {
       final bytes = await picked.readAsBytes();
-      await ref
-          .putData(bytes, SettableMetadata(contentType: contentType))
-          .timeout(const Duration(seconds: 30));
+      request.files.add(http.MultipartFile.fromBytes(
+        'image', // ImgBB espera el campo 'image'
+        bytes,
+        filename: picked.name,
+      ));
     } else {
-      final file = File(picked.path);
-      await ref
-          .putFile(file, SettableMetadata(contentType: contentType))
-          .timeout(const Duration(seconds: 60));
+      request.files
+          .add(await http.MultipartFile.fromPath('image', picked.path));
     }
-    final url = await ref.getDownloadURL().timeout(const Duration(seconds: 15));
-    return url;
+
+    final response = await request.send();
+    if (response.statusCode == 200) {
+      final responseData = await response.stream.toBytes();
+      final responseString = String.fromCharCodes(responseData);
+      final jsonMap = jsonDecode(responseString);
+      if (jsonMap['success'] == true) {
+        return jsonMap['data']['url'];
+      } else {
+        throw Exception('Error ImgBB: ${jsonMap['status']}');
+      }
+    } else {
+      throw Exception('Error subiendo a ImgBB: ${response.statusCode}');
+    }
   }
 
   Future<void> _pickAndUpload() async {
@@ -69,23 +85,12 @@ class _ProfileImagePickerState extends State<ProfileImagePicker> {
 
     setState(() => _uploading = true);
     try {
-        // Leer bytes y determinar contentType
-        // Prepara bytes si necesitas validar tamaño en el futuro
-        // final bytes = kIsWeb
-        //   ? await picked.readAsBytes()
-        //   : await File(picked.path).readAsBytes();
-      // Detectar contentType por extensión simple
-      final name = picked.name.toLowerCase();
-      String contentType = 'image/jpeg';
-      if (name.endsWith('.png')) contentType = 'image/png';
-      if (name.endsWith('.webp')) contentType = 'image/webp';
-      if (name.endsWith('.gif')) contentType = 'image/gif';
-
-        // Subir directo a Firebase Storage
-        final url = await _uploadDirectToStorage(picked, contentType);
+      // Subir a ImgBB (Gratis)
+      final url = await _uploadToImgBB(picked);
 
       // Actualizar el documento correcto en 'user' buscando por email
       String? docId;
+
       try {
         final users = await api.getUser(context);
         final emailLower = (user.email ?? '').trim().toLowerCase();

@@ -19,34 +19,41 @@ class SideDrawer extends StatelessWidget {
           child: SafeArea(
             child: Column(
               children: [
-                UserAccountsDrawerHeader(
-                  accountName: FutureBuilder<List<Map<String, dynamic>>>(
-                    future: api.getUser(context),
-                    builder: (context, snap) {
-                      String nameShown = 'Usuario';
-                      final email = user?.email?.trim().toLowerCase();
-                      if (snap.hasData && email != null && email.isNotEmpty) {
-                        for (final u in snap.data!) {
-                          final uEmail = (u['email'] ?? '')
-                              .toString()
-                              .trim()
-                              .toLowerCase();
-                          if (uEmail == email) {
-                            final n = (u['name'] ?? '').toString().trim();
-                            if (n.isNotEmpty) nameShown = n;
-                            break;
-                          }
+                FutureBuilder<List<Map<String, dynamic>>>(
+                  future: api.getUser(context),
+                  builder: (context, snap) {
+                    String nameShown = 'Usuario';
+                    String? photoUrl;
+                    final email = user?.email?.trim().toLowerCase();
+
+                    if (snap.hasData && email != null && email.isNotEmpty) {
+                      for (final u in snap.data!) {
+                        final uEmail =
+                            (u['email'] ?? '').toString().trim().toLowerCase();
+                        if (uEmail == email) {
+                          final n = (u['name'] ?? '').toString().trim();
+                          if (n.isNotEmpty) nameShown = n;
+                          final p = (u['photo_url'] ?? '').toString().trim();
+                          if (p.isNotEmpty) photoUrl = p;
+                          break;
                         }
                       }
-                      return Text(nameShown);
-                    },
-                  ),
-                  accountEmail: Text(user?.email ?? ''),
-                  currentAccountPicture: CircleAvatar(
-                    backgroundColor: lightOrange,
-                    child: const Icon(Icons.person, color: Colors.white),
-                  ),
-                  decoration: const BoxDecoration(color: primaryOrange),
+                    }
+
+                    return UserAccountsDrawerHeader(
+                      accountName: Text(nameShown),
+                      accountEmail: Text(user?.email ?? ''),
+                      currentAccountPicture: CircleAvatar(
+                        backgroundColor: lightOrange,
+                        backgroundImage:
+                            photoUrl != null ? NetworkImage(photoUrl) : null,
+                        child: photoUrl == null
+                            ? const Icon(Icons.person, color: Colors.white)
+                            : null,
+                      ),
+                      decoration: const BoxDecoration(color: primaryOrange),
+                    );
+                  },
                 ),
                 Expanded(
                   child: ListView(

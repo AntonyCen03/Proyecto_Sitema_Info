@@ -33,6 +33,7 @@ dependencies:
   #Dependecias de la lista de proyectos
   number_pagination: ^1.1.0
   pie_chart: ^5.4.0
+  http: ^1.6.0
 
 dev_dependencies:
   flutter_test:

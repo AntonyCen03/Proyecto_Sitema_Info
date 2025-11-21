@@ -15,7 +15,8 @@ class AccountMenu extends StatelessWidget {
     return StreamBuilder<User?>(
       stream: AuthService().authStateChanges,
       builder: (context, snapshot) {
-        final bool isLoggedIn = snapshot.data != null;
+        final user = snapshot.data;
+        final bool isLoggedIn = user != null;
 
         // Determinar si es admin (solo si hay sesión)
         final Future<bool> isAdminFut = isLoggedIn
@@ -27,10 +28,39 @@ class AccountMenu extends StatelessWidget {
           builder: (context, snap) {
             final bool isAdmin = snap.data == true;
             return PopupMenuButton<String>(
-              icon: const Icon(
-                Icons.account_circle,
-                color: _primaryOrange,
-                size: 28,
+              icon: FutureBuilder<List<Map<String, dynamic>>>(
+                future: isLoggedIn ? api.getUser(context) : null,
+                builder: (context, userSnap) {
+                  String? photoUrl;
+                  if (isLoggedIn && userSnap.hasData) {
+                    final email = user.email?.trim().toLowerCase();
+                    if (email != null) {
+                      for (final u in userSnap.data!) {
+                        final uEmail =
+                            (u['email'] ?? '').toString().trim().toLowerCase();
+                        if (uEmail == email) {
+                          final p = (u['photo_url'] ?? '').toString().trim();
+                          if (p.isNotEmpty) photoUrl = p;
+                          break;
+                        }
+                      }
+                    }
+                  }
+
+                  if (photoUrl != null) {
+                    return CircleAvatar(
+                      radius: 14,
+                      backgroundImage: NetworkImage(photoUrl),
+                      backgroundColor: Colors.transparent,
+                    );
+                  }
+
+                  return const Icon(
+                    Icons.account_circle,
+                    color: _primaryOrange,
+                    size: 28,
+                  );
+                },
               ),
               offset: const Offset(0, 50),
               itemBuilder: (BuildContext context) {

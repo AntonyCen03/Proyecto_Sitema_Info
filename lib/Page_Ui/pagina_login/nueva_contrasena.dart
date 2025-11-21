@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:proyecto_final/Page_Ui/widgets/metro_app_bar.dart';
 import 'package:proyecto_final/services/auth_service.dart';
 import 'package:proyecto_final/Color/Color.dart';
 import 'package:proyecto_final/Page_Ui/pagina_login/widget_password.dart';
@@ -26,8 +27,8 @@ class _NuevaContrasenaScreenState extends State<NuevaContrasenaScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color.fromRGBO(255, 255, 255, 1),
-      appBar: AppBar(
+      appBar: MetroAppBar(
+        title: 'Cambiar Contraseña',
         leading: IconButton(
           icon: const Icon(
             Icons.arrow_back,
@@ -37,25 +38,7 @@ class _NuevaContrasenaScreenState extends State<NuevaContrasenaScreen> {
               context, '/perfil', (route) => false),
           tooltip: 'Volver',
         ),
-        title: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Image.asset('images/Logo.png', height: 40, width: 40),
-            const SizedBox(width: 10),
-            const Text(
-              "MetroBox",
-              style: TextStyle(
-                color: Color.fromRGBO(240, 83, 43, 1),
-                fontWeight: FontWeight.bold,
-                fontSize: 24,
-              ),
-            ),
-          ],
-        ),
-        backgroundColor: const Color.fromARGB(255, 255, 255, 255),
-        centerTitle: true,
         elevation: 2,
-        shadowColor: Colors.black.withOpacity(0.1),
       ),
       body: Stack(
         children: <Widget>[
