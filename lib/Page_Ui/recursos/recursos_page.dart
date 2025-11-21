@@ -5,6 +5,7 @@ import 'package:proyecto_final/services/firebase_services.dart' as api;
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:proyecto_final/Page_Ui/validator/validar_alfa_num.dart';
 import 'package:proyecto_final/Page_Ui/widgets/custom_message_dialog.dart';
+import 'package:proyecto_final/Page_Ui/recursos/history_dialog.dart';
 
 class RecursosPage extends StatefulWidget {
   const RecursosPage({super.key});
@@ -98,6 +99,11 @@ class _RecursosPageState extends State<RecursosPage> {
                           tooltip: 'Asignar a tarea',
                           icon: const Icon(Icons.assignment_turned_in_outlined),
                           onPressed: () => _showAssignDialog(r),
+                        ),
+                        IconButton(
+                          tooltip: 'Historial de uso',
+                          icon: const Icon(Icons.history),
+                          onPressed: () => showHistoryDialog(context, r),
                         ),
                         if (_isAdmin)
                           IconButton(
