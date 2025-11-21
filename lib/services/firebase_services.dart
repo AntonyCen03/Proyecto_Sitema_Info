@@ -284,6 +284,59 @@ Future<void> deleteProyecto(String docId) async {
     }
   }
 
+  // Borrar mensajes del foro asociados
+  final idProyecto = data['id_proyecto'];
+  if (idProyecto != null) {
+    final foroQuery = await db
+        .collection('foro_mensajes')
+        .where('id_proyecto', isEqualTo: idProyecto)
+        .get();
+    for (final doc in foroQuery.docs) {
+      await doc.reference.delete();
+    }
+  }
+
+  // Devolver recursos materiales y borrar asignaciones
+  final asignacionesSnap =
+      await docRef.collection('asignaciones_recursos').get();
+  final recursosAfectados = <String>{};
+
+  for (final doc in asignacionesSnap.docs) {
+    final dataAsign = doc.data();
+    final recursoId = dataAsign['recurso_id'] as String?;
+    final cantidad = dataAsign['cantidad'];
+    int cantInt = 0;
+    if (cantidad is int) {
+      cantInt = cantidad;
+    } else if (cantidad is String) {
+      cantInt = int.tryParse(cantidad) ?? 0;
+    }
+
+    if (recursoId != null && recursoId.isNotEmpty && cantInt > 0) {
+      recursosAfectados.add(recursoId);
+      // Devolver cantidad al inventario
+      await db.collection('recursos_materiales').doc(recursoId).update({
+        'cantidad_disponible': FieldValue.increment(cantInt),
+        'updated_at': FieldValue.serverTimestamp(),
+      });
+    }
+    // Borrar el registro en el proyecto
+    await doc.reference.delete();
+  }
+
+  // Borrar los registros de asignación dentro de cada recurso material
+  for (final recursoId in recursosAfectados) {
+    final q = await db
+        .collection('recursos_materiales')
+        .doc(recursoId)
+        .collection('asignaciones')
+        .where('proyecto_docId', isEqualTo: docId)
+        .get();
+    for (final d in q.docs) {
+      await d.reference.delete();
+    }
+  }
+
   await docRef.delete();
 }
 

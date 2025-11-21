@@ -104,16 +104,18 @@ class _TareasDialogState extends State<TareasDialog> {
                       ? Text(
                           'Completado por ${nombre}${cedula.isNotEmpty ? " ($cedula)" : ""}${fechaTexto != null ? " el " + fechaTexto : ""}')
                       : null,
-                  onChanged: (val) async {
-                    final nuevo = val ?? false;
-                    await fs.setTareaEstado(
-                      widget.docId,
-                      k,
-                      nuevo,
-                      nombre: nuevo ? (_nombreActual ?? '') : null,
-                      cedula: nuevo ? (_cedulaActual ?? '') : null,
-                    );
-                  },
+                  onChanged: done
+                      ? null
+                      : (val) async {
+                          final nuevo = val ?? false;
+                          await fs.setTareaEstado(
+                            widget.docId,
+                            k,
+                            nuevo,
+                            nombre: nuevo ? (_nombreActual ?? '') : null,
+                            cedula: nuevo ? (_cedulaActual ?? '') : null,
+                          );
+                        },
                 );
               },
             );
