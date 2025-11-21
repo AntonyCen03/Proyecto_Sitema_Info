@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:proyecto_final/services/auth_service.dart';
 import 'package:proyecto_final/Color/Color.dart';
 import 'package:proyecto_final/Page_Ui/pagina_login/widget_password.dart';
+import 'package:proyecto_final/Page_Ui/validator/validar_alfa_num.dart';
 
 class NuevaContrasenaScreen extends StatefulWidget {
   const NuevaContrasenaScreen({super.key});
@@ -171,7 +172,7 @@ class _NuevaContrasenaScreenState extends State<NuevaContrasenaScreen> {
               alignment: Alignment.bottomCenter,
               child: Container(
                 width: double.infinity,
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.all(14),
                 color: Colors.red,
                 child: advertencia,
               ),
@@ -220,6 +221,18 @@ class _NuevaContrasenaScreenState extends State<NuevaContrasenaScreen> {
         advertencia = const Text(
           'No debe de tener espacios.',
           style: TextStyle(fontSize: 24, color: Colors.white),
+        );
+        visibilidadAdvertencia = true;
+      });
+      return;
+    }
+
+    String? errorComplejidad = validarContrasenaCompleja(nueva);
+    if (errorComplejidad != null) {
+      setState(() {
+        advertencia = Text(
+          errorComplejidad,
+          style: const TextStyle(fontSize: 20, color: Colors.white),
         );
         visibilidadAdvertencia = true;
       });

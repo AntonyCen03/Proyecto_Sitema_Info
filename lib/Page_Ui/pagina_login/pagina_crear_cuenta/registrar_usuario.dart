@@ -142,7 +142,7 @@ class _SignUpScreenState extends State<PageSignUp> {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(content: Text('Usuario registrado con éxito')),
             );
-            Navigator.pushNamed(context, '/login');
+            Navigator.pushNamed(context, '/principal');
           }
         } else if (_verificationAttempts >= _maxVerificationAttempts) {
           timer.cancel();
@@ -226,7 +226,7 @@ class _SignUpScreenState extends State<PageSignUp> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Usuario registrado con éxito')),
         );
-        Navigator.pushNamed(context, '/login');
+        Navigator.pushNamed(context, '/principal');
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -322,10 +322,7 @@ class _SignUpScreenState extends State<PageSignUp> {
         ),
       ),
       validator: (value) {
-        if (value == null || value.length < 8) {
-          return 'La contraseña debe tener al menos 8 caracteres';
-        }
-        return null;
+        return validarContrasenaCompleja(value);
       },
     );
   }
@@ -556,7 +553,7 @@ class _SignUpScreenState extends State<PageSignUp> {
                 );
                 if (shouldExit == true) {
                   await _stopVerificationPolling(deleteAccount: true);
-                  if (mounted) Navigator.pushNamed(context, '/login');
+                  if (mounted) Navigator.pushNamed(context, '/principal');
                 }
               } else {
                 Navigator.pushNamed(context, '/login');

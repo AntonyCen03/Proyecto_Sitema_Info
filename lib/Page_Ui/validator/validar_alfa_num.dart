@@ -107,8 +107,8 @@ List<TextInputFormatter> soloNumerosFormatters({int? maxLength}) {
 
 /// Formateadores para permitir números decimales (.,) con 1 separador y opcional límite de longitud y decimales.
 List<TextInputFormatter> soloNumerosDoubleFormatters({
-  int? maxLength,      // longitud total máxima (incluye punto/coma)
-  int? maxDecimals,    // cantidad máxima de decimales
+  int? maxLength, // longitud total máxima (incluye punto/coma)
+  int? maxDecimals, // cantidad máxima de decimales
 }) {
   final list = <TextInputFormatter>[
     _DoubleInputFormatter(maxDecimals: maxDecimals),
@@ -126,7 +126,8 @@ class _DoubleInputFormatter extends TextInputFormatter {
   _DoubleInputFormatter({this.maxDecimals});
 
   @override
-  TextEditingValue formatEditUpdate(TextEditingValue oldValue, TextEditingValue newValue) {
+  TextEditingValue formatEditUpdate(
+      TextEditingValue oldValue, TextEditingValue newValue) {
     String text = newValue.text.replaceAll(',', '.');
 
     // Quitar caracteres no permitidos
@@ -167,7 +168,8 @@ String? validarDouble(
   String campo = 'Este campo',
   int? maxDecimals,
 }) {
-  final raw = (value ?? '').trim().replaceAll('\u0000', '').replaceAll(',', '.');
+  final raw =
+      (value ?? '').trim().replaceAll('\u0000', '').replaceAll(',', '.');
   if (raw.isEmpty) return '$campo es obligatorio';
   if (!RegExp(r'^[0-9]+(\.[0-9]+)?$').hasMatch(raw)) return 'Formato inválido';
   if (maxDecimals != null && maxDecimals >= 0) {
@@ -178,7 +180,6 @@ String? validarDouble(
   }
   return null;
 }
-
 
 /// Valida que el valor no esté vacío, sea numérico y (opcionalmente) respete una longitud máxima.
 String? validarSoloNumeros(
@@ -197,5 +198,32 @@ String? validarSoloNumeros(
   if (minLength != null && minLength > 0 && s.length < minLength) {
     return 'Mínimo $minLength caracteres';
   }
+  return null;
+}
+
+// ==============================
+// Validación de Contraseña Compleja
+// ==============================
+
+/// Valida que la contraseña tenga al menos una letra, un número y un símbolo.
+/// También verifica la longitud mínima (por defecto 8).
+String? validarContrasenaCompleja(String? value, {int minLength = 8}) {
+  final password = value ?? '';
+  if (password.isEmpty) return 'La contraseña es obligatoria';
+  if (password.length < minLength) return 'Mínimo $minLength caracteres';
+
+  // Verificar letra
+  if (!password.contains(RegExp(r'[a-zA-Z]'))) {
+    return 'Debe contener al menos una letra';
+  }
+  // Verificar número
+  if (!password.contains(RegExp(r'[0-9]'))) {
+    return 'Debe contener al menos un número';
+  }
+  // Verificar símbolo (caracteres especiales comunes)
+  if (!password.contains(RegExp(r'[!@#\$%^&*(),.?":{}|<>\-_+=\[\]/\\`~]'))) {
+    return 'Debe contener al menos un símbolo';
+  }
+
   return null;
 }
