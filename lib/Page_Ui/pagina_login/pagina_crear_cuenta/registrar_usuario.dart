@@ -309,7 +309,7 @@ class _SignUpScreenState extends State<PageSignUp> {
         suffixIcon: IconButton(
           icon: Icon(
             _isPasswordVisible ? Icons.visibility : Icons.visibility_off,
-            color: Colors.grey,
+            color: Theme.of(context).iconTheme.color,
           ),
           onPressed: () {
             setState(() {
@@ -354,10 +354,11 @@ class _SignUpScreenState extends State<PageSignUp> {
         Expanded(
           child: GestureDetector(
             onTap: () {},
-            child: const Text.rich(
+            child: Text.rich(
               TextSpan(
                 text: 'Acepto la ',
-                style: TextStyle(color: Colors.black54),
+                style: TextStyle(
+                    color: Theme.of(context).textTheme.bodyMedium?.color),
                 children: [
                   TextSpan(
                     text: 'Política de Privacidad',
@@ -406,7 +407,9 @@ class _SignUpScreenState extends State<PageSignUp> {
             padding: const EdgeInsets.only(bottom: 8.0),
             child: Text(
               'Tiempo restante: ${_formatDuration(_remainingSeconds)}',
-              style: const TextStyle(fontSize: 14, color: Colors.black87),
+              style: TextStyle(
+                  fontSize: 14,
+                  color: Theme.of(context).textTheme.bodyMedium?.color),
             ),
           ),
         const SizedBox(height: 12),
@@ -559,10 +562,8 @@ class _SignUpScreenState extends State<PageSignUp> {
             tooltip: 'Volver',
           ),
           title: 'Registro de Usuario',
-          backgroundColor: Colors.white,
           centerTitle: true,
         ),
-        backgroundColor: Colors.grey[50],
         body: Center(
           child: SingleChildScrollView(
             padding: const EdgeInsets.all(24.0),
@@ -572,11 +573,11 @@ class _SignUpScreenState extends State<PageSignUp> {
                 width: double.infinity,
                 padding: const EdgeInsets.all(30.0),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: Theme.of(context).cardColor,
                   borderRadius: BorderRadius.circular(15.0),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.grey.withOpacity(0.3),
+                      color: Colors.black12,
                       spreadRadius: 3,
                       blurRadius: 10,
                       offset: const Offset(0, 5),

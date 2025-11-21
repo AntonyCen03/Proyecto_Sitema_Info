@@ -39,13 +39,17 @@ class _ForoPageState extends State<ForoPage> {
 
   Widget construirBurbujaMensajeConHora(
       String texto, String nombreUsuario, String hora, bool esPropio) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final sentColor = isDark ? Colors.green.shade900 : const Color(0xFFDCF8C6);
+    final receivedColor = Theme.of(context).cardColor;
+
     return Align(
       alignment: esPropio ? Alignment.centerRight : Alignment.centerLeft,
       child: Container(
         margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
         padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 14),
         decoration: BoxDecoration(
-          color: esPropio ? const Color(0xFFDCF8C6) : Colors.white,
+          color: esPropio ? sentColor : receivedColor,
           borderRadius: BorderRadius.only(
             topLeft: const Radius.circular(12),
             topRight: const Radius.circular(12),
@@ -54,7 +58,7 @@ class _ForoPageState extends State<ForoPage> {
           ),
           boxShadow: [
             BoxShadow(
-              color: Colors.grey.shade300,
+              color: Colors.black12,
               blurRadius: 3,
               offset: const Offset(1, 2),
             ),
@@ -256,7 +260,7 @@ class _ForoPageState extends State<ForoPage> {
         title: (tituloProyecto != null && tituloProyecto.isNotEmpty)
             ? 'Foro: ' + tituloProyecto
             : 'Foro General',
-        backgroundColor: grisClaro,
+        // backgroundColor: grisClaro, // Removed to use Theme
         foregroundColor: primaryOrange,
         onBackPressed: () => Navigator.pushNamedAndRemoveUntil(
             context, '/proyectos_lista', (route) => false),

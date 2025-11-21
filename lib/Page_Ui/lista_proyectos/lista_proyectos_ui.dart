@@ -84,7 +84,6 @@ class ListaProyectosUi extends State<ListaProyectos> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: colorFondo,
       extendBodyBehindAppBar: false,
       appBar: _buildAppBar(context),
       body: Padding(
@@ -111,7 +110,7 @@ class ListaProyectosUi extends State<ListaProyectos> {
       return Container(
         padding: const EdgeInsets.all(24.0),
         decoration: BoxDecoration(
-          color: const Color.fromRGBO(255, 255, 255, 1),
+          color: Theme.of(context).cardColor,
           borderRadius: BorderRadius.circular(16.0),
         ),
         child: Column(
@@ -265,7 +264,7 @@ class ListaProyectosUi extends State<ListaProyectos> {
       label: Text("Crear Proyecto",
           style: TextStyle(color: primaryOrange, fontSize: 14)),
       style: ElevatedButton.styleFrom(
-        backgroundColor: Colors.white,
+        backgroundColor: Theme.of(context).cardColor,
         side: BorderSide(color: primaryOrange, width: 1.5),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(6.0),
@@ -286,7 +285,7 @@ class ListaProyectosUi extends State<ListaProyectos> {
       label:
           Text("Recursos", style: TextStyle(color: primaryBlue, fontSize: 14)),
       style: ElevatedButton.styleFrom(
-        backgroundColor: Colors.white,
+        backgroundColor: Theme.of(context).cardColor,
         side: BorderSide(color: primaryBlue, width: 1.5),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(6.0),

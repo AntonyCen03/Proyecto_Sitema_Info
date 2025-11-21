@@ -20,10 +20,11 @@ class PerfilHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final nameStyle = TextStyle(
       fontSize: 20,
       fontWeight: FontWeight.bold,
-      color: Colors.grey[900],
+      color: isDark ? Colors.white : Colors.grey[900],
     );
     final roleStyle = const TextStyle(
       color: primaryOrange,

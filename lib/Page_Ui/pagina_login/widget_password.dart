@@ -60,7 +60,7 @@ class PasswordFieldState extends State<PasswordField> {
               labelText: widget.labelText,
               hintText: widget.hintText ?? 'Ingrese su contraseña',
               border: OutlineInputBorder(),
-              fillColor: Colors.white,
+              fillColor: Theme.of(context).cardColor,
               filled: true,
               prefixIcon: Icon(Icons.lock),
               contentPadding: EdgeInsets.symmetric(
@@ -93,7 +93,10 @@ Widget olvidasteContrasena(BuildContext context) {
     },
     child: Text(
       "¿Olvidaste tu contraseña?",
-      style: TextStyle(color: Colors.blue),
+      style: TextStyle(
+          color: Theme.of(context).brightness == Brightness.dark
+              ? Colors.blueAccent
+              : Colors.blue),
     ),
   );
 }

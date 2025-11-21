@@ -39,14 +39,20 @@ class SideDrawer extends StatelessWidget {
                       accountName: Text(nameShown),
                       accountEmail: Text(user?.email ?? ''),
                       currentAccountPicture: CircleAvatar(
-                        backgroundColor: lightOrange,
+                        backgroundColor:
+                            Theme.of(context).brightness == Brightness.dark
+                                ? Colors.grey.shade800
+                                : lightOrange,
                         backgroundImage:
                             photoUrl != null ? NetworkImage(photoUrl) : null,
                         child: photoUrl == null
                             ? const Icon(Icons.person, color: Colors.white)
                             : null,
                       ),
-                      decoration: const BoxDecoration(color: primaryOrange),
+                      decoration: BoxDecoration(
+                          color: Theme.of(context).brightness == Brightness.dark
+                              ? Colors.grey.shade900
+                              : primaryOrange),
                     );
                   },
                 ),

@@ -30,7 +30,8 @@ import 'package:proyecto_final/Page_Ui/lista_proyectos/lista_proyectos_ui.dart';
 import 'package:proyecto_final/Page_Ui/pagina_login/login.dart';
 import 'package:proyecto_final/Page_Ui/pagina_login/pagina_crear_cuenta/registrar_usuario.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:proyecto_final/Page_Ui/pagina_login/reset_password/olvidecontrasena.dart';
+import 'package:proyecto_final/Page_Ui/pagina_login/reset_password/olvidecontrasena.dart'
+    hide colorFondo;
 import 'package:proyecto_final/Page_Ui/perfil_usuario/perfil_usuario_new.dart';
 import 'package:proyecto_final/Page_Ui/recursos/recursos_page.dart';
 import 'package:proyecto_final/Page_Ui/widgets/widgets_proteccion.dart';
@@ -45,6 +46,8 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:proyecto_final/Page_Ui/crear_proyecto/page_create_project.dart';
 import 'package:proyecto_final/Page_Ui/pagina_foro/foro.dart';
 import 'package:proyecto_final/Page_Ui/pagina_finanzas/finanzas_page.dart';
+import 'package:proyecto_final/Color/theme_notifier.dart';
+import 'package:proyecto_final/Color/Color.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -58,46 +61,75 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'MetroBox',
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        scaffoldBackgroundColor: const Color.fromARGB(250, 250, 250, 250),
-      ),
-      locale: const Locale('es', 'ES'),
-      supportedLocales: const [
-        Locale('es', 'ES'),
-        Locale('en', 'US'),
-      ],
-      localizationsDelegates: const [
-        GlobalMaterialLocalizations.delegate,
-        GlobalWidgetsLocalizations.delegate,
-        GlobalCupertinoLocalizations.delegate,
-      ],
-      initialRoute: '/principal',
-      routes: {
-        // Rutas públicas (sin autenticación)
-        '/principal': (context) => const PaginaPrincipal(),
-        '/login': (context) => const PageLogin(),
-        '/registrar': (context) => const PageSignUp(),
-        '/reset_password': (context) => const Olvidecontrasena(),
-        // Rutas protegidas: envueltas con RequireAuth
-        '/perfil': (context) => const RequireAuth(child: PerfilUsuarioNew()),
-        '/cambiar_contrasena': (context) => const RequireAuth(child: NuevaContrasenaScreen()),
-        '/dashboard': (context) => const RequireAuth(child: DashboardPage()),
-        '/reportes': (context) => const RequireAuth(child: ReportesPage()),
-        '/calendario': (context) => const RequireAuth(child: CalendarScreen()),
-        '/crear_proyecto': (context) =>
-            const RequireAuth(child: PageCreateProject()),
-        '/foro_page': (context) => const RequireAuth(child: ForoPage()),
-        '/proyectos_lista': (context) =>
-            const RequireAuth(child: ListaProyectos()),
-        '/finanzas_proyecto': (context) =>
-            const RequireAuth(child: FinanzasProyectoPage()),
-        '/recursos': (context) => const RequireAuth(child: RecursosPage()),
+    return ValueListenableBuilder<ThemeMode>(
+      valueListenable: themeNotifier,
+      builder: (context, currentMode, child) {
+        return MaterialApp(
+          title: 'MetroBox',
+          debugShowCheckedModeBanner: false,
+          theme: ThemeData(
+            brightness: Brightness.light,
+            scaffoldBackgroundColor: colorFondo,
+            cardColor: Colors.white,
+            appBarTheme: const AppBarTheme(
+              backgroundColor: colorFondo,
+              foregroundColor: primaryOrange,
+              elevation: 0.5,
+            ),
+          ),
+          darkTheme: ThemeData(
+            brightness: Brightness.dark,
+            scaffoldBackgroundColor: colorFondoOscuro,
+            appBarTheme: const AppBarTheme(
+              backgroundColor: colorFondoOscuro,
+              foregroundColor: Colors.white,
+              elevation: 0,
+            ),
+            colorScheme: const ColorScheme.dark(
+              primary: primaryOrange,
+              surface: colorFondoOscuro,
+              onSurface: Colors.white,
+            ),
+          ),
+          themeMode: currentMode,
+          locale: const Locale('es', 'ES'),
+          supportedLocales: const [
+            Locale('es', 'ES'),
+            Locale('en', 'US'),
+          ],
+          localizationsDelegates: const [
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          initialRoute: '/principal',
+          routes: {
+            // Rutas públicas (sin autenticación)
+            '/principal': (context) => const PaginaPrincipal(),
+            '/login': (context) => const PageLogin(),
+            '/registrar': (context) => const PageSignUp(),
+            '/reset_password': (context) => const Olvidecontrasena(),
+            // Rutas protegidas: envueltas con RequireAuth
+            '/perfil': (context) =>
+                const RequireAuth(child: PerfilUsuarioNew()),
+            '/cambiar_contrasena': (context) =>
+                const RequireAuth(child: NuevaContrasenaScreen()),
+            '/dashboard': (context) =>
+                const RequireAuth(child: DashboardPage()),
+            '/reportes': (context) => const RequireAuth(child: ReportesPage()),
+            '/calendario': (context) =>
+                const RequireAuth(child: CalendarScreen()),
+            '/crear_proyecto': (context) =>
+                const RequireAuth(child: PageCreateProject()),
+            '/foro_page': (context) => const RequireAuth(child: ForoPage()),
+            '/proyectos_lista': (context) =>
+                const RequireAuth(child: ListaProyectos()),
+            '/finanzas_proyecto': (context) =>
+                const RequireAuth(child: FinanzasProyectoPage()),
+            '/recursos': (context) => const RequireAuth(child: RecursosPage()),
+          },
+        );
       },
     );
   }
 }
-
-

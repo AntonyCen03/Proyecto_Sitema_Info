@@ -36,8 +36,12 @@ class MetroAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bg = backgroundColor ?? colorFondo;
-    final fg = foregroundColor ?? primaryOrange;
+    final bg = backgroundColor ??
+        Theme.of(context).appBarTheme.backgroundColor ??
+        colorFondo;
+    final fg = foregroundColor ??
+        Theme.of(context).appBarTheme.foregroundColor ??
+        primaryOrange;
     final Widget? leadingWidget = leading ??
         (onBackPressed != null
             ? IconButton(

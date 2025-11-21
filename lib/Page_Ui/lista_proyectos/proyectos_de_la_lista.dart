@@ -51,7 +51,8 @@ class PLista extends State<ProyectosDeLaLista> {
         margin: const EdgeInsets.only(bottom: 8.0),
         padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 6),
         decoration: BoxDecoration(
-          color: _isHovering ? Colors.grey[200] : Colors.transparent,
+          color:
+              _isHovering ? Theme.of(context).hoverColor : Colors.transparent,
           borderRadius: BorderRadius.circular(8.0),
         ),
         child: LayoutBuilder(
@@ -124,7 +125,11 @@ class PLista extends State<ProyectosDeLaLista> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Icon(Icons.calendar_today, size: 16),
+        Icon(Icons.calendar_today,
+            size: 16,
+            color: Theme.of(context).brightness == Brightness.dark
+                ? Colors.white70
+                : Colors.grey),
         Text('Inicio: ${widget.proyectos['fecha_inicio']}', style: txtStyle),
         Text('Entrega: ${widget.proyectos['fecha_entrega']}', style: txtStyle),
       ],
@@ -161,7 +166,9 @@ class PLista extends State<ProyectosDeLaLista> {
         _iconBtn(
           tooltip: 'Comentarios',
           icon: Icons.chat_bubble_outline,
-          color: Colors.deepPurple,
+          color: Theme.of(context).brightness == Brightness.dark
+              ? Colors.purpleAccent
+              : Colors.deepPurple,
           iconSize: iconSize,
           padding: padding,
           onPressed: () {

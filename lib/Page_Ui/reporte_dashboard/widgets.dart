@@ -198,7 +198,7 @@ class FinanceTotalsCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final fmt = NumberFormat.currency(locale: 'es', symbol: '\$');
     return Card(
-      color: Colors.white,
+      color: Theme.of(context).cardColor,
       elevation: 2,
       child: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -271,7 +271,7 @@ class ProjectStatsCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
-      color: Colors.white,
+      color: Theme.of(context).cardColor,
       elevation: 2,
       child: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -369,7 +369,7 @@ class ProjectStatusPie extends StatelessWidget {
     };
     final colorList = [statusActiveColor, statusCompletedColor];
     return Card(
-      color: Colors.white,
+      color: Theme.of(context).cardColor,
       child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -448,7 +448,7 @@ class TasksTrendCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
-      color: Colors.white,
+      color: Theme.of(context).cardColor,
       child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -583,7 +583,7 @@ class UpcomingDueCompactList extends StatelessWidget {
         .take(maxItems)
         .toList();
     return Card(
-      color: Colors.white,
+      color: Theme.of(context).cardColor,
       child: Padding(
         padding: const EdgeInsets.all(8.0),
         child: Column(
@@ -641,7 +641,7 @@ class VelocityCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
-      color: Colors.white,
+      color: Theme.of(context).cardColor,
       child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(

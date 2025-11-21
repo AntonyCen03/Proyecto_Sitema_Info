@@ -160,11 +160,12 @@ class _ProyectoFinanzasPanelState extends State<ProyectoFinanzasPanel> {
                 ),
               ),
               if (_loading) const SizedBox(width: 12),
-              if (_loading) const SizedBox(
-                width: 20,
-                height: 20,
-                child: CircularProgressIndicator(strokeWidth: 2),
-              ),
+              if (_loading)
+                const SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                ),
             ],
           ),
           const SizedBox(height: 12),
@@ -172,7 +173,9 @@ class _ProyectoFinanzasPanelState extends State<ProyectoFinanzasPanel> {
           // Resumen
           Card(
             elevation: 0,
-            color: Colors.orange.shade50,
+            color: Theme.of(context).brightness == Brightness.dark
+                ? Colors.orange.withOpacity(0.1)
+                : Colors.orange.shade50,
             child: Padding(
               padding: const EdgeInsets.all(12.0),
               child: Column(
@@ -192,12 +195,15 @@ class _ProyectoFinanzasPanelState extends State<ProyectoFinanzasPanel> {
                     children: [
                       _Badge(
                         label: 'Presupuesto',
-                        value: presupuesto != null ? fmt.format(presupuesto) : '—',
+                        value:
+                            presupuesto != null ? fmt.format(presupuesto) : '—',
                       ),
                       _Badge(
                         label: 'Aprobación',
                         value: aprobado ? 'Aprobado' : 'Pendiente',
-                        valueColor: aprobado ? Colors.green.shade700 : Colors.orange.shade700,
+                        valueColor: aprobado
+                            ? Colors.green.shade700
+                            : Colors.orange.shade700,
                       ),
                       _Badge(
                         label: 'Total Gastos',
@@ -208,12 +214,16 @@ class _ProyectoFinanzasPanelState extends State<ProyectoFinanzasPanel> {
                         value: saldo != null ? fmt.format(saldo) : '—',
                         valueColor: (saldo == null)
                             ? null
-                            : (saldo >= 0 ? Colors.green.shade700 : Colors.red.shade700),
+                            : (saldo >= 0
+                                ? Colors.green.shade700
+                                : Colors.red.shade700),
                       ),
                       _Badge(
                         label: 'Estado',
                         value: sobrepasado ? 'Sobrepasado' : 'En límite',
-                        valueColor: sobrepasado ? Colors.red.shade700 : Colors.green.shade700,
+                        valueColor: sobrepasado
+                            ? Colors.red.shade700
+                            : Colors.green.shade700,
                       ),
                     ],
                   ),
@@ -233,21 +243,24 @@ class _ProyectoFinanzasPanelState extends State<ProyectoFinanzasPanel> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('Solicitar / Actualizar presupuesto', style: TextStyle(fontWeight: FontWeight.bold)),
+                    const Text('Solicitar / Actualizar presupuesto',
+                        style: TextStyle(fontWeight: FontWeight.bold)),
                     const SizedBox(height: 8),
                     Row(
                       children: [
                         Expanded(
                           child: TextFormField(
                             controller: _presupuestoCtrl,
-                            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                            keyboardType: const TextInputType.numberWithOptions(
+                                decimal: true),
                             decoration: const InputDecoration(
                               labelText: 'Monto (ej: 1500.00)',
                               prefixIcon: Icon(Icons.monetization_on),
                             ),
                             validator: (v) {
                               final val = _parseDouble(v ?? '');
-                              if (val == null || val <= 0) return 'Monto inválido';
+                              if (val == null || val <= 0)
+                                return 'Monto inválido';
                               return null;
                             },
                           ),
@@ -271,7 +284,8 @@ class _ProyectoFinanzasPanelState extends State<ProyectoFinanzasPanel> {
                         onPressed: _onSolicitarPresupuesto,
                         icon: const Icon(Icons.save),
                         label: const Text('Guardar presupuesto'),
-                        style: ElevatedButton.styleFrom(backgroundColor: primaryOrange),
+                        style: ElevatedButton.styleFrom(
+                            backgroundColor: primaryOrange),
                       ),
                     ),
                   ],
@@ -291,7 +305,8 @@ class _ProyectoFinanzasPanelState extends State<ProyectoFinanzasPanel> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('Registrar gasto', style: TextStyle(fontWeight: FontWeight.bold)),
+                    const Text('Registrar gasto',
+                        style: TextStyle(fontWeight: FontWeight.bold)),
                     if (!aprobado) ...[
                       const SizedBox(height: 6),
                       Row(
@@ -299,7 +314,8 @@ class _ProyectoFinanzasPanelState extends State<ProyectoFinanzasPanel> {
                           Icon(Icons.info_outline, color: Colors.orange),
                           SizedBox(width: 6),
                           Expanded(
-                            child: Text('El presupuesto aún no está aprobado. No se pueden registrar gastos.'),
+                            child: Text(
+                                'El presupuesto aún no está aprobado. No se pueden registrar gastos.'),
                           ),
                         ],
                       ),
@@ -310,7 +326,8 @@ class _ProyectoFinanzasPanelState extends State<ProyectoFinanzasPanel> {
                         Expanded(
                           child: TextFormField(
                             controller: _gastoMontoCtrl,
-                            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                            keyboardType: const TextInputType.numberWithOptions(
+                                decimal: true),
                             decoration: const InputDecoration(
                               labelText: 'Monto (ej: 250.00)',
                               prefixIcon: Icon(Icons.monetization_on_outlined),
@@ -318,7 +335,8 @@ class _ProyectoFinanzasPanelState extends State<ProyectoFinanzasPanel> {
                             readOnly: !aprobado,
                             validator: (v) {
                               final val = _parseDouble(v ?? '');
-                              if (val == null || val <= 0) return 'Monto inválido';
+                              if (val == null || val <= 0)
+                                return 'Monto inválido';
                               return null;
                             },
                           ),
@@ -332,7 +350,9 @@ class _ProyectoFinanzasPanelState extends State<ProyectoFinanzasPanel> {
                               prefixIcon: Icon(Icons.description_outlined),
                             ),
                             readOnly: !aprobado,
-                            validator: (v) => (v == null || v.trim().isEmpty) ? 'Descripción requerida' : null,
+                            validator: (v) => (v == null || v.trim().isEmpty)
+                                ? 'Descripción requerida'
+                                : null,
                           ),
                         ),
                       ],
@@ -344,7 +364,8 @@ class _ProyectoFinanzasPanelState extends State<ProyectoFinanzasPanel> {
                         onPressed: aprobado ? _onRegistrarGasto : null,
                         icon: const Icon(Icons.add_circle_outline),
                         label: const Text('Agregar gasto'),
-                        style: ElevatedButton.styleFrom(backgroundColor: primaryBlue),
+                        style: ElevatedButton.styleFrom(
+                            backgroundColor: primaryBlue),
                       ),
                     ),
                   ],
@@ -362,7 +383,8 @@ class _ProyectoFinanzasPanelState extends State<ProyectoFinanzasPanel> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('Últimos gastos', style: TextStyle(fontWeight: FontWeight.bold)),
+                  const Text('Últimos gastos',
+                      style: TextStyle(fontWeight: FontWeight.bold)),
                   const SizedBox(height: 8),
                   SizedBox(
                     height: 220,
@@ -376,10 +398,12 @@ class _ProyectoFinanzasPanelState extends State<ProyectoFinanzasPanel> {
                           .snapshots(),
                       builder: (context, snap) {
                         if (snap.connectionState == ConnectionState.waiting) {
-                          return const Center(child: CircularProgressIndicator());
+                          return const Center(
+                              child: CircularProgressIndicator());
                         }
                         if (!snap.hasData || snap.data!.docs.isEmpty) {
-                          return const Center(child: Text('Sin gastos registrados'));
+                          return const Center(
+                              child: Text('Sin gastos registrados'));
                         }
                         return ListView.separated(
                           itemCount: snap.data!.docs.length,
@@ -389,21 +413,27 @@ class _ProyectoFinanzasPanelState extends State<ProyectoFinanzasPanel> {
                             final m = d.data();
                             final monto = (m['monto'] is num)
                                 ? (m['monto'] as num).toDouble()
-                                : double.tryParse(m['monto']?.toString() ?? '') ?? 0.0;
+                                : double.tryParse(
+                                        m['monto']?.toString() ?? '') ??
+                                    0.0;
                             final desc = (m['descripcion'] ?? '').toString();
                             DateTime? fecha;
                             final f = m['fecha'];
                             if (f is Timestamp) fecha = f.toDate();
-                            final createdBy = (m['created_by'] ?? '').toString();
+                            final createdBy =
+                                (m['created_by'] ?? '').toString();
                             return ListTile(
                               dense: true,
-                              leading: const Icon(Icons.receipt_long, color: primaryOrange),
+                              leading: const Icon(Icons.receipt_long,
+                                  color: primaryOrange),
                               title: Text(desc),
                               subtitle: Text(
                                 '${fecha != null ? DateFormat('dd/MM/yyyy HH:mm').format(fecha) : ''}'
                                 '${createdBy.isNotEmpty ? '  •  $createdBy' : ''}',
                               ),
-                              trailing: Text(NumberFormat.currency(locale: 'es', symbol: '\$').format(monto)),
+                              trailing: Text(NumberFormat.currency(
+                                      locale: 'es', symbol: '\$')
+                                  .format(monto)),
                             );
                           },
                         );
@@ -428,24 +458,29 @@ class _Badge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
-        color: Colors.grey.shade100,
+        color: isDark ? Colors.grey.shade800 : Colors.grey.shade100,
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.grey.shade300),
+        border: Border.all(
+            color: isDark ? Colors.grey.shade700 : Colors.grey.shade300),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           Text(
             '$label: ',
-            style: TextStyle(color: Colors.grey.shade700, fontWeight: FontWeight.w500),
+            style: TextStyle(
+                color: isDark ? Colors.grey.shade300 : Colors.grey.shade700,
+                fontWeight: FontWeight.w500),
           ),
           Text(
             value,
             style: TextStyle(
-              color: valueColor ?? Colors.grey.shade900,
+              color:
+                  valueColor ?? (isDark ? Colors.white : Colors.grey.shade900),
               fontWeight: FontWeight.bold,
             ),
           ),

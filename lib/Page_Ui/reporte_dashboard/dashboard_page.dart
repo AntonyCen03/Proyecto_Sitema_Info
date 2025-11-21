@@ -193,7 +193,7 @@ class _DashboardPageState extends State<DashboardPage> {
                     style: Theme.of(context).textTheme.titleLarge),
                 const SizedBox(height: 12),
                 Card(
-                  color: Colors.white,
+                  color: Theme.of(context).cardColor,
                   child: Builder(builder: (_) {
                     final filtered =
                         _repo.applyFilter(_cache, _currentFilter());
@@ -219,7 +219,7 @@ class _DashboardPageState extends State<DashboardPage> {
                         final fecha =
                             p.fechaCreacion?.toString().split(' ').first ?? '';
                         return Card(
-                          color: Colors.white,
+                          color: Theme.of(context).cardColor,
                           child: Padding(
                             padding: const EdgeInsets.all(12.0),
                             child: Column(

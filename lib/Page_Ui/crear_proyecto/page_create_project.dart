@@ -374,8 +374,8 @@ class _PageCreateProjectState extends State<PageCreateProject> {
     final selected = _findUserByEmail(correo);
 
     if (selected == null) {
-      showMessageDialog(context,
-          'Seleccione un integrante válido desde el buscador',
+      showMessageDialog(
+          context, 'Seleccione un integrante válido desde el buscador',
           isError: true);
       return;
     }
@@ -652,11 +652,9 @@ class _PageCreateProjectState extends State<PageCreateProject> {
           style: const TextStyle(
               color: primaryOrange, fontWeight: FontWeight.bold),
         ),
-        backgroundColor: Colors.white,
         centerTitle: true,
         iconTheme: const IconThemeData(color: primaryOrange),
       ),
-      backgroundColor: Colors.grey[50],
       body: Center(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(24.0),
@@ -666,7 +664,7 @@ class _PageCreateProjectState extends State<PageCreateProject> {
               width: double.infinity,
               padding: const EdgeInsets.all(30.0),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: Theme.of(context).cardColor,
                 borderRadius: BorderRadius.circular(15.0),
                 boxShadow: [
                   BoxShadow(

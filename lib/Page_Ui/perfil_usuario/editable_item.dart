@@ -99,12 +99,13 @@ class _EditableItemState extends State<EditableItem> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 12.0),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(10.0),
-        border: Border.all(color: Colors.grey.shade200),
+        border: Border.all(color: Theme.of(context).dividerColor),
         boxShadow: [
           BoxShadow(
             color: Colors.black12.withOpacity(0.03),
@@ -129,7 +130,9 @@ class _EditableItemState extends State<EditableItem> {
                 const SizedBox(height: 4),
                 Text(
                   widget.value.isNotEmpty ? widget.value : '-',
-                  style: TextStyle(color: Colors.grey[800], fontSize: 14),
+                  style: TextStyle(
+                      color: isDark ? Colors.white70 : Colors.grey[800],
+                      fontSize: 14),
                 ),
               ],
             ),

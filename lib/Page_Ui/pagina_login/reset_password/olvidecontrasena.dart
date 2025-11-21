@@ -25,25 +25,25 @@ class _OlvidecontrasenaState extends State<Olvidecontrasena> {
 
   void _sendRecoveryCode() {
     final email = _emailController.text.trim();
-    
+
     if (email.isEmpty) {
       showMessageDialog(context, 'Por favor, ingresa tu correo electrónico',
           isError: true);
       return;
     } else {
-      AuthService().sendPasswordReset(email); // Lógica para enviar el enlace de recuperación
+      AuthService().sendPasswordReset(
+          email); // Lógica para enviar el enlace de recuperación
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Enlace de recuperación enviado a $email')),
       );
       Navigator.pushNamed(context, '/login');
       _emailController.clear();
     }
-    
   }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: colorFondo,
       body: SafeArea(
         child: Stack(
           children: [
@@ -55,7 +55,7 @@ class _OlvidecontrasenaState extends State<Olvidecontrasena> {
                   child: Container(
                     padding: const EdgeInsets.all(24.0),
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: Theme.of(context).cardColor,
                       borderRadius: BorderRadius.circular(16.0),
                       boxShadow: [
                         BoxShadow(

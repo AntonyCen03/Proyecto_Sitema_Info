@@ -26,7 +26,6 @@ class _PerfilUsuarioNewState extends State<PerfilUsuarioNew> {
   String uid = '';
   bool _isLoading = true;
 
-
   @override
   void initState() {
     super.initState();
@@ -94,7 +93,6 @@ class _PerfilUsuarioNewState extends State<PerfilUsuarioNew> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: colorFondo,
       appBar: MetroAppBar(
         title: 'Perfil Usuario',
         centerTitle: true,
@@ -125,9 +123,9 @@ class _PerfilUsuarioNewState extends State<PerfilUsuarioNew> {
                   child: Container(
                     width: 720,
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: Theme.of(context).cardColor,
                       borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: Colors.grey.shade200),
+                      border: Border.all(color: Theme.of(context).dividerColor),
                       boxShadow: [
                         BoxShadow(
                           color: Colors.black12.withOpacity(0.03),
@@ -158,7 +156,10 @@ class _PerfilUsuarioNewState extends State<PerfilUsuarioNew> {
                           width: double.infinity,
                           padding: const EdgeInsets.all(12),
                           decoration: BoxDecoration(
-                            color: grisClaro,
+                            color:
+                                Theme.of(context).brightness == Brightness.dark
+                                    ? Colors.black12
+                                    : colorFondo,
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: Column(

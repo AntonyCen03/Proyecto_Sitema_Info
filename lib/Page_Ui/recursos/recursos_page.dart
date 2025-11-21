@@ -77,7 +77,7 @@ class _RecursosPageState extends State<RecursosPage> {
                 final total = (r['cantidad_total'] ?? 0).toString();
                 final disp = (r['cantidad_disponible'] ?? 0).toString();
                 return Card(
-                  color: Colors.white,
+                  color: Theme.of(context).cardColor,
                   child: ListTile(
                     title: Text(nombre,
                         style: const TextStyle(fontWeight: FontWeight.bold)),

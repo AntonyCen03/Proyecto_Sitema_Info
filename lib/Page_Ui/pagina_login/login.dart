@@ -21,75 +21,72 @@ class _PageLoginState extends State<PageLogin> {
     return Scaffold(
       appBar: MetroAppBar(
         leading: IconButton(
-        icon: const Icon(
-          Icons.arrow_back,
-          color: primaryOrange,
+          icon: const Icon(
+            Icons.arrow_back,
+            color: primaryOrange,
+          ),
+          onPressed: () => Navigator.pushNamed(context, '/principal'),
+          tooltip: 'Volver',
         ),
-        onPressed: () => Navigator.pushNamed(context, '/principal'),
-        tooltip: 'Volver',
-        
-      ),
-        title:"Login",
+        title: "Login",
         actions: [
           Padding(
             padding: const EdgeInsets.all(8.0),
             child: Image.asset('assets/images/Logo.png', height: 36, width: 36),
           ),
         ],
-        backgroundColor: Color.fromARGB(255, 255, 255, 255),
         centerTitle: true,
       ),
       body: FutureBuilder(
         future: getUser(context),
         builder: (context, asyncSnapshot) {
           return Center(
-            child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24.0),
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 600.0),
-            child: Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(30.0),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(15.0),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.grey.withOpacity(0.3),
-                    spreadRadius: 3,
-                    blurRadius: 10,
-                    offset: const Offset(0, 5),
-                  ),
-                ],
-              ),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: <Widget>[
-                textBienvenido(),
-                SizedBox(height: 10),
-                imagenUsuario(),
-                SizedBox(height: 20),
-                textoIniciar(),
-                SizedBox(height: 20),
-                UsernameField(controller: _usernameController),
-                SizedBox(height: 10),
-                PasswordField(controller: _passwordController),
-                SizedBox(height: 20),
-                IniciarSesion(
-                  usernameController: _usernameController,
-                  passwordController: _passwordController,
+              child: SingleChildScrollView(
+            padding: const EdgeInsets.all(24.0),
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 600.0),
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(30.0),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).cardColor,
+                  borderRadius: BorderRadius.circular(15.0),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black12,
+                      spreadRadius: 3,
+                      blurRadius: 10,
+                      offset: const Offset(0, 5),
+                    ),
+                  ],
                 ),
-                SizedBox(height: 20),
-                registrarse(context),
-              ],
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: <Widget>[
+                    textBienvenido(),
+                    SizedBox(height: 10),
+                    imagenUsuario(context),
+                    SizedBox(height: 20),
+                    textoIniciar(),
+                    SizedBox(height: 20),
+                    UsernameField(controller: _usernameController),
+                    SizedBox(height: 10),
+                    PasswordField(controller: _passwordController),
+                    SizedBox(height: 20),
+                    IniciarSesion(
+                      usernameController: _usernameController,
+                      passwordController: _passwordController,
+                    ),
+                    SizedBox(height: 20),
+                    registrarse(context),
+                  ],
+                ),
+              ),
             ),
-          ),
-        ),
-      )
-      );
-    },
-  ),
-  );
+          ));
+        },
+      ),
+    );
   }
 }
 
@@ -123,7 +120,7 @@ class UsernameField extends StatelessWidget {
           labelText: "Correo Electrónico",
           hintText: "Ingrese su correo institucional",
           border: OutlineInputBorder(),
-          fillColor: Colors.white,
+          fillColor: Theme.of(context).cardColor,
           filled: true,
           contentPadding: EdgeInsets.symmetric(vertical: 8.0, horizontal: 10.0),
           prefixIcon: Icon(Icons.email),
@@ -133,11 +130,12 @@ class UsernameField extends StatelessWidget {
   }
 }
 
-
-Widget imagenUsuario() {
+Widget imagenUsuario(BuildContext context) {
   return CircleAvatar(
-    radius: 40, 
-    backgroundColor: Colors.grey[200],
+    radius: 40,
+    backgroundColor: Theme.of(context).brightness == Brightness.dark
+        ? Colors.grey[800]
+        : Colors.grey[200],
     backgroundImage: AssetImage('assets/images/user.jpg'),
     child: ClipOval(
       child: Image.asset(
@@ -157,11 +155,9 @@ Widget registrarse(BuildContext context) {
     onPressed: () {
       Navigator.pushNamed(context, '/registrar');
     },
-    child: Text("Registrarse", style: TextStyle(color: Colors.blue)),
+    child: Text("Registrarse", style: TextStyle(color: primaryBlue)),
   );
 }
-
-
 
 Widget textoIniciar() {
   return Text(
@@ -178,7 +174,7 @@ Widget textBienvenido() {
   return Text(
     'Bienvenido a MetroBox',
     style: TextStyle(
-      color:primaryOrange,
+      color: primaryOrange,
       fontSize: 20,
       fontWeight: FontWeight.bold,
     ),

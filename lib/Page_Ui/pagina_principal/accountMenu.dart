@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:proyecto_final/services/auth_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:proyecto_final/services/firebase_services.dart' as api;
+import 'package:proyecto_final/Color/theme_notifier.dart';
 
 // Paleta de colores consistente
 const Color _primaryOrange = Color(0xFFF57C00);
@@ -140,6 +141,26 @@ class AccountMenu extends StatelessWidget {
                     ),
                   );
                 }
+                items.add(
+                  PopupMenuItem<String>(
+                    enabled: false, // No seleccionable, actúa como toggle
+                    child: ValueListenableBuilder<ThemeMode>(
+                      valueListenable: themeNotifier,
+                      builder: (context, mode, _) {
+                        final isDark = mode == ThemeMode.dark;
+                        return SwitchListTile(
+                          title: const Text('Modo Oscuro'),
+                          value: isDark,
+                          activeColor: _primaryOrange,
+                          onChanged: (val) {
+                            themeNotifier.toggleTheme();
+                            Navigator.pop(context); // Cerrar menú al cambiar
+                          },
+                        );
+                      },
+                    ),
+                  ),
+                );
                 return items;
               },
               onSelected: (String value) async {

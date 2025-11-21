@@ -51,7 +51,9 @@ class GPizza extends State<GraficoPizza> {
             chartRadius: _size * 0.85,
             chartLegendSpacing: 0,
             chartType: ChartType.ring,
-            baseChartColor: Colors.grey.shade300,
+            baseChartColor: Theme.of(context).brightness == Brightness.dark
+                ? Colors.grey.shade800
+                : Colors.grey.shade300,
             ringStrokeWidth: 6,
             animationDuration: Duration.zero,
             gradientList: co,
@@ -61,8 +63,12 @@ class GPizza extends State<GraficoPizza> {
             ),
             centerText: '${percent.toStringAsFixed(0)}%',
             centerTextStyle: TextStyle(
-                fontSize: (_size * 0.18).clamp(8, 14).toDouble(),
-                fontWeight: FontWeight.bold),
+              fontSize: (_size * 0.18).clamp(8, 14).toDouble(),
+              fontWeight: FontWeight.bold,
+              color: Theme.of(context).brightness == Brightness.dark
+                  ? Colors.white
+                  : Colors.black,
+            ),
             totalValue: 100,
           ),
         ),

@@ -194,8 +194,9 @@ class _GestionaProyectosSectionState extends State<_GestionaProyectosSection>
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
-      color: grisClaro,
+      color: isDark ? Theme.of(context).scaffoldBackgroundColor : colorFondo,
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 100),
       child: LayoutBuilder(
@@ -450,8 +451,12 @@ class _FeaturesSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final bgColor = isDark ? Theme.of(context).cardColor : Colors.white;
+    final titleColor = isDark ? Colors.white : colorFondoMasOscuro;
+
     return Container(
-      color: Colors.white,
+      color: bgColor,
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 100),
       child: Column(
@@ -460,7 +465,7 @@ class _FeaturesSection extends StatelessWidget {
             'Control total. Diseño simple.',
             textAlign: TextAlign.center,
             style: TextStyle(
-              color: colorFondoMasOscuro,
+              color: titleColor,
               fontSize: 38,
               fontWeight: FontWeight.w700,
               height: 1.2,
@@ -510,6 +515,10 @@ class _FeatureItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final titleColor = isDark ? Colors.white : colorFondoMasOscuro;
+    final descColor = isDark ? Colors.white70 : colorTextoSecundario;
+
     return Container(
       width: 300,
       child: Column(
@@ -524,7 +533,7 @@ class _FeatureItem extends StatelessWidget {
           Text(
             feature.title,
             style: TextStyle(
-              color: colorFondoMasOscuro,
+              color: titleColor,
               fontSize: 22,
               fontWeight: FontWeight.w600,
             ),
@@ -533,7 +542,7 @@ class _FeatureItem extends StatelessWidget {
           Text(
             feature.description,
             style: TextStyle(
-              color: colorTextoSecundario,
+              color: descColor,
               fontSize: 16,
               fontWeight: FontWeight.w400,
               height: 1.5,
@@ -748,7 +757,7 @@ class _FooterSection extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 50),
       color: colorFondoCtaFinal,
       child: Text(
-        '© 2024 MetroBox. Todos los derechos reservados.',
+        '© 2025 MetroBox. Todos los derechos reservados.',
         textAlign: TextAlign.center,
         style: TextStyle(
           color: colorTextoOscuro.withOpacity(0.5),
